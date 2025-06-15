@@ -1,0 +1,599 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		D5F61E0B2DFE70FB00C8C1E9 /* ViewInspector in Frameworks */ = {isa = PBXBuildFile; productRef = D5F61E0A2DFE70FB00C8C1E9 /* ViewInspector */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		D5F61D7F2DFE693E00C8C1E9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D5F61D642DFE693C00C8C1E9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D5F61D6B2DFE693C00C8C1E9;
+			remoteInfo = OtetsudaiCoin;
+		};
+		D5F61D892DFE693E00C8C1E9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D5F61D642DFE693C00C8C1E9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D5F61D6B2DFE693C00C8C1E9;
+			remoteInfo = OtetsudaiCoin;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		D5F61D6C2DFE693C00C8C1E9 /* OtetsudaiCoin.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OtetsudaiCoin.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D5F61D7E2DFE693E00C8C1E9 /* OtetsudaiCoinTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = OtetsudaiCoinTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		D5F61D882DFE693E00C8C1E9 /* OtetsudaiCoinUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = OtetsudaiCoinUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		D5F61D6E2DFE693C00C8C1E9 /* OtetsudaiCoin */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = OtetsudaiCoin;
+			sourceTree = "<group>";
+		};
+		D5F61D812DFE693E00C8C1E9 /* OtetsudaiCoinTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = OtetsudaiCoinTests;
+			sourceTree = "<group>";
+		};
+		D5F61D8B2DFE693E00C8C1E9 /* OtetsudaiCoinUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = OtetsudaiCoinUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		D5F61D692DFE693C00C8C1E9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D5F61D7B2DFE693E00C8C1E9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D5F61E0B2DFE70FB00C8C1E9 /* ViewInspector in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D5F61D852DFE693E00C8C1E9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		D5F61D632DFE693C00C8C1E9 = {
+			isa = PBXGroup;
+			children = (
+				D5F61D6E2DFE693C00C8C1E9 /* OtetsudaiCoin */,
+				D5F61D812DFE693E00C8C1E9 /* OtetsudaiCoinTests */,
+				D5F61D8B2DFE693E00C8C1E9 /* OtetsudaiCoinUITests */,
+				D5F61E092DFE70FB00C8C1E9 /* Frameworks */,
+				D5F61D6D2DFE693C00C8C1E9 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		D5F61D6D2DFE693C00C8C1E9 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D5F61D6C2DFE693C00C8C1E9 /* OtetsudaiCoin.app */,
+				D5F61D7E2DFE693E00C8C1E9 /* OtetsudaiCoinTests.xctest */,
+				D5F61D882DFE693E00C8C1E9 /* OtetsudaiCoinUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		D5F61E092DFE70FB00C8C1E9 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		D5F61D6B2DFE693C00C8C1E9 /* OtetsudaiCoin */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D5F61D922DFE693E00C8C1E9 /* Build configuration list for PBXNativeTarget "OtetsudaiCoin" */;
+			buildPhases = (
+				D5F61D682DFE693C00C8C1E9 /* Sources */,
+				D5F61D692DFE693C00C8C1E9 /* Frameworks */,
+				D5F61D6A2DFE693C00C8C1E9 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				D5F61D6E2DFE693C00C8C1E9 /* OtetsudaiCoin */,
+			);
+			name = OtetsudaiCoin;
+			packageProductDependencies = (
+			);
+			productName = OtetsudaiCoin;
+			productReference = D5F61D6C2DFE693C00C8C1E9 /* OtetsudaiCoin.app */;
+			productType = "com.apple.product-type.application";
+		};
+		D5F61D7D2DFE693E00C8C1E9 /* OtetsudaiCoinTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D5F61D952DFE693E00C8C1E9 /* Build configuration list for PBXNativeTarget "OtetsudaiCoinTests" */;
+			buildPhases = (
+				D5F61D7A2DFE693E00C8C1E9 /* Sources */,
+				D5F61D7B2DFE693E00C8C1E9 /* Frameworks */,
+				D5F61D7C2DFE693E00C8C1E9 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D5F61D802DFE693E00C8C1E9 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				D5F61D812DFE693E00C8C1E9 /* OtetsudaiCoinTests */,
+			);
+			name = OtetsudaiCoinTests;
+			packageProductDependencies = (
+				D5F61E0A2DFE70FB00C8C1E9 /* ViewInspector */,
+			);
+			productName = OtetsudaiCoinTests;
+			productReference = D5F61D7E2DFE693E00C8C1E9 /* OtetsudaiCoinTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		D5F61D872DFE693E00C8C1E9 /* OtetsudaiCoinUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D5F61D982DFE693E00C8C1E9 /* Build configuration list for PBXNativeTarget "OtetsudaiCoinUITests" */;
+			buildPhases = (
+				D5F61D842DFE693E00C8C1E9 /* Sources */,
+				D5F61D852DFE693E00C8C1E9 /* Frameworks */,
+				D5F61D862DFE693E00C8C1E9 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D5F61D8A2DFE693E00C8C1E9 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				D5F61D8B2DFE693E00C8C1E9 /* OtetsudaiCoinUITests */,
+			);
+			name = OtetsudaiCoinUITests;
+			packageProductDependencies = (
+			);
+			productName = OtetsudaiCoinUITests;
+			productReference = D5F61D882DFE693E00C8C1E9 /* OtetsudaiCoinUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		D5F61D642DFE693C00C8C1E9 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1640;
+				LastUpgradeCheck = 1640;
+				TargetAttributes = {
+					D5F61D6B2DFE693C00C8C1E9 = {
+						CreatedOnToolsVersion = 16.4;
+					};
+					D5F61D7D2DFE693E00C8C1E9 = {
+						CreatedOnToolsVersion = 16.4;
+						TestTargetID = D5F61D6B2DFE693C00C8C1E9;
+					};
+					D5F61D872DFE693E00C8C1E9 = {
+						CreatedOnToolsVersion = 16.4;
+						TestTargetID = D5F61D6B2DFE693C00C8C1E9;
+					};
+				};
+			};
+			buildConfigurationList = D5F61D672DFE693C00C8C1E9 /* Build configuration list for PBXProject "OtetsudaiCoin" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = D5F61D632DFE693C00C8C1E9;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				D5F61E082DFE70DE00C8C1E9 /* XCRemoteSwiftPackageReference "ViewInspector" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = D5F61D6D2DFE693C00C8C1E9 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				D5F61D6B2DFE693C00C8C1E9 /* OtetsudaiCoin */,
+				D5F61D7D2DFE693E00C8C1E9 /* OtetsudaiCoinTests */,
+				D5F61D872DFE693E00C8C1E9 /* OtetsudaiCoinUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		D5F61D6A2DFE693C00C8C1E9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D5F61D7C2DFE693E00C8C1E9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D5F61D862DFE693E00C8C1E9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		D5F61D682DFE693C00C8C1E9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D5F61D7A2DFE693E00C8C1E9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D5F61D842DFE693E00C8C1E9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		D5F61D802DFE693E00C8C1E9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D5F61D6B2DFE693C00C8C1E9 /* OtetsudaiCoin */;
+			targetProxy = D5F61D7F2DFE693E00C8C1E9 /* PBXContainerItemProxy */;
+		};
+		D5F61D8A2DFE693E00C8C1E9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D5F61D6B2DFE693C00C8C1E9 /* OtetsudaiCoin */;
+			targetProxy = D5F61D892DFE693E00C8C1E9 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		D5F61D902DFE693E00C8C1E9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = UUD4WPFJTD;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		D5F61D912DFE693E00C8C1E9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = UUD4WPFJTD;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		D5F61D932DFE693E00C8C1E9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = UUD4WPFJTD;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.asapapalab.OtetsudaiCoin;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		D5F61D942DFE693E00C8C1E9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = UUD4WPFJTD;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.asapapalab.OtetsudaiCoin;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		D5F61D962DFE693E00C8C1E9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = UUD4WPFJTD;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.asapapalab.OtetsudaiCoinTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/OtetsudaiCoin.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/OtetsudaiCoin";
+			};
+			name = Debug;
+		};
+		D5F61D972DFE693E00C8C1E9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = UUD4WPFJTD;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.asapapalab.OtetsudaiCoinTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/OtetsudaiCoin.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/OtetsudaiCoin";
+			};
+			name = Release;
+		};
+		D5F61D992DFE693E00C8C1E9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = UUD4WPFJTD;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.asapapalab.OtetsudaiCoinUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = OtetsudaiCoin;
+			};
+			name = Debug;
+		};
+		D5F61D9A2DFE693E00C8C1E9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = UUD4WPFJTD;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.asapapalab.OtetsudaiCoinUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = OtetsudaiCoin;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		D5F61D672DFE693C00C8C1E9 /* Build configuration list for PBXProject "OtetsudaiCoin" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D5F61D902DFE693E00C8C1E9 /* Debug */,
+				D5F61D912DFE693E00C8C1E9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D5F61D922DFE693E00C8C1E9 /* Build configuration list for PBXNativeTarget "OtetsudaiCoin" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D5F61D932DFE693E00C8C1E9 /* Debug */,
+				D5F61D942DFE693E00C8C1E9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D5F61D952DFE693E00C8C1E9 /* Build configuration list for PBXNativeTarget "OtetsudaiCoinTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D5F61D962DFE693E00C8C1E9 /* Debug */,
+				D5F61D972DFE693E00C8C1E9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D5F61D982DFE693E00C8C1E9 /* Build configuration list for PBXNativeTarget "OtetsudaiCoinUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D5F61D992DFE693E00C8C1E9 /* Debug */,
+				D5F61D9A2DFE693E00C8C1E9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		D5F61E082DFE70DE00C8C1E9 /* XCRemoteSwiftPackageReference "ViewInspector" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/nalexn/ViewInspector";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.10.2;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		D5F61E0A2DFE70FB00C8C1E9 /* ViewInspector */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D5F61E082DFE70DE00C8C1E9 /* XCRemoteSwiftPackageReference "ViewInspector" */;
+			productName = ViewInspector;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = D5F61D642DFE693C00C8C1E9 /* Project object */;
+}
