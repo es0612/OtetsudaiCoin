@@ -80,7 +80,7 @@ struct RecordView: View {
     
     private var childSelectionView: some View {
         VStack(alignment: .leading) {
-            Text("お子様を選択")
+            Text("お手伝いする人を選んでください")
                 .font(.headline)
                 .padding(.horizontal)
             
@@ -118,6 +118,7 @@ struct RecordView: View {
                                         .foregroundColor(.primary)
                                 }
                             }
+                            .accessibilityIdentifier("child_button")
                             .buttonStyle(PlainButtonStyle())
                         }
                     }
@@ -130,7 +131,7 @@ struct RecordView: View {
     
     private var taskListView: some View {
         VStack(alignment: .leading) {
-            Text("お手伝いタスクを選択")
+            Text("今日のお手伝い")
                 .font(.headline)
                 .padding(.horizontal)
             
@@ -165,6 +166,7 @@ struct RecordView: View {
                         .padding(.vertical, 8)
                     }
                     .buttonStyle(PlainButtonStyle())
+                    .accessibilityIdentifier("task_button")
                 }
                 .listStyle(PlainListStyle())
                 .frame(maxHeight: 200)
@@ -188,6 +190,7 @@ struct RecordView: View {
                 .cornerRadius(12)
         }
         .disabled(viewModel.selectedChild == nil || viewModel.selectedTask == nil)
+        .accessibilityIdentifier("record_button")
     }
 }
 
