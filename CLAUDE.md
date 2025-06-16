@@ -19,14 +19,20 @@ xcodebuild -project app/OtetsudaiCoin.xcodeproj -scheme OtetsudaiCoin -destinati
 
 ### テスト実行
 ```bash
+# シミュレータ事前起動（テスト実行時間短縮のため）
+./scripts/prepare-simulator.sh -s "iPhone 16" -v
+
 # 全テスト実行
-xcodebuild test -project app/OtetsudaiCoin.xcodeproj -scheme OtetsudaiCoin -destination 'platform=iOS Simulator,name=iPhone 15'
+xcodebuild test -project app/OtetsudaiCoin.xcodeproj -scheme OtetsudaiCoin -destination 'platform=iOS Simulator,name=iPhone 16'
 
 # 特定のテストクラス実行
-xcodebuild test -project app/OtetsudaiCoin.xcodeproj -scheme OtetsudaiCoin -destination 'platform=iOS Simulator,name=iPhone 15' -only-testing:OtetsudaiCoinTests/OtetsudaiCoinTests
+xcodebuild test -project app/OtetsudaiCoin.xcodeproj -scheme OtetsudaiCoin -destination 'platform=iOS Simulator,name=iPhone 16' -only-testing:OtetsudaiCoinTests/AllowanceCalculatorTests
 
 # 特定のテストメソッド実行  
-xcodebuild test -project app/OtetsudaiCoin.xcodeproj -scheme OtetsudaiCoin -destination 'platform=iOS Simulator,name=iPhone 15' -only-testing:OtetsudaiCoinTests/OtetsudaiCoinTests/testExample
+xcodebuild test -project app/OtetsudaiCoin.xcodeproj -scheme OtetsudaiCoin -destination 'platform=iOS Simulator,name=iPhone 16' -only-testing:OtetsudaiCoinTests/CoinAnimationViewTests/testCoinAnimationViewDisplaysCoin
+
+# テスト実行時間ベンチマーク
+./scripts/benchmark-tests.sh
 ```
 
 ## アーキテクチャ

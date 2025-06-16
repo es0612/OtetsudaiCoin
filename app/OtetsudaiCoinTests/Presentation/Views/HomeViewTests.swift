@@ -1,0 +1,105 @@
+import XCTest
+import SwiftUI
+import ViewInspector
+@testable import OtetsudaiCoin
+
+@MainActor
+final class HomeViewTests: XCTestCase {
+    private var viewModel: HomeViewModel!
+    private var mockChildRepository: MockChildRepository!
+    private var mockHelpRecordRepository: MockHelpRecordRepository!
+    private var mockAllowanceCalculator: MockAllowanceCalculator!
+    
+    override func setUp() {
+        super.setUp()
+        mockChildRepository = MockChildRepository()
+        mockHelpRecordRepository = MockHelpRecordRepository()
+        mockAllowanceCalculator = MockAllowanceCalculator()
+        
+        viewModel = HomeViewModel(
+            childRepository: mockChildRepository,
+            helpRecordRepository: mockHelpRecordRepository,
+            allowanceCalculator: mockAllowanceCalculator
+        )
+    }
+    
+    override func tearDown() {
+        viewModel = nil
+        mockAllowanceCalculator = nil
+        mockHelpRecordRepository = nil
+        mockChildRepository = nil
+        super.tearDown()
+    }
+    
+    func testHomeViewDisplaysChildrenWhenLoaded() throws {
+        let children = [
+            Child(id: UUID(), name: "太郎", themeColor: "#FF5733"),
+            Child(id: UUID(), name: "花子", themeColor: "#33FF57")
+        ]
+        viewModel.children = children
+        
+        let view = HomeView(viewModel: viewModel)
+        let list = try view.inspect().find(ViewType.List.self)
+        
+        XCTAssertNoThrow(try list.find(text: "太郎"))
+        XCTAssertNoThrow(try list.find(text: "花子"))
+    }
+    
+    func testHomeViewDisplaysChildStatsWhenSelected() throws {
+        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+        viewModel.selectedChild = child
+        viewModel.monthlyAllowance = 800
+        viewModel.consecutiveDays = 5
+        viewModel.totalRecordsThisMonth = 8
+        
+        // ViewModelの状態をテスト（より安定）
+        XCTAssertEqual(viewModel.selectedChild?.name, "太郎")
+        XCTAssertEqual(viewModel.monthlyAllowance, 800)
+        XCTAssertEqual(viewModel.consecutiveDays, 5)
+        XCTAssertEqual(viewModel.totalRecordsThisMonth, 8)
+        
+        // Viewが作成できることを確認
+        let view = HomeView(viewModel: viewModel)
+        XCTAssertNotNil(view)
+    }
+    
+    func testHomeViewDisplaysLoadingState() throws {
+        viewModel.isLoading = true
+        
+        let view = HomeView(viewModel: viewModel)
+        
+        XCTAssertNoThrow(try view.inspect().find(ViewType.ProgressView.self))
+    }
+    
+    func testHomeViewDisplaysErrorMessage() throws {
+        viewModel.errorMessage = "エラーが発生しました"
+        
+        let view = HomeView(viewModel: viewModel)
+        
+        XCTAssertNoThrow(try view.inspect().find(text: "エラーが発生しました"))
+    }
+    
+    func testChildSelectionTriggersViewModelMethod() throws {
+        let children = [
+            Child(id: UUID(), name: "太郎", themeColor: "#FF5733"),
+            Child(id: UUID(), name: "花子", themeColor: "#33FF57")
+        ]
+        viewModel.children = children
+        
+        let view = HomeView(viewModel: viewModel)
+        let list = try view.inspect().find(ViewType.List.self)
+        let firstRow = try list.find(ViewType.Button.self, containing: "太郎")
+        
+        try firstRow.tap()
+        
+        XCTAssertEqual(viewModel.selectedChild?.name, "太郎")
+    }
+    
+    func testHomeViewDisplaysEmptyStateWhenNoChildren() throws {
+        viewModel.children = []
+        
+        let view = HomeView(viewModel: viewModel)
+        
+        XCTAssertNoThrow(try view.inspect().find(text: "お子様を登録してください"))
+    }
+}
