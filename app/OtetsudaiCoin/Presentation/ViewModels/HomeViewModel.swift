@@ -14,6 +14,7 @@ class HomeViewModel: ObservableObject {
     private let childRepository: ChildRepository
     private let helpRecordRepository: HelpRecordRepository
     private let allowanceCalculator: AllowanceCalculator
+    private var cancellables: Set<AnyCancellable> = []
     
     init(
         childRepository: ChildRepository,
@@ -23,6 +24,16 @@ class HomeViewModel: ObservableObject {
         self.childRepository = childRepository
         self.helpRecordRepository = helpRecordRepository
         self.allowanceCalculator = allowanceCalculator
+        
+        // SwiftUIの宣言的な仕組み：NotificationCenterでデータ更新を自動監視
+        NotificationCenter.default
+            .publisher(for: .helpRecordUpdated)
+            .sink { [weak self] _ in
+                Task { @MainActor in
+                    self?.refreshData()
+                }
+            }
+            .store(in: &cancellables)
     }
     
     func loadChildren() {
@@ -56,7 +67,7 @@ class HomeViewModel: ObservableObject {
             do {
                 let records = try await helpRecordRepository.findByChildIdInCurrentMonth(child.id)
                 
-                monthlyAllowance = allowanceCalculator.calculateMonthlyAllowance(records: records)
+                monthlyAllowance = allowanceCalculator.calculateMonthlyAllowance(records: records, child: child)
                 consecutiveDays = allowanceCalculator.calculateConsecutiveDays(records: records)
                 totalRecordsThisMonth = records.count
                 

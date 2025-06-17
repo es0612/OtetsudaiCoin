@@ -13,6 +13,7 @@ class CoreDataChildRepository: ChildRepository {
         cdChild.id = child.id
         cdChild.name = child.name
         cdChild.themeColor = child.themeColor
+        cdChild.coinRate = Int32(child.coinRate)
         
         try context.save()
     }
@@ -53,6 +54,7 @@ class CoreDataChildRepository: ChildRepository {
         if let cdChild = results.first {
             cdChild.name = child.name
             cdChild.themeColor = child.themeColor
+            cdChild.coinRate = Int32(child.coinRate)
             try context.save()
         }
     }
@@ -66,6 +68,6 @@ extension CDChild {
             return nil
         }
         
-        return Child(id: id, name: name, themeColor: themeColor)
+        return Child(id: id, name: name, themeColor: themeColor, coinRate: Int(self.coinRate))
     }
 }

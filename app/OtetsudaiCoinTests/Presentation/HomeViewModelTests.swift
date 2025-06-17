@@ -132,69 +132,6 @@ final class HomeViewModelTests: XCTestCase {
 
 // MARK: - Mock Classes
 
-class MockChildRepository: ChildRepository {
-    var children: [Child] = []
-    var shouldThrowError = false
-    
-    func save(_ child: Child) async throws {
-        children.append(child)
-    }
-    
-    func findById(_ id: UUID) async throws -> Child? {
-        return children.first { $0.id == id }
-    }
-    
-    func findAll() async throws -> [Child] {
-        if shouldThrowError {
-            throw NSError(domain: "TestError", code: 1, userInfo: nil)
-        }
-        return children
-    }
-    
-    func delete(_ id: UUID) async throws {
-        children.removeAll { $0.id == id }
-    }
-    
-    func update(_ child: Child) async throws {
-        if let index = children.firstIndex(where: { $0.id == child.id }) {
-            children[index] = child
-        }
-    }
-}
-
-class MockHelpRecordRepository: HelpRecordRepository {
-    var records: [HelpRecord] = []
-    var shouldThrowError = false
-    
-    func save(_ helpRecord: HelpRecord) async throws {
-        if shouldThrowError {
-            throw NSError(domain: "TestError", code: 1, userInfo: nil)
-        }
-        records.append(helpRecord)
-    }
-    
-    func findById(_ id: UUID) async throws -> HelpRecord? {
-        return records.first { $0.id == id }
-    }
-    
-    func findAll() async throws -> [HelpRecord] {
-        return records
-    }
-    
-    func findByChildId(_ childId: UUID) async throws -> [HelpRecord] {
-        return records.filter { $0.childId == childId }
-    }
-    
-    func findByChildIdInCurrentMonth(_ childId: UUID) async throws -> [HelpRecord] {
-        let filteredRecords = records.filter { $0.childId == childId }
-        return filteredRecords.filter { $0.isInCurrentMonth() }
-    }
-    
-    func delete(_ id: UUID) async throws {
-        records.removeAll { $0.id == id }
-    }
-}
-
 class MockAllowanceCalculator: AllowanceCalculator {
     var monthlyAllowance: Int = 0
     var consecutiveDays: Int = 0

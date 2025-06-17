@@ -1,6 +1,10 @@
 import Foundation
 import Combine
 
+extension Notification.Name {
+    static let helpRecordUpdated = Notification.Name("helpRecordUpdated")
+}
+
 @MainActor
 class RecordViewModel: ObservableObject {
     @Published var availableChildren: [Child] = []
@@ -101,6 +105,9 @@ class RecordViewModel: ObservableObject {
                     // 効果音エラーの場合はエラー音を再生
                     try? soundService.playErrorSound()
                 }
+                
+                // SwiftUIの宣言的な仕組み：データ更新の通知
+                NotificationCenter.default.post(name: .helpRecordUpdated, object: nil)
                 
                 successMessage = "お手伝いを記録しました！"
                 selectedTask = nil

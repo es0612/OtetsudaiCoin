@@ -1,112 +1,137 @@
 #!/bin/bash
 
 # テスト実行時間ベンチマークスクリプト
-# シミュレータ事前起動の効果測定用
+# シミュレータ事前起動の効果を測定
 
-set -e
+set -euo pipefail
 
-# カラー出力用の定数
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+# 設定
+SIMULATOR_NAME="iPhone 16"
+PROJECT_PATH="/Users/shinya/workspace/claude/OtetsudaiCoin/app/OtetsudaiCoin.xcodeproj"
+SCHEME="OtetsudaiCoin"
+TEST_TARGET="OtetsudaiCoinTests/AllowanceCalculatorTests"
+BENCHMARK_ITERATIONS=3
 
-# ログ関数
+# カラー出力関数
 log_info() {
-    echo -e "${BLUE}[INFO]${NC} $1"
+    echo -e "\033[0;34m[INFO]\033[0m $1"
 }
 
 log_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1"
+    echo -e "\033[0;32m[SUCCESS]\033[0m $1"
 }
 
 log_warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $1"
+    echo -e "\033[1;33m[WARNING]\033[0m $1"
 }
 
 log_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
+    echo -e "\033[0;31m[ERROR]\033[0m $1"
 }
 
-# テスト実行関数
-run_test_benchmark() {
-    local test_name="$1"
-    local test_target="$2"
+# シミュレータをシャットダウン
+shutdown_simulator() {
+    log_info "シミュレータをシャットダウン中..."
+    xcrun simctl shutdown all 2>/dev/null || true
+    sleep 3
+}
+
+# テスト実行時間を測定
+measure_test_time() {
+    local description="$1"
+    local warm_start="$2"
     
-    log_info "テスト実行: $test_name"
+    log_info "=== $description ==="
     
-    local start_time=$(date +%s.%N)
+    local total_time=0
+    local times=()
     
-    if xcodebuild test \
-        -project app/OtetsudaiCoin.xcodeproj \
-        -scheme OtetsudaiCoin \
-        -destination 'platform=iOS Simulator,name=iPhone 16' \
-        -only-testing:"$test_target" \
-        > /dev/null 2>&1; then
+    for i in $(seq 1 $BENCHMARK_ITERATIONS); do
+        log_info "実行 $i/$BENCHMARK_ITERATIONS..."
+        
+        # クリーンスレート: シミュレータをシャットダウン
+        if [ "$warm_start" = "false" ]; then
+            shutdown_simulator
+        fi
+        
+        # シミュレータ事前起動（warm start の場合）
+        if [ "$warm_start" = "true" ]; then
+            ./prepare-simulator.sh -s "$SIMULATOR_NAME" >/dev/null 2>&1 || true
+        fi
+        
+        # テスト実行時間を測定
+        local start_time=$(date +%s.%N)
+        
+        xcodebuild test \
+            -project "$PROJECT_PATH" \
+            -scheme "$SCHEME" \
+            -destination "platform=iOS Simulator,name=$SIMULATOR_NAME" \
+            -only-testing:"$TEST_TARGET" \
+            >/dev/null 2>&1
         
         local end_time=$(date +%s.%N)
-        local duration=$(echo "$end_time - $start_time" | bc)
+        local execution_time=$(echo "$end_time - $start_time" | bc)
         
-        log_success "テスト完了: ${duration}秒"
-        echo "$duration"
-    else
-        log_error "テスト失敗: $test_name"
-        echo "ERROR"
-    fi
+        times+=("$execution_time")
+        total_time=$(echo "$total_time + $execution_time" | bc)
+        
+        log_info "実行時間: ${execution_time}秒"
+    done
+    
+    # 平均時間を計算
+    local average_time=$(echo "scale=2; $total_time / $BENCHMARK_ITERATIONS" | bc)
+    
+    log_success "$description の平均実行時間: ${average_time}秒"
+    
+    # 個別実行時間を表示
+    log_info "個別実行時間:"
+    for i in "${!times[@]}"; do
+        log_info "  実行 $((i+1)): ${times[i]}秒"
+    done
+    
+    echo "$average_time"
 }
 
-# メイン処理
+# メイン実行
 main() {
     log_info "=== テスト実行時間ベンチマーク開始 ==="
+    log_info "シミュレータ: $SIMULATOR_NAME"
+    log_info "テストターゲット: $TEST_TARGET"
+    log_info "ベンチマーク反復回数: $BENCHMARK_ITERATIONS"
+    echo
     
-    # テスト対象
-    local test_target="OtetsudaiCoinTests/CoinAnimationViewTests/testCoinAnimationViewDisplaysCoin"
+    # 事前準備
+    log_info "事前準備: 全シミュレータをシャットダウン"
+    shutdown_simulator
     
-    # シミュレータをシャットダウン
-    log_info "シミュレータをシャットダウン中..."
-    xcrun simctl shutdown all > /dev/null 2>&1 || true
+    # コールドスタート測定
+    local cold_time=$(measure_test_time "コールドスタート（シミュレータ事前起動なし）" "false")
+    echo
     
-    # ベースライン測定（シミュレータ停止状態から）
-    log_info "=== ベースライン測定（シミュレータ停止状態） ==="
-    local baseline_time
-    baseline_time=$(run_test_benchmark "ベースライン" "$test_target")
-    
-    if [[ "$baseline_time" == "ERROR" ]]; then
-        log_error "ベースライン測定に失敗しました"
-        exit 1
-    fi
-    
-    # シミュレータを事前起動
-    log_info "=== シミュレータ事前起動 ==="
-    /Users/shinya/workspace/claude/OtetsudaiCoin/scripts/prepare-simulator.sh -s "iPhone 16" > /dev/null 2>&1
-    
-    # ウォームアップ後の測定
-    log_info "=== ウォームアップ後測定（シミュレータ起動済み） ==="
-    local warmup_time
-    warmup_time=$(run_test_benchmark "ウォームアップ後" "$test_target")
-    
-    if [[ "$warmup_time" == "ERROR" ]]; then
-        log_error "ウォームアップ後測定に失敗しました"
-        exit 1
-    fi
+    # ウォームスタート測定
+    local warm_time=$(measure_test_time "ウォームスタート（シミュレータ事前起動あり）" "true")
+    echo
     
     # 結果比較
-    log_info "=== 結果比較 ==="
-    log_info "ベースライン（シミュレータ停止状態）: ${baseline_time}秒"
-    log_info "ウォームアップ後（シミュレータ起動済み）: ${warmup_time}秒"
+    log_info "=== ベンチマーク結果比較 ==="
+    log_info "コールドスタート平均時間: ${cold_time}秒"
+    log_info "ウォームスタート平均時間: ${warm_time}秒"
     
-    local improvement=$(echo "$baseline_time - $warmup_time" | bc)
-    local improvement_percent=$(echo "scale=1; ($improvement / $baseline_time) * 100" | bc)
+    # 改善効果を計算
+    local improvement=$(echo "scale=2; $cold_time - $warm_time" | bc)
+    local improvement_percent=$(echo "scale=1; ($improvement / $cold_time) * 100" | bc)
     
     if (( $(echo "$improvement > 0" | bc -l) )); then
-        log_success "改善効果: ${improvement}秒短縮 (${improvement_percent}%向上)"
+        log_success "改善効果: ${improvement}秒短縮 (${improvement_percent}%改善)"
     else
-        log_warning "改善効果は確認されませんでした"
+        log_warning "改善効果なし: ${improvement}秒 (${improvement_percent}%)"
     fi
     
-    log_success "=== ベンチマーク完了 ==="
+    log_success "ベンチマーク完了"
 }
 
-# スクリプト実行
-main "$@"
+# エラーハンドリング
+trap 'log_error "ベンチマークが中断されました"; exit 1' ERR
+
+# メイン実行
+main

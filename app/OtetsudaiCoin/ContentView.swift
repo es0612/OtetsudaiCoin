@@ -11,10 +11,16 @@ import CoreData
 struct ContentView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @State private var selectedTab = 0
+    @StateObject private var tutorialService = TutorialService()
+    @StateObject private var homeViewModel = HomeViewModel(
+        childRepository: CoreDataChildRepository(context: PersistenceController.shared.container.viewContext),
+        helpRecordRepository: CoreDataHelpRecordRepository(context: PersistenceController.shared.container.viewContext),
+        allowanceCalculator: AllowanceCalculator()
+    )
     
     var body: some View {
         TabView(selection: $selectedTab) {
-            HomeView(viewModel: createHomeViewModel())
+            HomeView(viewModel: homeViewModel)
                 .tabItem {
                     Image(systemName: "house.fill")
                     Text("ホーム")
@@ -27,23 +33,33 @@ struct ContentView: View {
                     Text("記録")
                 }
                 .tag(1)
+            
+            SettingsView(viewModel: createChildManagementViewModel())
+                .tabItem {
+                    Image(systemName: "gearshape.fill")
+                    Text("設定")
+                }
+                .tag(2)
+        }
+        .onChange(of: selectedTab) { newTab in
+            if newTab == 0 {
+                // SwiftUIの宣言的な仕組み：ホームタブに戻った際の自動更新
+                homeViewModel.refreshData()
+            }
+        }
+        .fullScreenCover(isPresented: $tutorialService.showTutorial) {
+            TutorialContainerView(
+                tutorialService: tutorialService,
+                childManagementViewModel: createChildManagementViewModel(),
+                recordViewModel: createRecordViewModel()
+            )
         }
         .onAppear {
             setupInitialData()
+            tutorialService.checkFirstLaunch()
         }
     }
     
-    private func createHomeViewModel() -> HomeViewModel {
-        let childRepository = CoreDataChildRepository(context: viewContext)
-        let helpRecordRepository = CoreDataHelpRecordRepository(context: viewContext)
-        let allowanceCalculator = AllowanceCalculator()
-        
-        return HomeViewModel(
-            childRepository: childRepository,
-            helpRecordRepository: helpRecordRepository,
-            allowanceCalculator: allowanceCalculator
-        )
-    }
     
     private func createRecordViewModel() -> RecordViewModel {
         let childRepository = CoreDataChildRepository(context: viewContext)
@@ -57,6 +73,12 @@ struct ContentView: View {
         )
     }
     
+    private func createChildManagementViewModel() -> ChildManagementViewModel {
+        let childRepository = CoreDataChildRepository(context: viewContext)
+        
+        return ChildManagementViewModel(childRepository: childRepository)
+    }
+    
     private func setupInitialData() {
         // 初回起動時のサンプルデータセットアップ
         let childRepository = CoreDataChildRepository(context: viewContext)
@@ -68,14 +90,7 @@ struct ContentView: View {
                 let existingChildren = try await childRepository.findAll()
                 let existingTasks = try await helpTaskRepository.findAll()
                 
-                if existingChildren.isEmpty {
-                    // サンプル子供データ追加
-                    let child1 = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
-                    let child2 = Child(id: UUID(), name: "花子", themeColor: "#33FF57")
-                    
-                    try await childRepository.save(child1)
-                    try await childRepository.save(child2)
-                }
+                // 子供データは初期作成しない（チュートリアルで追加）
                 
                 if existingTasks.isEmpty {
                     // デフォルトタスク追加

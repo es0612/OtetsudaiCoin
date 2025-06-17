@@ -53,46 +53,74 @@ struct HomeView: View {
     }
     
     private func childStatsView(for child: Child) -> some View {
-        VStack(spacing: 16) {
-            Text(child.name)
-                .font(.title)
-                .fontWeight(.bold)
-            
-            HStack(spacing: 20) {
-                VStack {
-                    Text("\(viewModel.totalRecordsThisMonth)")
-                        .font(.title)
-                        .fontWeight(.bold)
-                        .foregroundColor(Color(hex: child.themeColor) ?? .blue)
-                    Text("今月の実績: \(viewModel.totalRecordsThisMonth)回")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
+        VStack(spacing: 20) {
+            // 子供のアバター
+            VStack(spacing: 12) {
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [Color(hex: child.themeColor) ?? .blue, (Color(hex: child.themeColor) ?? .blue).opacity(0.7)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 80, height: 80)
+                    .overlay(
+                        Text(String(child.name.prefix(1)))
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                    )
+                    .shadow(color: (Color(hex: child.themeColor) ?? .blue).opacity(0.3), radius: 8, x: 0, y: 4)
                 
-                VStack {
-                    Text("\(viewModel.consecutiveDays)")
-                        .font(.title)
-                        .fontWeight(.bold)
-                        .foregroundColor(Color(hex: child.themeColor) ?? .blue)
-                    Text("連続日数: \(viewModel.consecutiveDays)日")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                
-                VStack {
-                    Text("\(viewModel.monthlyAllowance)")
-                        .font(.title)
-                        .fontWeight(.bold)
-                        .foregroundColor(Color(hex: child.themeColor) ?? .blue)
-                    Text("お小遣い: \(viewModel.monthlyAllowance)円")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
+                Text("\(child.name)ちゃんの記録")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(.primary)
             }
-            .padding()
-            .background(Color.gray.opacity(0.1))
-            .cornerRadius(12)
+            
+            // 統計カード
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 16) {
+                StatsCard(
+                    icon: "star.fill",
+                    title: "今月の実績",
+                    value: "\(viewModel.totalRecordsThisMonth)",
+                    subtitle: "回がんばった！",
+                    color: Color(hex: child.themeColor) ?? .blue
+                )
+                
+                StatsCard(
+                    icon: "flame.fill",
+                    title: "連続記録",
+                    value: "\(viewModel.consecutiveDays)",
+                    subtitle: "日連続！",
+                    color: .orange
+                )
+                
+                StatsCard(
+                    icon: "dollarsign.circle.fill",
+                    title: "今月のコイン",
+                    value: "\(viewModel.monthlyAllowance)",
+                    subtitle: "コイン獲得！",
+                    color: .green
+                )
+                
+                StatsCard(
+                    icon: "trophy.fill",
+                    title: "単価",
+                    value: "\(child.coinRate)",
+                    subtitle: "コイン/回",
+                    color: .purple
+                )
+            }
         }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(Color(.systemBackground))
+                .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
+        )
+        .padding(.horizontal)
     }
     
     private var childrenListView: some View {
@@ -132,6 +160,41 @@ struct HomeView: View {
             }
             .listStyle(PlainListStyle())
         }
+    }
+}
+
+struct StatsCard: View {
+    let icon: String
+    let title: String
+    let value: String
+    let subtitle: String
+    let color: Color
+    
+    var body: some View {
+        VStack(spacing: 8) {
+            Image(systemName: icon)
+                .font(.title2)
+                .foregroundColor(color)
+            
+            Text(title)
+                .font(.caption)
+                .foregroundColor(.secondary)
+            
+            Text(value)
+                .font(.title)
+                .fontWeight(.bold)
+                .foregroundColor(color)
+            
+            Text(subtitle)
+                .font(.caption2)
+                .foregroundColor(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(color.opacity(0.1))
+        )
     }
 }
 
