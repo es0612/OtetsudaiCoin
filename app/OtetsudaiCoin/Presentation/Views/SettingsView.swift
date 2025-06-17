@@ -26,13 +26,10 @@ struct SettingsView: View {
                     }) {
                         HStack {
                             Image(systemName: "plus.circle.fill")
-                                .foregroundColor(.blue)
-                                .font(.title2)
-                            
                             Text("新しい子供を追加")
-                                .foregroundColor(.blue)
                         }
                     }
+                    .primaryGradientButton()
                     .accessibilityIdentifier("add_child_button")
                 }
                 

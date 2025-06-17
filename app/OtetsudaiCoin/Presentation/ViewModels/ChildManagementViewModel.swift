@@ -1,6 +1,10 @@
 import Foundation
 import Combine
 
+extension Notification.Name {
+    static let childrenUpdated = Notification.Name("childrenUpdated")
+}
+
 @MainActor
 class ChildManagementViewModel: ObservableObject {
     @Published var children: [Child] = []
@@ -49,6 +53,10 @@ class ChildManagementViewModel: ObservableObject {
         do {
             try await childRepository.save(child)
             await loadChildren()
+            
+            // SwiftUIの宣言的な仕組み：データ更新の通知
+            NotificationCenter.default.post(name: .childrenUpdated, object: nil)
+            
             successMessage = "\(name)を追加しました"
         } catch {
             errorMessage = "子供の追加に失敗しました: \(error.localizedDescription)"
@@ -69,6 +77,10 @@ class ChildManagementViewModel: ObservableObject {
         do {
             try await childRepository.update(updatedChild)
             await loadChildren()
+            
+            // SwiftUIの宣言的な仕組み：データ更新の通知
+            NotificationCenter.default.post(name: .childrenUpdated, object: nil)
+            
             successMessage = "\(name)の情報を更新しました"
         } catch {
             errorMessage = "子供の更新に失敗しました: \(error.localizedDescription)"
@@ -87,6 +99,10 @@ class ChildManagementViewModel: ObservableObject {
         do {
             try await childRepository.delete(id)
             await loadChildren()
+            
+            // SwiftUIの宣言的な仕組み：データ更新の通知
+            NotificationCenter.default.post(name: .childrenUpdated, object: nil)
+            
             successMessage = "\(child.name)を削除しました"
         } catch {
             errorMessage = "子供の削除に失敗しました: \(error.localizedDescription)"

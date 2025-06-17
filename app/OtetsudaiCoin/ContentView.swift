@@ -12,11 +12,26 @@ struct ContentView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @State private var selectedTab = 0
     @StateObject private var tutorialService = TutorialService()
-    @StateObject private var homeViewModel = HomeViewModel(
-        childRepository: CoreDataChildRepository(context: PersistenceController.shared.container.viewContext),
-        helpRecordRepository: CoreDataHelpRecordRepository(context: PersistenceController.shared.container.viewContext),
-        allowanceCalculator: AllowanceCalculator()
-    )
+    
+    // 共通のRepositoryインスタンス
+    private var sharedChildRepository: ChildRepository {
+        CoreDataChildRepository(context: PersistenceController.shared.container.viewContext)
+    }
+    
+    @StateObject private var childManagementViewModel: ChildManagementViewModel
+    @StateObject private var homeViewModel: HomeViewModel
+    
+    init() {
+        let childRepo = CoreDataChildRepository(context: PersistenceController.shared.container.viewContext)
+        let helpRecordRepo = CoreDataHelpRecordRepository(context: PersistenceController.shared.container.viewContext)
+        
+        _childManagementViewModel = StateObject(wrappedValue: ChildManagementViewModel(childRepository: childRepo))
+        _homeViewModel = StateObject(wrappedValue: HomeViewModel(
+            childRepository: childRepo,
+            helpRecordRepository: helpRecordRepo,
+            allowanceCalculator: AllowanceCalculator()
+        ))
+    }
     
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -34,7 +49,7 @@ struct ContentView: View {
                 }
                 .tag(1)
             
-            SettingsView(viewModel: createChildManagementViewModel())
+            SettingsView(viewModel: childManagementViewModel)
                 .tabItem {
                     Image(systemName: "gearshape.fill")
                     Text("設定")
@@ -50,7 +65,7 @@ struct ContentView: View {
         .fullScreenCover(isPresented: $tutorialService.showTutorial) {
             TutorialContainerView(
                 tutorialService: tutorialService,
-                childManagementViewModel: createChildManagementViewModel(),
+                childManagementViewModel: childManagementViewModel,
                 recordViewModel: createRecordViewModel()
             )
         }
@@ -62,9 +77,9 @@ struct ContentView: View {
     
     
     private func createRecordViewModel() -> RecordViewModel {
-        let childRepository = CoreDataChildRepository(context: viewContext)
         let helpTaskRepository = CoreDataHelpTaskRepository(context: viewContext)
         let helpRecordRepository = CoreDataHelpRecordRepository(context: viewContext)
+        let childRepository = CoreDataChildRepository(context: PersistenceController.shared.container.viewContext)
         
         return RecordViewModel(
             childRepository: childRepository,
@@ -73,11 +88,6 @@ struct ContentView: View {
         )
     }
     
-    private func createChildManagementViewModel() -> ChildManagementViewModel {
-        let childRepository = CoreDataChildRepository(context: viewContext)
-        
-        return ChildManagementViewModel(childRepository: childRepository)
-    }
     
     private func setupInitialData() {
         // 初回起動時のサンプルデータセットアップ

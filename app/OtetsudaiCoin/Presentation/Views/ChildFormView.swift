@@ -114,6 +114,18 @@ struct ChildFormView: View {
                     }
                     .padding(.vertical, 8)
                 }
+                
+                Section {
+                    Button(action: saveChild) {
+                        HStack {
+                            Image(systemName: isEditing ? "checkmark.circle.fill" : "plus.circle.fill")
+                            Text(isEditing ? "更新" : "追加")
+                        }
+                    }
+                    .primaryGradientButton(isDisabled: !isValidInput)
+                    .disabled(!isValidInput)
+                    .accessibilityIdentifier("main_save_button")
+                }
             }
             .navigationTitle(isEditing ? "子供情報編集" : "新しい子供追加")
             .navigationBarTitleDisplayMode(.inline)

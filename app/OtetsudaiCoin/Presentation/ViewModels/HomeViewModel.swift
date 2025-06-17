@@ -34,6 +34,16 @@ class HomeViewModel: ObservableObject {
                 }
             }
             .store(in: &cancellables)
+        
+        // 子供データ更新の監視
+        NotificationCenter.default
+            .publisher(for: .childrenUpdated)
+            .sink { [weak self] _ in
+                Task { @MainActor in
+                    self?.loadChildren()
+                }
+            }
+            .store(in: &cancellables)
     }
     
     func loadChildren() {

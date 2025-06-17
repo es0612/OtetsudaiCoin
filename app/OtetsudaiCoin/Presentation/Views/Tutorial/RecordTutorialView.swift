@@ -160,13 +160,8 @@ struct RecordTutorialView: View {
                                 Image(systemName: "arrow.clockwise")
                                 Text("データを更新")
                             }
-                            .font(.caption)
-                            .foregroundColor(.blue)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(Color.blue.opacity(0.1))
-                            .clipShape(Capsule())
                         }
+                        .compactGradientButton()
                     }
                 }
                 
@@ -264,14 +259,8 @@ struct RecordTutorialView: View {
                                 Image(systemName: "plus.circle.fill")
                                 Text("記録する")
                             }
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 24)
-                            .padding(.vertical, 12)
-                            .background(Color.green)
-                            .clipShape(Capsule())
-                            .shadow(radius: 4)
                         }
+                        .successGradientButton(isDisabled: hasRecorded)
                         .disabled(hasRecorded)
                         
                         if hasRecorded {

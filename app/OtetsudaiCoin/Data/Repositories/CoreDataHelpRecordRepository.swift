@@ -63,6 +63,15 @@ class CoreDataHelpRecordRepository: HelpRecordRepository {
         return results.compactMap { $0.toDomain() }
     }
     
+    func findByDateRange(from startDate: Date, to endDate: Date) async throws -> [HelpRecord] {
+        let request: NSFetchRequest<CDHelpRecord> = CDHelpRecord.fetchRequest()
+        request.predicate = NSPredicate(format: "recordedAt >= %@ AND recordedAt <= %@", 
+                                      startDate as CVarArg, endDate as CVarArg)
+        request.sortDescriptors = [NSSortDescriptor(key: "recordedAt", ascending: false)]
+        let results = try context.fetch(request)
+        return results.compactMap { $0.toDomain() }
+    }
+    
     func delete(_ id: UUID) async throws {
         let request: NSFetchRequest<CDHelpRecord> = CDHelpRecord.fetchRequest()
         request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
@@ -73,6 +82,32 @@ class CoreDataHelpRecordRepository: HelpRecordRepository {
         }
         
         try context.save()
+    }
+    
+    func update(_ helpRecord: HelpRecord) async throws {
+        let request: NSFetchRequest<CDHelpRecord> = CDHelpRecord.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", helpRecord.id as CVarArg)
+        request.fetchLimit = 1
+        
+        let results = try context.fetch(request)
+        if let cdHelpRecord = results.first {
+            cdHelpRecord.recordedAt = helpRecord.recordedAt
+            
+            // 子供とタスクの関連付けを更新
+            let childRequest: NSFetchRequest<CDChild> = CDChild.fetchRequest()
+            childRequest.predicate = NSPredicate(format: "id == %@", helpRecord.childId as CVarArg)
+            if let cdChild = try context.fetch(childRequest).first {
+                cdHelpRecord.child = cdChild
+            }
+            
+            let taskRequest: NSFetchRequest<CDHelpTask> = CDHelpTask.fetchRequest()
+            taskRequest.predicate = NSPredicate(format: "id == %@", helpRecord.helpTaskId as CVarArg)
+            if let cdHelpTask = try context.fetch(taskRequest).first {
+                cdHelpRecord.helpTask = cdHelpTask
+            }
+            
+            try context.save()
+        }
     }
 }
 

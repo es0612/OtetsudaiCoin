@@ -22,7 +22,7 @@ struct RecordView: View {
                         Button("再試行") {
                             viewModel.loadTasks()
                         }
-                        .buttonStyle(.borderedProminent)
+                        .primaryGradientButton()
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
@@ -178,17 +178,12 @@ struct RecordView: View {
         Button(action: {
             viewModel.recordHelp()
         }) {
-            Text("記録する")
-                .font(.headline)
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(
-                    (viewModel.selectedChild != nil && viewModel.selectedTask != nil) ? 
-                    Color.blue : Color.gray
-                )
-                .cornerRadius(12)
+            HStack(spacing: 8) {
+                Image(systemName: "plus.circle.fill")
+                Text("記録する")
+            }
         }
+        .successGradientButton(isDisabled: viewModel.selectedChild == nil || viewModel.selectedTask == nil)
         .disabled(viewModel.selectedChild == nil || viewModel.selectedTask == nil)
         .accessibilityIdentifier("record_button")
     }

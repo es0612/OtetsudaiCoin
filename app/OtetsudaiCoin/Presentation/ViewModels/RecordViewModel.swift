@@ -19,6 +19,7 @@ class RecordViewModel: ObservableObject {
     private let helpTaskRepository: HelpTaskRepository
     private let helpRecordRepository: HelpRecordRepository
     private let soundService: SoundServiceProtocol
+    private var cancellables = Set<AnyCancellable>()
     
     init(
         childRepository: ChildRepository,
@@ -30,6 +31,16 @@ class RecordViewModel: ObservableObject {
         self.helpTaskRepository = helpTaskRepository
         self.helpRecordRepository = helpRecordRepository
         self.soundService = soundService ?? SoundService()
+        
+        // SwiftUIの宣言的な仕組み：子供データ更新の自動監視
+        NotificationCenter.default
+            .publisher(for: .childrenUpdated)
+            .sink { [weak self] _ in
+                Task { @MainActor in
+                    self?.loadChildren()
+                }
+            }
+            .store(in: &cancellables)
     }
     
     func loadData() {
@@ -59,6 +70,29 @@ class RecordViewModel: ObservableObject {
     
     func loadTasks() {
         loadData()
+    }
+    
+    func loadChildren() {
+        // 子供データのみ更新
+        Task {
+            do {
+                let children = try await childRepository.findAll()
+                availableChildren = children
+                
+                // 選択された子供が削除されていた場合、選択をクリア
+                if let selectedChild = selectedChild,
+                   !children.contains(where: { $0.id == selectedChild.id }) {
+                    self.selectedChild = nil
+                }
+                
+                // まだ子供が選択されていない場合、最初の子供を自動選択
+                if selectedChild == nil && !children.isEmpty {
+                    selectedChild = children.first
+                }
+            } catch {
+                errorMessage = "子供データの読み込みに失敗しました: \(error.localizedDescription)"
+            }
+        }
     }
     
     func selectChild(_ child: Child) {

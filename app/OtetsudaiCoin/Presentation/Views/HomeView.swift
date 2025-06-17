@@ -73,10 +73,18 @@ struct HomeView: View {
                     )
                     .shadow(color: (Color(hex: child.themeColor) ?? .blue).opacity(0.3), radius: 8, x: 0, y: 4)
                 
-                Text("\(child.name)ちゃんの記録")
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .foregroundColor(.primary)
+                HStack(spacing: 8) {
+                    Text("\(child.name)ちゃんの記録")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(.primary)
+                    
+                    NavigationLink(destination: createHelpHistoryView(for: child)) {
+                        Image(systemName: "list.clipboard")
+                            .font(.title3)
+                            .foregroundColor(Color(hex: child.themeColor) ?? .blue)
+                    }
+                }
             }
             
             // 統計カード
@@ -121,6 +129,23 @@ struct HomeView: View {
                 .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
         )
         .padding(.horizontal)
+    }
+    
+    private func createHelpHistoryView(for child: Child) -> some View {
+        let context = PersistenceController.shared.container.viewContext
+        let helpRecordRepository = CoreDataHelpRecordRepository(context: context)
+        let helpTaskRepository = CoreDataHelpTaskRepository(context: context)
+        let childRepository = CoreDataChildRepository(context: context)
+        
+        let historyViewModel = HelpHistoryViewModel(
+            helpRecordRepository: helpRecordRepository,
+            helpTaskRepository: helpTaskRepository,
+            childRepository: childRepository
+        )
+        
+        historyViewModel.selectChild(child)
+        
+        return HelpHistoryView(viewModel: historyViewModel)
     }
     
     private var childrenListView: some View {
