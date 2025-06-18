@@ -100,6 +100,19 @@ struct ContentView: View {
                 let existingChildren = try await childRepository.findAll()
                 let existingTasks = try await helpTaskRepository.findAll()
                 
+                // UIテスト実行時は事前にサンプルデータを作成
+                if ProcessInfo.processInfo.arguments.contains("--uitesting") {
+                    if existingChildren.isEmpty {
+                        let sampleChildren = [
+                            Child(id: UUID(), name: "太郎", themeColor: "#FF5733", coinRate: 100),
+                            Child(id: UUID(), name: "花子", themeColor: "#33FF57", coinRate: 120)
+                        ]
+                        for child in sampleChildren {
+                            try await childRepository.save(child)
+                        }
+                    }
+                }
+                
                 // 子供データは初期作成しない（チュートリアルで追加）
                 
                 if existingTasks.isEmpty {

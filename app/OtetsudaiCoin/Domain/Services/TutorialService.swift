@@ -20,6 +20,14 @@ class TutorialService: ObservableObject {
     }
     
     func checkFirstLaunch() {
+        // UIテスト実行時はチュートリアルをスキップ
+        if ProcessInfo.processInfo.arguments.contains("--uitesting") {
+            hasCompletedChildTutorial = true
+            hasCompletedRecordTutorial = true
+            showTutorial = false
+            return
+        }
+        
         isFirstLaunch = !userDefaults.bool(forKey: Keys.hasLaunchedBefore.rawValue)
         
         if isFirstLaunch {

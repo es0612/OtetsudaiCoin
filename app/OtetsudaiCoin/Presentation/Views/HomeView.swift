@@ -182,6 +182,7 @@ struct HomeView: View {
                     .padding(.vertical, 8)
                 }
                 .buttonStyle(PlainButtonStyle())
+                .accessibilityIdentifier("child_button")
             }
             .listStyle(PlainListStyle())
         }
