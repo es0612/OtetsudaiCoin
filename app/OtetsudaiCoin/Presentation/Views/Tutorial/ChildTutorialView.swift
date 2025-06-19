@@ -57,7 +57,7 @@ struct ChildTutorialView: View {
                 await childManagementViewModel.loadChildren()
             }
         }
-        .onChange(of: childManagementViewModel.children) { children in
+        .onChange(of: childManagementViewModel.children) { _, children in
             // SwiftUIの宣言的な仕組み：@Publishedプロパティの変更を自動監視
             hasAddedChild = !children.isEmpty
         }

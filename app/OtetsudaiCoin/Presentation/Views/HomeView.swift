@@ -37,14 +37,16 @@ struct HomeView: View {
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
-                    VStack(spacing: 20) {
-                        if let selectedChild = viewModel.selectedChild {
-                            childStatsView(for: selectedChild)
+                    ScrollView {
+                        VStack(spacing: 20) {
+                            if let selectedChild = viewModel.selectedChild {
+                                childStatsView(for: selectedChild)
+                            }
+                            
+                            childrenListView
                         }
-                        
-                        childrenListView
+                        .padding()
                     }
-                    .padding()
                 }
             }
             .navigationTitle("おてつだいコイン")
@@ -240,42 +242,50 @@ struct HomeView: View {
     }
     
     private var childrenListView: some View {
-        VStack(alignment: .leading) {
+        VStack(alignment: .leading, spacing: 12) {
             Text("お子様を選択")
                 .font(.headline)
                 .padding(.horizontal)
             
-            List(viewModel.children, id: \.id) { child in
-                Button(action: {
-                    viewModel.selectChild(child)
-                }) {
-                    HStack {
-                        Circle()
-                            .fill(Color(hex: child.themeColor) ?? .blue)
-                            .frame(width: 40, height: 40)
-                            .overlay(
-                                Text(String(child.name.prefix(1)))
-                                    .font(.headline)
-                                    .foregroundColor(.white)
-                            )
-                        
-                        Text(child.name)
-                            .font(.title3)
-                            .foregroundColor(.primary)
-                        
-                        Spacer()
-                        
-                        if viewModel.selectedChild?.id == child.id {
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundColor(Color(hex: child.themeColor) ?? .blue)
+            LazyVStack(spacing: 8) {
+                ForEach(viewModel.children, id: \.id) { child in
+                    Button(action: {
+                        viewModel.selectChild(child)
+                    }) {
+                        HStack {
+                            Circle()
+                                .fill(Color(hex: child.themeColor) ?? .blue)
+                                .frame(width: 40, height: 40)
+                                .overlay(
+                                    Text(String(child.name.prefix(1)))
+                                        .font(.headline)
+                                        .foregroundColor(.white)
+                                )
+                            
+                            Text(child.name)
+                                .font(.title3)
+                                .foregroundColor(.primary)
+                            
+                            Spacer()
+                            
+                            if viewModel.selectedChild?.id == child.id {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(Color(hex: child.themeColor) ?? .blue)
+                            }
                         }
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, 16)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color(.systemBackground))
+                                .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
+                        )
                     }
-                    .padding(.vertical, 8)
+                    .buttonStyle(PlainButtonStyle())
+                    .accessibilityIdentifier("child_button")
                 }
-                .buttonStyle(PlainButtonStyle())
-                .accessibilityIdentifier("child_button")
             }
-            .listStyle(PlainListStyle())
+            .padding(.horizontal)
         }
     }
 }

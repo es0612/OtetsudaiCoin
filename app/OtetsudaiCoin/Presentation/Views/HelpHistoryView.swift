@@ -63,7 +63,7 @@ struct HelpHistoryView: View {
                 }
             }
             .pickerStyle(SegmentedPickerStyle())
-            .onChange(of: viewModel.selectedPeriod) { newPeriod in
+            .onChange(of: viewModel.selectedPeriod) { _, newPeriod in
                 viewModel.selectPeriod(newPeriod)
             }
             

@@ -58,7 +58,7 @@ struct ContentView: View {
                 }
                 .tag(2)
         }
-        .onChange(of: selectedTab) { newTab in
+        .onChange(of: selectedTab) { _, newTab in
             if newTab == 0 {
                 // SwiftUIの宣言的な仕組み：ホームタブに戻った際の自動更新
                 homeViewModel.refreshData()

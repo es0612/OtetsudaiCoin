@@ -29,7 +29,7 @@ struct TutorialContainerView: View {
         }
         .animation(.easeInOut(duration: 0.6), value: tutorialService.shouldShowChildTutorial)
         .animation(.easeInOut(duration: 0.6), value: tutorialService.shouldShowRecordTutorial)
-        .onChange(of: tutorialService.shouldShowRecordTutorial) { newValue in
+        .onChange(of: tutorialService.shouldShowRecordTutorial) { _, newValue in
             if newValue {
                 // SwiftUIの宣言的な仕組みを活用してデータ同期
                 recordViewModel.loadData()
