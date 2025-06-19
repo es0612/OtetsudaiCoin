@@ -31,41 +31,69 @@
         
         .icon-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-            margin-bottom: 40px;
+            grid-template-columns: 1fr;
+            gap: 40px;
+            margin-bottom: 50px;
+        }
+        
+        .other-icons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 40px;
+            margin-top: 40px;
         }
         
         .icon-card {
             background: white;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.12);
             text-align: center;
         }
         
         .icon-preview {
-            width: 120px;
-            height: 120px;
-            margin: 0 auto 20px;
-            border-radius: 26px;
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 30px;
+            border-radius: 44px;
             display: flex;
             align-items: center;
             justify-content: center;
             position: relative;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
+        }
+        
+        /* 案1専用の1024x1024px正方形プレビュー */
+        .icon-card.featured .icon-preview {
+            width: 1024px;
+            height: 1024px;
+            border-radius: 0;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
+            margin: 0 auto 40px;
         }
         
         .icon-title {
-            font-size: 1.3em;
+            font-size: 1.5em;
             font-weight: bold;
             color: #333;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .featured .icon-title {
+            font-size: 1.8em;
+            color: #FF6B35;
         }
         
         .icon-description {
             color: #666;
-            line-height: 1.5;
+            line-height: 1.6;
+            font-size: 1.1em;
+        }
+        
+        .featured .icon-description {
+            color: #555;
+            font-size: 1.2em;
+            font-weight: 500;
         }
         
         /* アイコンデザイン案1: コインとハート */
@@ -74,12 +102,20 @@
         }
         
         .coin {
-            width: 60px;
-            height: 60px;
+            width: 100px;
+            height: 100px;
             background: linear-gradient(135deg, #FFE55C 0%, #FFD700 100%);
             border-radius: 50%;
             position: relative;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
+            border: 3px solid #FFF;
+        }
+        
+        .featured .coin {
+            width: 600px;
+            height: 600px;
+            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.4);
+            border: 20px solid #FFF;
         }
         
         .coin::before {
@@ -88,46 +124,68 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 24px;
+            font-size: 40px;
             font-weight: bold;
             color: #FF6B35;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .featured .coin::before {
+            font-size: 240px;
+            text-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
         }
         
         .heart {
             position: absolute;
-            top: -5px;
-            right: -5px;
-            width: 20px;
-            height: 18px;
-            background: #FF6B6B;
-            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            top: -8px;
+            right: -8px;
+            width: 32px;
+            height: 32px;
+            background: #FF4757;
             transform: rotate(-45deg);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .featured .heart {
+            top: -50px;
+            right: -50px;
+            width: 200px;
+            height: 200px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+        
+        .heart::before,
+        .heart::after {
+            content: '';
+            width: 32px;
+            height: 32px;
+            position: absolute;
+            background: #FF4757;
+            border-radius: 50%;
+        }
+        
+        .featured .heart::before,
+        .featured .heart::after {
+            width: 200px;
+            height: 200px;
         }
         
         .heart::before {
-            content: '';
-            width: 26px;
-            height: 40px;
-            position: absolute;
-            left: 20px;
-            top: -20px;
-            background: #FF6B6B;
-            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
-            transform: rotate(-45deg);
-            transform-origin: 0 100%;
+            top: -16px;
+            left: 0;
+        }
+        
+        .featured .heart::before {
+            top: -100px;
         }
         
         .heart::after {
-            content: '';
-            width: 40px;
-            height: 26px;
-            position: absolute;
-            left: -20px;
-            top: 20px;
-            background: #FF6B6B;
-            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
-            transform: rotate(-45deg);
-            transform-origin: 100% 0;
+            top: 0;
+            left: 16px;
+        }
+        
+        .featured .heart::after {
+            left: 100px;
         }
         
         /* アイコンデザイン案2: 家族とコイン */
@@ -296,20 +354,25 @@
         <h1>🪙 おてつだいコイン - アプリアイコン案</h1>
         
         <div class="icon-grid">
-            <!-- アイコン案1: コインとハート -->
-            <div class="icon-card recommended">
+            <!-- アイコン案1: コインとハート（1024x1024px 正方形） -->
+            <div class="icon-card recommended featured">
                 <div class="icon-preview icon1">
                     <div class="coin">
                         <div class="heart"></div>
                     </div>
                 </div>
-                <div class="icon-title">案1: コインとハート</div>
+                <div class="icon-title">案1: コインとハート（1024x1024px）</div>
                 <div class="icon-description">
-                    金色のコインにハートマークを組み合わせ、お手伝いの温かさと報酬を表現。
-                    シンプルで認識しやすく、アプリの核心を直接表現。
+                    金色のコインにハートマークを組み合わせ、お手伝いの温かさと報酬を表現。<br>
+                    1024x1024pxの正方形サイズで、アプリストア用アイコンとして最適。<br>
+                    洗練されたハート形状と高解像度で、どんなデバイスでも美しく表示。
                 </div>
             </div>
-            
+        </div>
+        
+        <h2 style="text-align: center; color: #666; margin: 40px 0 20px;">その他のアイコン案</h2>
+        
+        <div class="other-icons">
             <!-- アイコン案2: 家族とコイン -->
             <div class="icon-card">
                 <div class="icon-preview icon2">
@@ -370,7 +433,18 @@
                 <li><strong>家族の絆</strong>: 親子で一緒に取り組む温かさ</li>
             </ul>
             
-            <h3>💡 推奨案の理由</h3>
+            <h3>💡 推奨案の仕様</h3>
+            <ul>
+                <li><strong>サイズ</strong>: 1024x1024px - アプリストア標準サイズ</li>
+                <li><strong>形状</strong>: 正方形 - 角丸なしでシャープな印象</li>
+                <li><strong>ハート形状の改良</strong>: CSS擬似要素を使用してより自然で美しいハート形状を実現</li>
+                <li><strong>高解像度対応</strong>: どんなデバイスでも鮮明に表示される超高品質</li>
+                <li><strong>洗練されたシャドウ</strong>: 立体感と高級感を演出する多層シャドウ効果</li>
+                <li><strong>コントラスト強化</strong>: 白いボーダーとテキストシャドウで視認性向上</li>
+                <li><strong>配色調整</strong>: より鮮やかで印象的な赤色（#FF4757）を採用</li>
+            </ul>
+            
+            <h3>🎯 デザインの特徴</h3>
             <ul>
                 <li>コインは「報酬・お小遣い」を直感的に表現</li>
                 <li>ハートは「愛情・家族の絆」を象徴</li>

@@ -41,6 +41,16 @@ class RecordViewModel: ObservableObject {
                 }
             }
             .store(in: &cancellables)
+        
+        // SwiftUIの宣言的な仕組み：お手伝い記録更新の自動監視
+        NotificationCenter.default
+            .publisher(for: .helpRecordUpdated)
+            .sink { [weak self] _ in
+                Task { @MainActor in
+                    self?.loadData()
+                }
+            }
+            .store(in: &cancellables)
     }
     
     func loadData() {

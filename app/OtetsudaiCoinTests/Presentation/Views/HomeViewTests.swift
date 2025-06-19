@@ -9,22 +9,26 @@ final class HomeViewTests: XCTestCase {
     private var mockChildRepository: MockChildRepository!
     private var mockHelpRecordRepository: MockHelpRecordRepository!
     private var mockAllowanceCalculator: MockAllowanceCalculator!
+    private var mockAllowancePaymentRepository: MockAllowancePaymentRepository!
     
     override func setUp() {
         super.setUp()
         mockChildRepository = MockChildRepository()
         mockHelpRecordRepository = MockHelpRecordRepository()
         mockAllowanceCalculator = MockAllowanceCalculator()
+        mockAllowancePaymentRepository = MockAllowancePaymentRepository()
         
         viewModel = HomeViewModel(
             childRepository: mockChildRepository,
             helpRecordRepository: mockHelpRecordRepository,
-            allowanceCalculator: mockAllowanceCalculator
+            allowanceCalculator: mockAllowanceCalculator,
+            allowancePaymentRepository: mockAllowancePaymentRepository
         )
     }
     
     override func tearDown() {
         viewModel = nil
+        mockAllowancePaymentRepository = nil
         mockAllowanceCalculator = nil
         mockHelpRecordRepository = nil
         mockChildRepository = nil

@@ -2,6 +2,8 @@ import SwiftUI
 
 struct HomeView: View {
     @ObservedObject var viewModel: HomeViewModel
+    @State private var showingResetAlert = false
+    @State private var showingMonthlyHistory = false
     
     var body: some View {
         NavigationView {
@@ -50,6 +52,35 @@ struct HomeView: View {
                 viewModel.loadChildren()
             }
         }
+        .alert("お小遣いを渡しました", isPresented: $showingResetAlert) {
+            Button("記録する") {
+                viewModel.recordAllowancePayment()
+            }
+            Button("キャンセル", role: .cancel) { }
+        } message: {
+            if let child = viewModel.selectedChild {
+                Text("\(child.name)に\(viewModel.monthlyAllowance)コインのお小遣いを渡しましたか？")
+            }
+        }
+        .alert("エラー", isPresented: .constant(viewModel.errorMessage != nil)) {
+            Button("OK") {
+                viewModel.clearMessages()
+            }
+        } message: {
+            Text(viewModel.errorMessage ?? "")
+        }
+        .alert("完了", isPresented: .constant(viewModel.successMessage != nil)) {
+            Button("OK") {
+                viewModel.clearMessages()
+            }
+        } message: {
+            Text(viewModel.successMessage ?? "")
+        }
+        .sheet(isPresented: $showingMonthlyHistory) {
+            if let selectedChild = viewModel.selectedChild {
+                createMonthlyHistoryView(for: selectedChild)
+            }
+        }
     }
     
     private func childStatsView(for child: Child) -> some View {
@@ -81,6 +112,14 @@ struct HomeView: View {
                     
                     NavigationLink(destination: createHelpHistoryView(for: child)) {
                         Image(systemName: "list.clipboard")
+                            .font(.title3)
+                            .foregroundColor(Color(hex: child.themeColor) ?? .blue)
+                    }
+                    
+                    Button(action: {
+                        showingMonthlyHistory = true
+                    }) {
+                        Image(systemName: "calendar.badge.clock")
                             .font(.title3)
                             .foregroundColor(Color(hex: child.themeColor) ?? .blue)
                     }
@@ -121,6 +160,42 @@ struct HomeView: View {
                     color: .purple
                 )
             }
+            
+            // お小遣い支払いボタン
+            if viewModel.totalRecordsThisMonth > 0 && !viewModel.isCurrentMonthPaid {
+                Button(action: {
+                    showingResetAlert = true
+                }) {
+                    HStack {
+                        Image(systemName: "checkmark.circle.fill")
+                        Text("お小遣いを渡しました")
+                    }
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(
+                        LinearGradient(
+                            colors: [.green, .green.opacity(0.8)],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .cornerRadius(12)
+                }
+                .padding(.top, 16)
+            }
+            
+            // 支払い済み表示
+            if viewModel.isCurrentMonthPaid {
+                HStack {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.green)
+                    Text("今月のお小遣いは支払い済みです")
+                        .foregroundColor(.secondary)
+                }
+                .padding(.top, 16)
+            }
         }
         .padding()
         .background(
@@ -146,6 +221,22 @@ struct HomeView: View {
         historyViewModel.selectChild(child)
         
         return HelpHistoryView(viewModel: historyViewModel)
+    }
+    
+    private func createMonthlyHistoryView(for child: Child) -> some View {
+        let context = PersistenceController.shared.container.viewContext
+        let helpRecordRepository = CoreDataHelpRecordRepository(context: context)
+        let allowancePaymentRepository = InMemoryAllowancePaymentRepository() // 一時的にメモリ実装を使用
+        
+        let monthlyHistoryViewModel = MonthlyHistoryViewModel(
+            helpRecordRepository: helpRecordRepository,
+            allowancePaymentRepository: allowancePaymentRepository,
+            allowanceCalculator: AllowanceCalculator()
+        )
+        
+        monthlyHistoryViewModel.selectChild(child)
+        
+        return MonthlyHistoryView(viewModel: monthlyHistoryViewModel)
     }
     
     private var childrenListView: some View {

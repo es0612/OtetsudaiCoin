@@ -24,12 +24,14 @@ struct ContentView: View {
     init() {
         let childRepo = CoreDataChildRepository(context: PersistenceController.shared.container.viewContext)
         let helpRecordRepo = CoreDataHelpRecordRepository(context: PersistenceController.shared.container.viewContext)
+        let allowancePaymentRepo = InMemoryAllowancePaymentRepository() // 一時的にメモリ実装を使用
         
         _childManagementViewModel = StateObject(wrappedValue: ChildManagementViewModel(childRepository: childRepo))
         _homeViewModel = StateObject(wrappedValue: HomeViewModel(
             childRepository: childRepo,
             helpRecordRepository: helpRecordRepo,
-            allowanceCalculator: AllowanceCalculator()
+            allowanceCalculator: AllowanceCalculator(),
+            allowancePaymentRepository: allowancePaymentRepo
         ))
     }
     
@@ -112,6 +114,11 @@ struct ContentView: View {
                         }
                     }
                 }
+                
+                // 月末自動リセットをチェック
+                let helpRecordRepository = CoreDataHelpRecordRepository(context: viewContext)
+                let monthlyResetService = MonthlyResetService(helpRecordRepository: helpRecordRepository)
+                try await monthlyResetService.checkAndPerformMonthlyReset()
                 
                 // 子供データは初期作成しない（チュートリアルで追加）
                 

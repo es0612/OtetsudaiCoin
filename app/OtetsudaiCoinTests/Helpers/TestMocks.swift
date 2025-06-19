@@ -178,6 +178,70 @@ class MockHelpRecordRepository: HelpRecordRepository {
     }
 }
 
+class MockAllowancePaymentRepository: AllowancePaymentRepository {
+    var payments: [AllowancePayment] = []
+    var shouldThrowError = false
+    var errorToThrow = NSError(domain: "TestError", code: 1, userInfo: nil)
+    
+    func save(_ payment: AllowancePayment) async throws {
+        if shouldThrowError {
+            throw errorToThrow
+        }
+        payments.append(payment)
+    }
+    
+    func findById(_ id: UUID) async throws -> AllowancePayment? {
+        if shouldThrowError {
+            throw errorToThrow
+        }
+        return payments.first { $0.id == id }
+    }
+    
+    func findByChildIdAndMonth(_ childId: UUID, month: Int, year: Int) async throws -> AllowancePayment? {
+        if shouldThrowError {
+            throw errorToThrow
+        }
+        return payments.first { $0.childId == childId && $0.month == month && $0.year == year }
+    }
+    
+    func findByChildId(_ childId: UUID) async throws -> [AllowancePayment] {
+        if shouldThrowError {
+            throw errorToThrow
+        }
+        return payments.filter { $0.childId == childId }
+    }
+    
+    func findAll() async throws -> [AllowancePayment] {
+        if shouldThrowError {
+            throw errorToThrow
+        }
+        return payments
+    }
+    
+    func findByDateRange(from startDate: Date, to endDate: Date) async throws -> [AllowancePayment] {
+        if shouldThrowError {
+            throw errorToThrow
+        }
+        return payments.filter { $0.paidAt >= startDate && $0.paidAt <= endDate }
+    }
+    
+    func delete(_ id: UUID) async throws {
+        if shouldThrowError {
+            throw errorToThrow
+        }
+        payments.removeAll { $0.id == id }
+    }
+    
+    func update(_ payment: AllowancePayment) async throws {
+        if shouldThrowError {
+            throw errorToThrow
+        }
+        if let index = payments.firstIndex(where: { $0.id == payment.id }) {
+            payments[index] = payment
+        }
+    }
+}
+
 class MockSoundService: SoundServiceProtocol {
     var coinEarnSoundPlayed = false
     var taskCompleteSoundPlayed = false

@@ -6,7 +6,16 @@ struct SettingsView: View {
     @State private var editingChild: Child?
     @State private var showingDeleteAlert = false
     @State private var childToDelete: Child?
+    @State private var showingTaskManagement = false
     @StateObject private var tutorialService = TutorialService()
+    @StateObject private var taskManagementViewModel: TaskManagementViewModel
+    
+    init(viewModel: ChildManagementViewModel) {
+        self.viewModel = viewModel
+        let context = PersistenceController.shared.container.viewContext
+        let taskRepository = CoreDataHelpTaskRepository(context: context)
+        self._taskManagementViewModel = StateObject(wrappedValue: TaskManagementViewModel(helpTaskRepository: taskRepository))
+    }
     
     var body: some View {
         NavigationView {
@@ -31,6 +40,23 @@ struct SettingsView: View {
                     }
                     .primaryGradientButton()
                     .accessibilityIdentifier("add_child_button")
+                }
+                
+                Section("お手伝い管理") {
+                    Button(action: {
+                        showingTaskManagement = true
+                    }) {
+                        HStack {
+                            Image(systemName: "list.bullet.clipboard")
+                                .foregroundColor(.blue)
+                            Text("お手伝いリストを編集")
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.secondary)
+                                .font(.caption)
+                        }
+                    }
+                    .foregroundColor(.primary)
                 }
                 
                 Section("ヘルプ") {
@@ -83,6 +109,9 @@ struct SettingsView: View {
         }
         .sheet(item: $editingChild) { child in
             ChildFormView(viewModel: viewModel, editingChild: child)
+        }
+        .sheet(isPresented: $showingTaskManagement) {
+            TaskManagementView(viewModel: taskManagementViewModel)
         }
         .alert("削除確認", isPresented: $showingDeleteAlert) {
             Button("削除", role: .destructive) {

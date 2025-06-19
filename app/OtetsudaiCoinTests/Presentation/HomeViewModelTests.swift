@@ -8,6 +8,7 @@ final class HomeViewModelTests: XCTestCase {
     private var mockChildRepository: MockChildRepository!
     private var mockHelpRecordRepository: MockHelpRecordRepository!
     private var mockAllowanceCalculator: MockAllowanceCalculator!
+    private var mockAllowancePaymentRepository: MockAllowancePaymentRepository!
     private var cancellables: Set<AnyCancellable>!
     
     override func setUp() {
@@ -15,11 +16,13 @@ final class HomeViewModelTests: XCTestCase {
         mockChildRepository = MockChildRepository()
         mockHelpRecordRepository = MockHelpRecordRepository()
         mockAllowanceCalculator = MockAllowanceCalculator()
+        mockAllowancePaymentRepository = MockAllowancePaymentRepository()
         
         viewModel = HomeViewModel(
             childRepository: mockChildRepository,
             helpRecordRepository: mockHelpRecordRepository,
-            allowanceCalculator: mockAllowanceCalculator
+            allowanceCalculator: mockAllowanceCalculator,
+            allowancePaymentRepository: mockAllowancePaymentRepository
         )
         cancellables = Set<AnyCancellable>()
     }
@@ -27,6 +30,7 @@ final class HomeViewModelTests: XCTestCase {
     override func tearDown() {
         cancellables = nil
         viewModel = nil
+        mockAllowancePaymentRepository = nil
         mockAllowanceCalculator = nil
         mockHelpRecordRepository = nil
         mockChildRepository = nil
