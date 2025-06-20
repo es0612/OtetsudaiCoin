@@ -2,7 +2,6 @@ import SwiftUI
 
 struct HomeView: View {
     @ObservedObject var viewModel: HomeViewModel
-    @State private var showingResetAlert = false
     @State private var showingMonthlyHistory = false
     
     var body: some View {
@@ -52,16 +51,6 @@ struct HomeView: View {
             .navigationTitle("おてつだいコイン")
             .onAppear {
                 viewModel.loadChildren()
-            }
-        }
-        .alert("お小遣いを渡しました", isPresented: $showingResetAlert) {
-            Button("記録する") {
-                viewModel.recordAllowancePayment()
-            }
-            Button("キャンセル", role: .cancel) { }
-        } message: {
-            if let child = viewModel.selectedChild {
-                Text("\(child.name)に\(viewModel.monthlyAllowance)コインのお小遣いを渡しましたか？")
             }
         }
         .alert("エラー", isPresented: .constant(viewModel.errorMessage != nil)) {
@@ -163,30 +152,6 @@ struct HomeView: View {
                 )
             }
             
-            // お小遣い支払いボタン
-            if viewModel.totalRecordsThisMonth > 0 && !viewModel.isCurrentMonthPaid {
-                Button(action: {
-                    showingResetAlert = true
-                }) {
-                    HStack {
-                        Image(systemName: "checkmark.circle.fill")
-                        Text("お小遣いを渡しました")
-                    }
-                    .font(.headline)
-                    .foregroundColor(.white)
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(
-                        LinearGradient(
-                            colors: [.green, .green.opacity(0.8)],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
-                    .cornerRadius(12)
-                }
-                .padding(.top, 16)
-            }
             
             // 支払い済み表示
             if viewModel.isCurrentMonthPaid {
