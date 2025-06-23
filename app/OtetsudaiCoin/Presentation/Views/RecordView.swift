@@ -130,7 +130,7 @@ struct RecordView: View {
     }
     
     private var taskListView: some View {
-        VStack(alignment: .leading) {
+        VStack(alignment: .leading, spacing: 16) {
             Text("今日のお手伝い")
                 .font(.headline)
                 .padding(.horizontal)
@@ -142,34 +142,24 @@ struct RecordView: View {
                     .frame(maxWidth: .infinity, alignment: .center)
                     .background(Color.gray.opacity(0.1))
                     .cornerRadius(12)
+                    .padding(.horizontal)
             } else {
-                List(viewModel.availableTasks, id: \.id) { task in
-                    Button(action: {
-                        viewModel.selectTask(task)
-                    }) {
-                        HStack {
-                            Image(systemName: "hands.sparkles")
-                                .foregroundColor(.blue)
-                                .frame(width: 30)
-                            
-                            Text(task.name)
-                                .font(.body)
-                                .foregroundColor(.primary)
-                            
-                            Spacer()
-                            
-                            if viewModel.selectedTask?.id == task.id {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundColor(.blue)
+                LazyVGrid(columns: [
+                    GridItem(.flexible()),
+                    GridItem(.flexible())
+                ], spacing: 12) {
+                    ForEach(viewModel.availableTasks, id: \.id) { task in
+                        TaskCardView(
+                            task: task,
+                            isSelected: viewModel.selectedTask?.id == task.id,
+                            onTap: {
+                                viewModel.selectTask(task)
                             }
-                        }
-                        .padding(.vertical, 8)
+                        )
+                        .accessibilityIdentifier("task_button")
                     }
-                    .buttonStyle(PlainButtonStyle())
-                    .accessibilityIdentifier("task_button")
                 }
-                .listStyle(PlainListStyle())
-                .frame(maxHeight: 200)
+                .padding(.horizontal)
             }
         }
     }
@@ -186,6 +176,57 @@ struct RecordView: View {
         .successGradientButton(isDisabled: viewModel.selectedChild == nil || viewModel.selectedTask == nil)
         .disabled(viewModel.selectedChild == nil || viewModel.selectedTask == nil)
         .accessibilityIdentifier("record_button")
+    }
+}
+
+struct TaskCardView: View {
+    let task: HelpTask
+    let isSelected: Bool
+    let onTap: () -> Void
+    
+    var body: some View {
+        Button(action: onTap) {
+            VStack(spacing: 12) {
+                ZStack {
+                    Circle()
+                        .fill(isSelected ? .blue : .gray.opacity(0.2))
+                        .frame(width: 50, height: 50)
+                    
+                    Image(systemName: "hands.sparkles")
+                        .font(.title2)
+                        .foregroundColor(isSelected ? .white : .blue)
+                }
+                
+                Text(task.name)
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .multilineTextAlignment(.center)
+                    .foregroundColor(.primary)
+                    .lineLimit(2)
+                
+                if isSelected {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.title3)
+                        .foregroundColor(.blue)
+                } else {
+                    Spacer()
+                        .frame(height: 20)
+                }
+            }
+            .padding()
+            .frame(height: 120)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(isSelected ? Color.blue.opacity(0.1) : Color.gray.opacity(0.05))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(isSelected ? Color.blue : Color.clear, lineWidth: 2)
+                    )
+            )
+        }
+        .buttonStyle(PlainButtonStyle())
+        .scaleEffect(isSelected ? 1.05 : 1.0)
+        .animation(.easeInOut(duration: 0.2), value: isSelected)
     }
 }
 

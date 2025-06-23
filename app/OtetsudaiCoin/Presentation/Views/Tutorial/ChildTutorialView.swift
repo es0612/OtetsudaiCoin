@@ -197,29 +197,37 @@ struct ChildTutorialView: View {
     }
     
     private var navigationButtons: some View {
-        HStack {
-            if currentStep > 0 {
-                Button("戻る") {
-                    withAnimation {
-                        currentStep -= 1
+        VStack(spacing: 12) {
+            HStack {
+                if currentStep > 0 {
+                    Button("戻る") {
+                        withAnimation {
+                            currentStep -= 1
+                        }
+                    }
+                    .buttonStyle(.bordered)
+                }
+                
+                Spacer()
+                
+                Button(currentStep == totalSteps - 1 ? "完了" : "次へ") {
+                    if currentStep == totalSteps - 1 {
+                        tutorialService.markChildTutorialCompleted()
+                    } else {
+                        withAnimation {
+                            currentStep += 1
+                        }
                     }
                 }
-                .buttonStyle(.bordered)
+                .buttonStyle(.borderedProminent)
+                .disabled(currentStep == 1 && !hasAddedChild)
             }
             
-            Spacer()
-            
-            Button(currentStep == totalSteps - 1 ? "完了" : "次へ") {
-                if currentStep == totalSteps - 1 {
-                    tutorialService.markChildTutorialCompleted()
-                } else {
-                    withAnimation {
-                        currentStep += 1
-                    }
-                }
+            Button("チュートリアルをスキップ") {
+                tutorialService.completeTutorial()
             }
-            .buttonStyle(.borderedProminent)
-            .disabled(currentStep == 1 && !hasAddedChild)
+            .foregroundColor(.secondary)
+            .font(.caption)
         }
     }
 }

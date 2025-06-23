@@ -103,6 +103,10 @@ class HomeViewModel: ObservableObject {
         }
     }
     
+    func payMonthlyAllowance() {
+        recordAllowancePayment()
+    }
+    
     func recordAllowancePayment() {
         guard let child = selectedChild else {
             errorMessage = "子供が選択されていません"

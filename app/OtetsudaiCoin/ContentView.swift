@@ -20,30 +20,18 @@ struct ContentView: View {
     
     @StateObject private var childManagementViewModel: ChildManagementViewModel
     @StateObject private var homeViewModel: HomeViewModel
-    @StateObject private var paymentSettingsManager: PaymentSettingsManager
-    @StateObject private var autoPaymentService: AutoPaymentService
     
     init() {
         let childRepo = CoreDataChildRepository(context: PersistenceController.shared.container.viewContext)
         let helpRecordRepo = CoreDataHelpRecordRepository(context: PersistenceController.shared.container.viewContext)
         let allowancePaymentRepo = InMemoryAllowancePaymentRepository() // 一時的にメモリ実装を使用
         
-        _paymentSettingsManager = StateObject(wrappedValue: PaymentSettingsManager())
         _childManagementViewModel = StateObject(wrappedValue: ChildManagementViewModel(childRepository: childRepo))
         _homeViewModel = StateObject(wrappedValue: HomeViewModel(
             childRepository: childRepo,
             helpRecordRepository: helpRecordRepo,
             allowanceCalculator: AllowanceCalculator(),
             allowancePaymentRepository: allowancePaymentRepo
-        ))
-        
-        // AutoPaymentServiceは後から初期化される必要があるため、一時的にダミーを設定
-        _autoPaymentService = StateObject(wrappedValue: AutoPaymentService(
-            paymentSettingsManager: PaymentSettingsManager(),
-            allowancePaymentRepository: allowancePaymentRepo,
-            helpRecordRepository: helpRecordRepo,
-            childRepository: childRepo,
-            allowanceCalculator: AllowanceCalculator()
         ))
     }
     

@@ -152,16 +152,45 @@ struct HomeView: View {
                 )
             }
             
-            
-            // 支払い済み表示
-            if viewModel.isCurrentMonthPaid {
-                HStack {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.green)
-                    Text("今月のお小遣いは支払い済みです")
-                        .foregroundColor(.secondary)
+            // お小遣い支払いセクション
+            VStack(spacing: 16) {
+                Divider()
+                    .padding(.vertical, 8)
+                
+                if viewModel.isCurrentMonthPaid {
+                    HStack {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundColor(.green)
+                        Text("今月のお小遣いは支払い済みです")
+                            .foregroundColor(.secondary)
+                    }
+                } else {
+                    VStack(spacing: 12) {
+                        Text("今月のお小遣い")
+                            .font(.headline)
+                            .foregroundColor(.primary)
+                        
+                        Button(action: {
+                            viewModel.payMonthlyAllowance()
+                        }) {
+                            HStack {
+                                Image(systemName: "creditcard.fill")
+                                Text("今月のお小遣いを支払う")
+                                Spacer()
+                                Text("\(viewModel.monthlyAllowance)コイン")
+                                    .fontWeight(.bold)
+                            }
+                        }
+                        .primaryGradientButton()
+                        .disabled(viewModel.monthlyAllowance == 0)
+                        
+                        if viewModel.monthlyAllowance == 0 {
+                            Text("今月のお手伝い記録がありません")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
                 }
-                .padding(.top, 16)
             }
         }
         .padding()

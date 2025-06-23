@@ -9,8 +9,6 @@ struct SettingsView: View {
     @State private var showingTaskManagement = false
     @StateObject private var tutorialService = TutorialService()
     @StateObject private var taskManagementViewModel: TaskManagementViewModel
-    @StateObject private var paymentSettingsManager = PaymentSettingsManager()
-    @State private var showingPaymentDatePicker = false
     
     init(viewModel: ChildManagementViewModel) {
         self.viewModel = viewModel
@@ -61,35 +59,6 @@ struct SettingsView: View {
                     .foregroundColor(.primary)
                 }
                 
-                Section("お小遣い設定") {
-                    HStack {
-                        Image(systemName: "calendar")
-                            .foregroundColor(.green)
-                        Text("支払日")
-                        Spacer()
-                        Button(action: {
-                            showingPaymentDatePicker = true
-                        }) {
-                            Text("毎月\(paymentSettingsManager.settings.paymentDay)日")
-                                .foregroundColor(.blue)
-                        }
-                    }
-                    
-                    HStack {
-                        Image(systemName: "autostartstop")
-                            .foregroundColor(.purple)
-                        Toggle("自動支払い", isOn: Binding(
-                            get: { paymentSettingsManager.settings.isAutoPaymentEnabled },
-                            set: { newValue in
-                                let newSettings = PaymentSettings(
-                                    paymentDay: paymentSettingsManager.settings.paymentDay,
-                                    isAutoPaymentEnabled: newValue
-                                )
-                                paymentSettingsManager.saveSettings(newSettings)
-                            }
-                        ))
-                    }
-                }
                 
                 Section("ヘルプ") {
                     Button(action: {
@@ -144,9 +113,6 @@ struct SettingsView: View {
         }
         .sheet(isPresented: $showingTaskManagement) {
             TaskManagementView(viewModel: taskManagementViewModel)
-        }
-        .sheet(isPresented: $showingPaymentDatePicker) {
-            PaymentDatePickerView(paymentSettingsManager: paymentSettingsManager)
         }
         .alert("削除確認", isPresented: $showingDeleteAlert) {
             Button("削除", role: .destructive) {
