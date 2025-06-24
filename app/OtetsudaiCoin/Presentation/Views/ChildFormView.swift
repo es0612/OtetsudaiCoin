@@ -66,22 +66,17 @@ struct ChildFormView: View {
                     .accessibilityIdentifier("color_picker_button")
                     
                     if showingColorPicker {
+                        let colors = viewModel.getAvailableThemeColors()
                         LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 5), spacing: 10) {
-                            ForEach(0..<viewModel.getAvailableThemeColors().count, id: \.self) { index in
-                                let color = viewModel.getAvailableThemeColors()[index]
-                                Button(action: {
-                                    selectedThemeColor = color
-                                    showingColorPicker = false
-                                }) {
-                                    Circle()
-                                        .fill(Color(hex: color) ?? .gray)
-                                        .frame(width: 50, height: 50)
-                                        .overlay(
-                                            Circle()
-                                                .stroke(selectedThemeColor == color ? .black : .clear, lineWidth: 3)
-                                        )
-                                        .shadow(radius: 1)
-                                }
+                            ForEach(Array(colors.enumerated()), id: \.offset) { index, color in
+                                ColorSelectionButton(
+                                    color: color,
+                                    isSelected: selectedThemeColor == color,
+                                    onSelect: {
+                                        selectedThemeColor = color
+                                        showingColorPicker = false
+                                    }
+                                )
                                 .accessibilityIdentifier("color_option_\(index)")
                             }
                         }
@@ -196,6 +191,25 @@ struct ChildFormView: View {
     }
 }
 
+struct ColorSelectionButton: View {
+    let color: String
+    let isSelected: Bool
+    let onSelect: () -> Void
+    
+    var body: some View {
+        Button(action: onSelect) {
+            Circle()
+                .fill(Color(hex: color) ?? .gray)
+                .frame(width: 50, height: 50)
+                .overlay(
+                    Circle()
+                        .stroke(isSelected ? .black : .clear, lineWidth: 3)
+                )
+                .shadow(radius: 1)
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
 
 #Preview {
     let context = PersistenceController.preview.container.viewContext

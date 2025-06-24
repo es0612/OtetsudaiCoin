@@ -208,35 +208,19 @@ struct RecordTutorialView: View {
                     .font(.headline)
                 
                 if !recordViewModel.availableTasks.isEmpty {
-                    VStack(spacing: 8) {
-                        ForEach(recordViewModel.availableTasks.prefix(3), id: \.id) { task in
-                            Button(action: {
-                                recordViewModel.selectTask(task)
-                                hasSelectedTask = true
-                            }) {
-                                HStack {
-                                    Image(systemName: "hands.sparkles")
-                                        .foregroundColor(.blue)
-                                        .frame(width: 30)
-                                    
-                                    Text(task.name)
-                                        .font(.body)
-                                        .foregroundColor(.primary)
-                                    
-                                    Spacer()
-                                    
-                                    if recordViewModel.selectedTask?.id == task.id {
-                                        Image(systemName: "checkmark.circle.fill")
-                                            .foregroundColor(.green)
-                                    }
+                    LazyVGrid(columns: [
+                        GridItem(.flexible()),
+                        GridItem(.flexible())
+                    ], spacing: 12) {
+                        ForEach(recordViewModel.availableTasks, id: \.id) { task in
+                            TutorialTaskCardView(
+                                task: task,
+                                isSelected: recordViewModel.selectedTask?.id == task.id,
+                                onTap: {
+                                    recordViewModel.selectTask(task)
+                                    hasSelectedTask = true
                                 }
-                                .padding()
-                                .background(
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .fill(recordViewModel.selectedTask?.id == task.id ? Color.green.opacity(0.1) : Color.gray.opacity(0.1))
-                                )
-                            }
-                            .buttonStyle(PlainButtonStyle())
+                            )
                         }
                     }
                 }
@@ -356,6 +340,57 @@ struct RecordTutorialView: View {
             .foregroundColor(.secondary)
             .font(.caption)
         }
+    }
+}
+
+struct TutorialTaskCardView: View {
+    let task: HelpTask
+    let isSelected: Bool
+    let onTap: () -> Void
+    
+    var body: some View {
+        Button(action: onTap) {
+            VStack(spacing: 12) {
+                ZStack {
+                    Circle()
+                        .fill(isSelected ? .blue : .gray.opacity(0.2))
+                        .frame(width: 50, height: 50)
+                    
+                    Image(systemName: "hands.sparkles")
+                        .font(.title2)
+                        .foregroundColor(isSelected ? .white : .blue)
+                }
+                
+                Text(task.name)
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .multilineTextAlignment(.center)
+                    .foregroundColor(.primary)
+                    .lineLimit(2)
+                
+                if isSelected {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.title3)
+                        .foregroundColor(.blue)
+                } else {
+                    Spacer()
+                        .frame(height: 20)
+                }
+            }
+            .padding()
+            .frame(height: 120)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(isSelected ? Color.blue.opacity(0.1) : Color.gray.opacity(0.05))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(isSelected ? Color.blue : Color.clear, lineWidth: 2)
+                    )
+            )
+        }
+        .buttonStyle(PlainButtonStyle())
+        .scaleEffect(isSelected ? 1.05 : 1.0)
+        .animation(.easeInOut(duration: 0.2), value: isSelected)
     }
 }
 

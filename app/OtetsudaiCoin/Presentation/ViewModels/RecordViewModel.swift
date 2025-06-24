@@ -107,12 +107,14 @@ class RecordViewModel: ObservableObject {
     
     func selectChild(_ child: Child) {
         selectedChild = child
-        clearMessages()
+        // 成功メッセージは保持し、エラーメッセージのみクリア
+        errorMessage = nil
     }
     
     func selectTask(_ task: HelpTask) {
         selectedTask = task
-        clearMessages()
+        // 成功メッセージは保持し、エラーメッセージのみクリア
+        errorMessage = nil
     }
     
     func recordHelp() {

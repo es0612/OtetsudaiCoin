@@ -74,6 +74,16 @@ struct RecordView: View {
         .onReceive(viewModel.$successMessage) { successMessage in
             if successMessage != nil && !showCoinAnimation {
                 showCoinAnimation = true
+                // アニメーション表示後にメッセージをクリア
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    viewModel.clearMessages()
+                }
+            }
+        }
+        .onChange(of: showCoinAnimation) { _, isShowing in
+            if !isShowing {
+                // アニメーション終了時に成功メッセージをクリア
+                viewModel.clearMessages()
             }
         }
     }
