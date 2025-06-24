@@ -6,20 +6,16 @@ extension Notification.Name {
 }
 
 @MainActor
-class RecordViewModel: ObservableObject {
+class RecordViewModel: BaseViewModel {
     @Published var availableChildren: [Child] = []
     @Published var availableTasks: [HelpTask] = []
     @Published var selectedChild: Child?
     @Published var selectedTask: HelpTask?
-    @Published var isLoading: Bool = false
-    @Published var errorMessage: String?
-    @Published var successMessage: String?
     
     private let childRepository: ChildRepository
     private let helpTaskRepository: HelpTaskRepository
     private let helpRecordRepository: HelpRecordRepository
     private let soundService: SoundServiceProtocol
-    private var cancellables = Set<AnyCancellable>()
     
     init(
         childRepository: ChildRepository,
@@ -31,7 +27,10 @@ class RecordViewModel: ObservableObject {
         self.helpTaskRepository = helpTaskRepository
         self.helpRecordRepository = helpRecordRepository
         self.soundService = soundService ?? SoundService()
-        
+        super.init()
+    }
+    
+    override func setupNotificationListeners() {
         // SwiftUIの宣言的な仕組み：子供データ更新の自動監視
         NotificationCenter.default
             .publisher(for: .childrenUpdated)
@@ -54,8 +53,7 @@ class RecordViewModel: ObservableObject {
     }
     
     func loadData() {
-        isLoading = true
-        errorMessage = nil
+        setLoading(true)
         
         Task {
             do {
@@ -70,10 +68,9 @@ class RecordViewModel: ObservableObject {
                     selectedChild = children.first
                 }
                 
-                isLoading = false
+                setLoading(false)
             } catch {
-                errorMessage = "データの読み込みに失敗しました: \(error.localizedDescription)"
-                isLoading = false
+                setError("データの読み込みに失敗しました: \(error.localizedDescription)")
             }
         }
     }
@@ -100,7 +97,7 @@ class RecordViewModel: ObservableObject {
                     selectedChild = children.first
                 }
             } catch {
-                errorMessage = "子供データの読み込みに失敗しました: \(error.localizedDescription)"
+                setError("子供データの読み込みに失敗しました: \(error.localizedDescription)")
             }
         }
     }
@@ -108,29 +105,29 @@ class RecordViewModel: ObservableObject {
     func selectChild(_ child: Child) {
         selectedChild = child
         // 成功メッセージは保持し、エラーメッセージのみクリア
-        errorMessage = nil
+        clearErrorMessage()
     }
     
     func selectTask(_ task: HelpTask) {
         selectedTask = task
         // 成功メッセージは保持し、エラーメッセージのみクリア
-        errorMessage = nil
+        clearErrorMessage()
     }
     
     func recordHelp() {
-        clearMessages()
+        clearErrorMessage()
         
         guard let child = selectedChild else {
-            errorMessage = "お子様を選択してください"
+            setError("お子様を選択してください")
             return
         }
         
         guard let task = selectedTask else {
-            errorMessage = "お手伝いタスクを選択してください"
+            setError("お手伝いタスクを選択してください")
             return
         }
         
-        isLoading = true
+        setLoading(true)
         
         Task {
             do {
@@ -155,18 +152,11 @@ class RecordViewModel: ObservableObject {
                 // SwiftUIの宣言的な仕組み：データ更新の通知
                 NotificationCenter.default.post(name: .helpRecordUpdated, object: nil)
                 
-                successMessage = "お手伝いを記録しました！"
+                setSuccess("お手伝いを記録しました！")
                 selectedTask = nil
-                isLoading = false
             } catch {
-                errorMessage = "記録の保存に失敗しました: \(error.localizedDescription)"
-                isLoading = false
+                setError("記録の保存に失敗しました: \(error.localizedDescription)")
             }
         }
-    }
-    
-    func clearMessages() {
-        errorMessage = nil
-        successMessage = nil
     }
 }

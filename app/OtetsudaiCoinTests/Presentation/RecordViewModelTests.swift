@@ -84,7 +84,8 @@ final class RecordViewModelTests: XCTestCase {
         
         let expectation = XCTestExpectation(description: "Error occurred")
         
-        viewModel.$errorMessage
+        viewModel.$viewState
+            .map { $0.errorMessage }
             .compactMap { $0 }
             .sink { errorMessage in
                 XCTAssertNotNil(errorMessage)
@@ -124,7 +125,8 @@ final class RecordViewModelTests: XCTestCase {
         
         let expectation = XCTestExpectation(description: "Help recorded successfully")
         
-        viewModel.$successMessage
+        viewModel.$viewState
+            .map { $0.successMessage }
             .compactMap { $0 }
             .sink { successMessage in
                 XCTAssertEqual(successMessage, "お手伝いを記録しました！")
@@ -172,7 +174,8 @@ final class RecordViewModelTests: XCTestCase {
         
         let expectation = XCTestExpectation(description: "Error occurred")
         
-        viewModel.$errorMessage
+        viewModel.$viewState
+            .map { $0.errorMessage }
             .compactMap { $0 }
             .sink { errorMessage in
                 XCTAssertNotNil(errorMessage)

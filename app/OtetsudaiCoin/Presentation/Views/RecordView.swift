@@ -9,24 +9,10 @@ struct RecordView: View {
             NavigationView {
                 ScrollView {
                     VStack(spacing: 16) {
-                        if viewModel.isLoading {
-                            ProgressView()
-                                .frame(maxWidth: .infinity, minHeight: 200)
-                        } else if let errorMessage = viewModel.errorMessage {
-                            VStack {
-                                Image(systemName: "exclamationmark.triangle")
-                                    .font(.largeTitle)
-                                    .foregroundColor(.red)
-                                Text(errorMessage)
-                                    .multilineTextAlignment(.center)
-                                    .padding()
-                                Button("再試行") {
-                                    viewModel.loadTasks()
-                                }
-                                .primaryGradientButton()
-                            }
-                            .frame(maxWidth: .infinity, minHeight: 200)
-                        } else {
+                        StateBasedContent(
+                            viewState: viewModel.viewState,
+                            onRetry: { viewModel.loadTasks() }
+                        ) {
                             VStack(spacing: 16) {
                                 if let successMessage = viewModel.successMessage {
                                     HStack {
@@ -66,24 +52,22 @@ struct RecordView: View {
                 
                 CoinAnimationView(
                     isVisible: $showCoinAnimation,
-                    coinValue: 100, // デフォルトのコイン価値
+                    coinValue: selectedChild.coinRate,
                     themeColor: selectedChild.themeColor
                 )
             }
         }
-        .onReceive(viewModel.$successMessage) { successMessage in
-            if successMessage != nil && !showCoinAnimation {
+        .onReceive(viewModel.$viewState) { viewState in
+            if viewState.successMessage != nil && !showCoinAnimation {
                 showCoinAnimation = true
-                // アニメーション表示後にメッセージをクリア
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    viewModel.clearMessages()
-                }
             }
         }
         .onChange(of: showCoinAnimation) { _, isShowing in
             if !isShowing {
                 // アニメーション終了時に成功メッセージをクリア
-                viewModel.clearMessages()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    viewModel.clearMessages()
+                }
             }
         }
     }

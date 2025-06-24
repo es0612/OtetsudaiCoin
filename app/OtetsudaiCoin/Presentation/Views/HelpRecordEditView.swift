@@ -46,21 +46,14 @@ struct HelpRecordEditView: View {
         } message: {
             Text("この記録を削除しますか？この操作は取り消せません。")
         }
-        .alert("成功", isPresented: .constant(viewModel.successMessage != nil)) {
-            Button("OK") {
+        .commonAlerts(
+            viewState: viewModel.viewState,
+            onErrorDismiss: { viewModel.clearMessages() },
+            onSuccessDismiss: { 
                 viewModel.clearMessages()
                 dismiss()
             }
-        } message: {
-            Text(viewModel.successMessage ?? "")
-        }
-        .alert("エラー", isPresented: .constant(viewModel.errorMessage != nil)) {
-            Button("OK") {
-                viewModel.clearMessages()
-            }
-        } message: {
-            Text(viewModel.errorMessage ?? "")
-        }
+        )
     }
     
     private var taskSelectionSection: some View {

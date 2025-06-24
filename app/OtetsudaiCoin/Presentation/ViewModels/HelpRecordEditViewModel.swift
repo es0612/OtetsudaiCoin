@@ -2,13 +2,10 @@ import Foundation
 import Combine
 
 @MainActor
-class HelpRecordEditViewModel: ObservableObject {
+class HelpRecordEditViewModel: BaseViewModel {
     @Published var selectedTask: HelpTask?
     @Published var recordedDate: Date = Date()
     @Published var availableTasks: [HelpTask] = []
-    @Published var isLoading: Bool = false
-    @Published var errorMessage: String?
-    @Published var successMessage: String?
     
     private let helpRecord: HelpRecord
     private let child: Child
@@ -26,11 +23,11 @@ class HelpRecordEditViewModel: ObservableObject {
         self.helpRecordRepository = helpRecordRepository
         self.helpTaskRepository = helpTaskRepository
         self.recordedDate = helpRecord.recordedAt
+        super.init()
     }
     
     func loadData() {
-        isLoading = true
-        errorMessage = nil
+        setLoading(true)
         
         Task {
             do {
@@ -40,23 +37,20 @@ class HelpRecordEditViewModel: ObservableObject {
                 // 現在のタスクを選択状態にする
                 selectedTask = tasks.first { $0.id == helpRecord.helpTaskId }
                 
-                isLoading = false
+                setLoading(false)
             } catch {
-                errorMessage = "データの読み込みに失敗しました: \(error.localizedDescription)"
-                isLoading = false
+                setError("データの読み込みに失敗しました: \(error.localizedDescription)")
             }
         }
     }
     
     func saveChanges() {
         guard let task = selectedTask else {
-            errorMessage = "お手伝いタスクを選択してください"
+            setError("お手伝いタスクを選択してください")
             return
         }
         
-        isLoading = true
-        errorMessage = nil
-        successMessage = nil
+        setLoading(true)
         
         Task {
             do {
@@ -72,19 +66,15 @@ class HelpRecordEditViewModel: ObservableObject {
                 // SwiftUIの宣言的な仕組み：データ更新の通知
                 NotificationCenter.default.post(name: .helpRecordUpdated, object: nil)
                 
-                successMessage = "記録を更新しました"
-                isLoading = false
+                setSuccess("記録を更新しました")
             } catch {
-                errorMessage = "記録の更新に失敗しました: \(error.localizedDescription)"
-                isLoading = false
+                setError("記録の更新に失敗しました: \(error.localizedDescription)")
             }
         }
     }
     
     func deleteRecord() {
-        isLoading = true
-        errorMessage = nil
-        successMessage = nil
+        setLoading(true)
         
         Task {
             do {
@@ -93,11 +83,9 @@ class HelpRecordEditViewModel: ObservableObject {
                 // SwiftUIの宣言的な仕組み：データ更新の通知
                 NotificationCenter.default.post(name: .helpRecordUpdated, object: nil)
                 
-                successMessage = "記録を削除しました"
-                isLoading = false
+                setSuccess("記録を削除しました")
             } catch {
-                errorMessage = "記録の削除に失敗しました: \(error.localizedDescription)"
-                isLoading = false
+                setError("記録の削除に失敗しました: \(error.localizedDescription)")
             }
         }
     }
@@ -107,10 +95,5 @@ class HelpRecordEditViewModel: ObservableObject {
         _ = Calendar.current
         let timeInterval = abs(recordedDate.timeIntervalSince(helpRecord.recordedAt))
         return task.id != helpRecord.helpTaskId || timeInterval > 60 // 1分以上の差があれば変更とみなす
-    }
-    
-    func clearMessages() {
-        errorMessage = nil
-        successMessage = nil
     }
 }

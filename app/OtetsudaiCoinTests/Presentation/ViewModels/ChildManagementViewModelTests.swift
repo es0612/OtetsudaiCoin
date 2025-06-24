@@ -38,7 +38,7 @@ final class ChildManagementViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.children[0].name, "太郎")
         XCTAssertEqual(viewModel.children[1].name, "花子")
         XCTAssertFalse(viewModel.isLoading)
-        XCTAssertNil(viewModel.errorMessage)
+        XCTAssertNil(viewModel.viewState.errorMessage)
     }
     
     func testLoadChildrenWithError() async {
@@ -51,7 +51,7 @@ final class ChildManagementViewModelTests: XCTestCase {
         // Then
         XCTAssertTrue(viewModel.children.isEmpty)
         XCTAssertFalse(viewModel.isLoading)
-        XCTAssertNotNil(viewModel.errorMessage)
+        XCTAssertNotNil(viewModel.viewState.errorMessage)
     }
     
     func testAddChild() async {
@@ -68,7 +68,7 @@ final class ChildManagementViewModelTests: XCTestCase {
         XCTAssertEqual(childRepository.savedChildren[0].name, name)
         XCTAssertEqual(childRepository.savedChildren[0].themeColor, themeColor)
         XCTAssertEqual(childRepository.savedChildren[0].coinRate, coinRate)
-        XCTAssertNotNil(viewModel.successMessage)
+        XCTAssertNotNil(viewModel.viewState.successMessage)
     }
     
     func testAddChildWithInvalidData() async {
@@ -82,7 +82,7 @@ final class ChildManagementViewModelTests: XCTestCase {
         
         // Then
         XCTAssertTrue(childRepository.savedChildren.isEmpty)
-        XCTAssertNotNil(viewModel.errorMessage)
+        XCTAssertNotNil(viewModel.viewState.errorMessage)
     }
     
     func testUpdateChild() async {
@@ -103,7 +103,7 @@ final class ChildManagementViewModelTests: XCTestCase {
         XCTAssertEqual(childRepository.updatedChildren[0].name, updatedName)
         XCTAssertEqual(childRepository.updatedChildren[0].themeColor, updatedColor)
         XCTAssertEqual(childRepository.updatedChildren[0].coinRate, updatedRate)
-        XCTAssertNotNil(viewModel.successMessage)
+        XCTAssertNotNil(viewModel.viewState.successMessage)
     }
     
     func testDeleteChild() async {
@@ -118,7 +118,7 @@ final class ChildManagementViewModelTests: XCTestCase {
         // Then
         XCTAssertEqual(childRepository.deletedChildIds.count, 1)
         XCTAssertEqual(childRepository.deletedChildIds[0], child.id)
-        XCTAssertNotNil(viewModel.successMessage)
+        XCTAssertNotNil(viewModel.viewState.successMessage)
     }
     
     func testValidateChildData() {
@@ -146,8 +146,8 @@ final class ChildManagementViewModelTests: XCTestCase {
         viewModel.clearMessages()
         
         // Then
-        XCTAssertNil(viewModel.errorMessage)
-        XCTAssertNil(viewModel.successMessage)
+        XCTAssertNil(viewModel.viewState.errorMessage)
+        XCTAssertNil(viewModel.viewState.successMessage)
     }
     
     func testGetAvailableThemeColors() {

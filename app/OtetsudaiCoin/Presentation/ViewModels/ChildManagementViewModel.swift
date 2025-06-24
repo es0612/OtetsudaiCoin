@@ -6,11 +6,8 @@ extension Notification.Name {
 }
 
 @MainActor
-class ChildManagementViewModel: ObservableObject {
+class ChildManagementViewModel: BaseViewModel {
     @Published var children: [Child] = []
-    @Published var isLoading: Bool = false
-    @Published var errorMessage: String?
-    @Published var successMessage: String?
     
     private let childRepository: ChildRepository
     
@@ -24,29 +21,34 @@ class ChildManagementViewModel: ObservableObject {
     
     init(childRepository: ChildRepository) {
         self.childRepository = childRepository
+        super.init()
     }
     
     func loadChildren() async {
-        isLoading = true
-        errorMessage = nil
+        setLoading(true)
         
         do {
             children = try await childRepository.findAll()
+            setLoading(false)
         } catch {
-            errorMessage = "子供情報の読み込みに失敗しました: \(error.localizedDescription)"
+            setError("子供情報の読み込みに失敗しました: \(error.localizedDescription)")
         }
-        
-        isLoading = false
     }
     
     func addChild(name: String, themeColor: String, coinRate: Int) async {
         guard validateChildData(name: name, themeColor: themeColor, coinRate: coinRate) else {
-            errorMessage = "入力データが無効です"
+            setError("入力データが無効です")
             return
         }
         
-        errorMessage = nil
-        successMessage = nil
+        // 名前の重複チェック
+        let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        if children.contains(where: { $0.name.lowercased() == trimmedName.lowercased() }) {
+            setError("同じ名前の子供が既に登録されています")
+            return
+        }
+        
+        clearMessages()
         
         let child = Child(id: UUID(), name: name.trimmingCharacters(in: .whitespacesAndNewlines), themeColor: themeColor, coinRate: coinRate)
         
@@ -57,20 +59,19 @@ class ChildManagementViewModel: ObservableObject {
             // SwiftUIの宣言的な仕組み：データ更新の通知
             NotificationCenter.default.post(name: .childrenUpdated, object: nil)
             
-            successMessage = "\(name)を追加しました"
+            setSuccess("\(name)を追加しました")
         } catch {
-            errorMessage = "子供の追加に失敗しました: \(error.localizedDescription)"
+            setError("子供の追加に失敗しました: \(error.localizedDescription)")
         }
     }
     
     func updateChild(id: UUID, name: String, themeColor: String, coinRate: Int) async {
         guard validateChildData(name: name, themeColor: themeColor, coinRate: coinRate) else {
-            errorMessage = "入力データが無効です"
+            setError("入力データが無効です")
             return
         }
         
-        errorMessage = nil
-        successMessage = nil
+        clearMessages()
         
         let updatedChild = Child(id: id, name: name.trimmingCharacters(in: .whitespacesAndNewlines), themeColor: themeColor, coinRate: coinRate)
         
@@ -81,20 +82,19 @@ class ChildManagementViewModel: ObservableObject {
             // SwiftUIの宣言的な仕組み：データ更新の通知
             NotificationCenter.default.post(name: .childrenUpdated, object: nil)
             
-            successMessage = "\(name)の情報を更新しました"
+            setSuccess("\(name)の情報を更新しました")
         } catch {
-            errorMessage = "子供の更新に失敗しました: \(error.localizedDescription)"
+            setError("子供の更新に失敗しました: \(error.localizedDescription)")
         }
     }
     
     func deleteChild(id: UUID) async {
         guard let child = children.first(where: { $0.id == id }) else {
-            errorMessage = "削除対象の子供が見つかりません"
+            setError("削除対象の子供が見つかりません")
             return
         }
         
-        errorMessage = nil
-        successMessage = nil
+        clearMessages()
         
         do {
             try await childRepository.delete(id)
@@ -103,9 +103,9 @@ class ChildManagementViewModel: ObservableObject {
             // SwiftUIの宣言的な仕組み：データ更新の通知
             NotificationCenter.default.post(name: .childrenUpdated, object: nil)
             
-            successMessage = "\(child.name)を削除しました"
+            setSuccess("\(child.name)を削除しました")
         } catch {
-            errorMessage = "子供の削除に失敗しました: \(error.localizedDescription)"
+            setError("子供の削除に失敗しました: \(error.localizedDescription)")
         }
     }
     
@@ -117,11 +117,6 @@ class ChildManagementViewModel: ObservableObject {
         guard Child.isValidCoinRate(coinRate) else { return false }
         
         return true
-    }
-    
-    func clearMessages() {
-        errorMessage = nil
-        successMessage = nil
     }
     
     func getAvailableThemeColors() -> [String] {

@@ -71,7 +71,7 @@ final class HelpRecordEditViewModelTests: XCTestCase {
         XCTAssertFalse(viewModel.isLoading)
         XCTAssertEqual(viewModel.availableTasks.count, 2)
         XCTAssertEqual(viewModel.selectedTask?.id, task1.id)
-        XCTAssertNil(viewModel.errorMessage)
+        XCTAssertNil(viewModel.viewState.errorMessage)
     }
     
     func testLoadDataError() async {
@@ -97,7 +97,7 @@ final class HelpRecordEditViewModelTests: XCTestCase {
         // Then
         XCTAssertFalse(viewModel.isLoading)
         XCTAssertTrue(viewModel.availableTasks.isEmpty)
-        XCTAssertNotNil(viewModel.errorMessage)
+        XCTAssertNotNil(viewModel.viewState.errorMessage)
     }
     
     func testSaveChangesSuccess() async {
@@ -125,8 +125,8 @@ final class HelpRecordEditViewModelTests: XCTestCase {
         
         // Then
         XCTAssertFalse(viewModel.isLoading)
-        XCTAssertNotNil(viewModel.successMessage)
-        XCTAssertNil(viewModel.errorMessage)
+        XCTAssertNotNil(viewModel.viewState.successMessage)
+        XCTAssertNil(viewModel.viewState.errorMessage)
     }
     
     func testSaveChangesWithoutTask() {
@@ -136,7 +136,7 @@ final class HelpRecordEditViewModelTests: XCTestCase {
         viewModel.saveChanges()
         
         // Then
-        XCTAssertNotNil(viewModel.errorMessage)
+        XCTAssertNotNil(viewModel.viewState.errorMessage)
         XCTAssertEqual(viewModel.errorMessage, "お手伝いタスクを選択してください")
     }
     
@@ -159,8 +159,8 @@ final class HelpRecordEditViewModelTests: XCTestCase {
         
         // Then
         XCTAssertFalse(viewModel.isLoading)
-        XCTAssertNotNil(viewModel.successMessage)
-        XCTAssertNil(viewModel.errorMessage)
+        XCTAssertNotNil(viewModel.viewState.successMessage)
+        XCTAssertNil(viewModel.viewState.errorMessage)
     }
     
     func testHasChanges() {
@@ -197,7 +197,7 @@ final class HelpRecordEditViewModelTests: XCTestCase {
         viewModel.clearMessages()
         
         // Then
-        XCTAssertNil(viewModel.errorMessage)
+        XCTAssertNil(viewModel.viewState.errorMessage)
         XCTAssertNil(viewModel.successMessage)
     }
 }
