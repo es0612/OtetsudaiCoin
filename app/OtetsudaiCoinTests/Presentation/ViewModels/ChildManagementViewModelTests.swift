@@ -155,5 +155,26 @@ final class ChildManagementViewModelTests: XCTestCase {
         XCTAssertFalse(colors.isEmpty)
         XCTAssertTrue(colors.allSatisfy { Child.isValidThemeColor($0) })
     }
+    
+    func testThemeColorSelection() async {
+        // Given
+        let availableColors = viewModel.getAvailableThemeColors()
+        let selectedColor = availableColors[5] // 6番目の色を選択
+        let name = "テスト"
+        let coinRate = 100
+        
+        // When
+        await viewModel.addChild(name: name, themeColor: selectedColor, coinRate: coinRate)
+        
+        // Then
+        XCTAssertEqual(childRepository.savedChildren.count, 1)
+        let savedChild = childRepository.savedChildren[0]
+        XCTAssertEqual(savedChild.themeColor, selectedColor, "選択したカラー(\(selectedColor))が正しく保存されるべき")
+        
+        // デバッグ情報を出力
+        print("選択したカラー: \(selectedColor)")
+        print("保存されたカラー: \(savedChild.themeColor)")
+        print("利用可能なカラー: \(availableColors)")
+    }
 }
 

@@ -67,7 +67,8 @@ struct ChildFormView: View {
                     
                     if showingColorPicker {
                         LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 5), spacing: 10) {
-                            ForEach(viewModel.getAvailableThemeColors(), id: \.self) { color in
+                            ForEach(0..<viewModel.getAvailableThemeColors().count, id: \.self) { index in
+                                let color = viewModel.getAvailableThemeColors()[index]
                                 Button(action: {
                                     selectedThemeColor = color
                                     showingColorPicker = false
@@ -81,6 +82,7 @@ struct ChildFormView: View {
                                         )
                                         .shadow(radius: 1)
                                 }
+                                .accessibilityIdentifier("color_option_\(index)")
                             }
                         }
                         .padding()
