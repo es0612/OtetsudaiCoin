@@ -215,7 +215,7 @@ struct MonthlyRecordRow: View {
 #Preview {
     let context = PersistenceController.shared.container.viewContext
     let helpRecordRepo = CoreDataHelpRecordRepository(context: context)
-    let paymentRepo = InMemoryAllowancePaymentRepository()
+    let paymentRepo = InMemoryAllowancePaymentRepository.shared
     let calculator = AllowanceCalculator()
     
     MonthlyHistoryView(viewModel: MonthlyHistoryViewModel(

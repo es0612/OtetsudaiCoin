@@ -97,8 +97,8 @@ struct HelpHistoryView: View {
             StatisticCard(
                 icon: "trophy.fill",
                 title: "平均コイン",
-                value: "\(averageCoinsPerRecord)",
-                subtitle: "コイン/回",
+                value: "\(averageCoinsPerDay)",
+                subtitle: "コイン/日",
                 color: .purple
             )
         }
@@ -111,6 +111,19 @@ struct HelpHistoryView: View {
     private var averageCoinsPerRecord: Int {
         guard !viewModel.helpRecords.isEmpty else { return 0 }
         return totalEarnedCoins / viewModel.helpRecords.count
+    }
+    
+    private var averageCoinsPerDay: Int {
+        guard !viewModel.helpRecords.isEmpty else { return 0 }
+        
+        // 記録のある日数を計算
+        let calendar = Calendar.current
+        let uniqueDays = Set(viewModel.helpRecords.map { record in
+            calendar.startOfDay(for: record.helpRecord.recordedAt)
+        })
+        
+        guard !uniqueDays.isEmpty else { return 0 }
+        return totalEarnedCoins / uniqueDays.count
     }
     
     private var loadingView: some View {

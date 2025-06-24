@@ -2,7 +2,7 @@ import SwiftUI
 
 struct HelpRecordEditView: View {
     @ObservedObject var viewModel: HelpRecordEditViewModel
-    @Environment(\.presentationMode) var presentationMode
+    @Environment(\.dismiss) private var dismiss
     @State private var showingDeleteAlert = false
     
     var body: some View {
@@ -14,10 +14,10 @@ struct HelpRecordEditView: View {
             }
             .navigationTitle("記録を編集")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
+            .toolbar(content: {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("キャンセル") {
-                        presentationMode.wrappedValue.dismiss()
+                        dismiss()
                     }
                 }
                 
@@ -28,10 +28,15 @@ struct HelpRecordEditView: View {
                     .disabled(!viewModel.hasChanges || viewModel.isLoading)
                     .fontWeight(.semibold)
                 }
-            }
+            })
         }
         .onAppear {
             viewModel.loadData()
+        }
+        .onChange(of: viewModel.successMessage) { _, successMessage in
+            if successMessage != nil {
+                dismiss()
+            }
         }
         .alert("削除確認", isPresented: $showingDeleteAlert) {
             Button("削除", role: .destructive) {
@@ -44,7 +49,7 @@ struct HelpRecordEditView: View {
         .alert("成功", isPresented: .constant(viewModel.successMessage != nil)) {
             Button("OK") {
                 viewModel.clearMessages()
-                presentationMode.wrappedValue.dismiss()
+                dismiss()
             }
         } message: {
             Text(viewModel.successMessage ?? "")

@@ -1,6 +1,6 @@
 import Foundation
 
-struct AllowancePayment: Equatable {
+struct AllowancePayment: Equatable, Codable {
     let id: UUID
     let childId: UUID
     let amount: Int

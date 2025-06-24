@@ -272,7 +272,7 @@ struct HomeView: View {
     private func createMonthlyHistoryView(for child: Child) -> some View {
         let context = PersistenceController.shared.container.viewContext
         let helpRecordRepository = CoreDataHelpRecordRepository(context: context)
-        let allowancePaymentRepository = InMemoryAllowancePaymentRepository() // 一時的にメモリ実装を使用
+        let allowancePaymentRepository = InMemoryAllowancePaymentRepository.shared
         
         let monthlyHistoryViewModel = MonthlyHistoryViewModel(
             helpRecordRepository: helpRecordRepository,

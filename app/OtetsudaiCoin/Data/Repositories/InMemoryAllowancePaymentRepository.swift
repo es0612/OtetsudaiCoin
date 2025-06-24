@@ -1,8 +1,16 @@
 import Foundation
 
 final class InMemoryAllowancePaymentRepository: AllowancePaymentRepository, @unchecked Sendable {
+    static let shared = InMemoryAllowancePaymentRepository()
+    
     private var payments: [AllowancePayment] = []
     private let queue = DispatchQueue(label: "allowance-payment-repo", attributes: .concurrent)
+    private let userDefaults = UserDefaults.standard
+    private let storageKey = "allowance_payments"
+    
+    private init() {
+        loadFromStorage()
+    }
     
     func save(_ payment: AllowancePayment) async throws {
         return await withCheckedContinuation { continuation in
@@ -12,6 +20,7 @@ final class InMemoryAllowancePaymentRepository: AllowancePaymentRepository, @unc
                 } else {
                     self.payments.append(payment)
                 }
+                self.saveToStorage()
                 continuation.resume()
             }
         }
@@ -70,6 +79,7 @@ final class InMemoryAllowancePaymentRepository: AllowancePaymentRepository, @unc
         return await withCheckedContinuation { continuation in
             queue.async(flags: .barrier) {
                 self.payments.removeAll { $0.id == id }
+                self.saveToStorage()
                 continuation.resume()
             }
         }
@@ -77,5 +87,24 @@ final class InMemoryAllowancePaymentRepository: AllowancePaymentRepository, @unc
     
     func update(_ payment: AllowancePayment) async throws {
         try await save(payment)
+    }
+    
+    private func saveToStorage() {
+        do {
+            let data = try JSONEncoder().encode(payments)
+            userDefaults.set(data, forKey: storageKey)
+        } catch {
+            print("Failed to save allowance payments: \(error)")
+        }
+    }
+    
+    private func loadFromStorage() {
+        guard let data = userDefaults.data(forKey: storageKey) else { return }
+        do {
+            payments = try JSONDecoder().decode([AllowancePayment].self, from: data)
+        } catch {
+            print("Failed to load allowance payments: \(error)")
+            payments = []
+        }
     }
 }

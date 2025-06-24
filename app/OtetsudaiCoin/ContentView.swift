@@ -24,7 +24,7 @@ struct ContentView: View {
     init() {
         let childRepo = CoreDataChildRepository(context: PersistenceController.shared.container.viewContext)
         let helpRecordRepo = CoreDataHelpRecordRepository(context: PersistenceController.shared.container.viewContext)
-        let allowancePaymentRepo = InMemoryAllowancePaymentRepository() // 一時的にメモリ実装を使用
+        let allowancePaymentRepo = InMemoryAllowancePaymentRepository.shared
         
         _childManagementViewModel = StateObject(wrappedValue: ChildManagementViewModel(childRepository: childRepo))
         _homeViewModel = StateObject(wrappedValue: HomeViewModel(
