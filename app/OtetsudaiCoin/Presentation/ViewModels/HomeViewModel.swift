@@ -6,6 +6,7 @@ class HomeViewModel: ObservableObject {
     @Published var children: [Child] = []
     @Published var selectedChild: Child?
     @Published var monthlyAllowance: Int = 0
+    @Published var currentMonthEarnings: Int = 0
     @Published var consecutiveDays: Int = 0
     @Published var totalRecordsThisMonth: Int = 0
     @Published var isCurrentMonthPaid: Bool = false
@@ -83,6 +84,7 @@ class HomeViewModel: ObservableObject {
                 let records = try await helpRecordRepository.findByChildIdInCurrentMonth(child.id)
                 
                 monthlyAllowance = allowanceCalculator.calculateMonthlyAllowance(records: records, child: child)
+                currentMonthEarnings = allowanceCalculator.calculateMonthlyAllowance(records: records, child: child)
                 consecutiveDays = allowanceCalculator.calculateConsecutiveDays(records: records)
                 totalRecordsThisMonth = records.count
                 
@@ -95,6 +97,11 @@ class HomeViewModel: ObservableObject {
                 let payment = try await allowancePaymentRepository.findByChildIdAndMonth(child.id, month: currentMonth, year: currentYear)
                 isCurrentMonthPaid = payment != nil
                 
+                // 支払い済みの場合は支払い済み金額を表示
+                if let payment = payment {
+                    monthlyAllowance = payment.amount
+                }
+                
                 isLoading = false
             } catch {
                 errorMessage = "データの読み込みに失敗しました: \(error.localizedDescription)"
@@ -104,20 +111,24 @@ class HomeViewModel: ObservableObject {
     }
     
     func payMonthlyAllowance() {
-        recordAllowancePayment()
-    }
-    
-    func recordAllowancePayment() {
-        guard let child = selectedChild else {
+        guard selectedChild != nil else {
             errorMessage = "子供が選択されていません"
             return
         }
         
-        // 既に支払い済みの場合は処理しない
-        if isCurrentMonthPaid {
-            errorMessage = "今月のお小遣いは既に支払い済みです"
+        let amountToPay = isCurrentMonthPaid ? 
+            (currentMonthEarnings - monthlyAllowance) : currentMonthEarnings
+        
+        recordAllowancePayment(amount: amountToPay)
+    }
+    
+    func recordAllowancePayment(amount: Int) {
+        guard selectedChild != nil else {
+            errorMessage = "子供が選択されていません"
             return
         }
+        
+        let child = selectedChild!
         
         isLoading = true
         errorMessage = nil
@@ -125,20 +136,42 @@ class HomeViewModel: ObservableObject {
         
         Task {
             do {
-                // 支払い記録を作成
-                let payment = AllowancePayment.fromCurrentMonth(
-                    childId: child.id,
-                    amount: monthlyAllowance,
-                    note: "今月のお小遣い支払い"
-                )
-                
-                try await allowancePaymentRepository.save(payment)
-                
-                // 支払い済み状態を更新
-                isCurrentMonthPaid = true
-                
-                successMessage = "\(child.name)に\(monthlyAllowance)コインのお小遣いを渡しました"
+                if isCurrentMonthPaid {
+                    // 追加支払いの場合は既存の支払い記録を更新
+                    let calendar = Calendar.current
+                    let now = Date()
+                    let currentMonth = calendar.component(.month, from: now)
+                    let currentYear = calendar.component(.year, from: now)
+                    
+                    if let existingPayment = try await allowancePaymentRepository.findByChildIdAndMonth(child.id, month: currentMonth, year: currentYear) {
+                        let updatedPayment = AllowancePayment(
+                            id: existingPayment.id,
+                            childId: child.id,
+                            amount: existingPayment.amount + amount,
+                            month: existingPayment.month,
+                            year: existingPayment.year,
+                            paidAt: existingPayment.paidAt,
+                            note: (existingPayment.note ?? "今月のお小遣い支払い") + "（追加支払い）"
+                        )
+                        try await allowancePaymentRepository.save(updatedPayment)
+                        successMessage = "\(child.name)に追加で\(amount)コインのお小遣いを渡しました"
+                    }
+                } else {
+                    // 新規支払いの場合
+                    let payment = AllowancePayment.fromCurrentMonth(
+                        childId: child.id,
+                        amount: amount,
+                        note: "今月のお小遣い支払い"
+                    )
+                    
+                    try await allowancePaymentRepository.save(payment)
+                    isCurrentMonthPaid = true
+                    successMessage = "\(child.name)に\(amount)コインのお小遣いを渡しました"
+                }
                 isLoading = false
+                
+                // データを再読み込み
+                refreshData()
                 
                 // 他の画面にも通知
                 NotificationCenter.default.post(name: .helpRecordUpdated, object: nil)

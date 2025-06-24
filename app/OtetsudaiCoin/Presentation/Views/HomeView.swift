@@ -3,6 +3,7 @@ import SwiftUI
 struct HomeView: View {
     @ObservedObject var viewModel: HomeViewModel
     @State private var showingMonthlyHistory = false
+    @State private var showingPaymentConfirmation = false
     
     var body: some View {
         NavigationView {
@@ -70,6 +71,18 @@ struct HomeView: View {
         .sheet(isPresented: $showingMonthlyHistory) {
             if let selectedChild = viewModel.selectedChild {
                 createMonthlyHistoryView(for: selectedChild)
+            }
+        }
+        .alert("支払い確認", isPresented: $showingPaymentConfirmation) {
+            Button("キャンセル", role: .cancel) { }
+            Button("支払う") {
+                viewModel.payMonthlyAllowance()
+            }
+        } message: {
+            if viewModel.isCurrentMonthPaid {
+                Text("追加分のお小遣いを支払いますか？\n金額: \(viewModel.currentMonthEarnings - viewModel.monthlyAllowance)コイン")
+            } else {
+                Text("今月のお小遣いを支払いますか？\n金額: \(viewModel.currentMonthEarnings)コイン")
             }
         }
     }
@@ -158,11 +171,48 @@ struct HomeView: View {
                     .padding(.vertical, 8)
                 
                 if viewModel.isCurrentMonthPaid {
-                    HStack {
-                        Image(systemName: "checkmark.circle.fill")
-                            .foregroundColor(.green)
-                        Text("今月のお小遣いは支払い済みです")
-                            .foregroundColor(.secondary)
+                    VStack(spacing: 8) {
+                        HStack {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(.green)
+                            Text("今月のお小遣いは支払い済みです")
+                                .foregroundColor(.secondary)
+                            Spacer()
+                            Text("\(viewModel.monthlyAllowance)コイン")
+                                .font(.caption)
+                                .foregroundColor(.green)
+                                .fontWeight(.medium)
+                        }
+                        
+                        if viewModel.monthlyAllowance < viewModel.currentMonthEarnings {
+                            VStack(spacing: 4) {
+                                HStack {
+                                    Image(systemName: "exclamationmark.triangle.fill")
+                                        .foregroundColor(.orange)
+                                        .font(.caption)
+                                    Text("支払い後の追加獲得分")
+                                        .font(.caption)
+                                        .foregroundColor(.orange)
+                                    Spacer()
+                                    Text("\(viewModel.currentMonthEarnings - viewModel.monthlyAllowance)コイン")
+                                        .font(.caption)
+                                        .foregroundColor(.orange)
+                                        .fontWeight(.medium)
+                                }
+                                
+                                Button(action: {
+                                    showingPaymentConfirmation = true
+                                }) {
+                                    Text("追加分を支払う")
+                                        .font(.caption)
+                                        .foregroundColor(.white)
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 6)
+                                        .background(Color.orange)
+                                        .cornerRadius(8)
+                                }
+                            }
+                        }
                     }
                 } else {
                     VStack(spacing: 12) {
@@ -171,7 +221,7 @@ struct HomeView: View {
                             .foregroundColor(.primary)
                         
                         Button(action: {
-                            viewModel.payMonthlyAllowance()
+                            showingPaymentConfirmation = true
                         }) {
                             HStack {
                                 Image(systemName: "creditcard.fill")

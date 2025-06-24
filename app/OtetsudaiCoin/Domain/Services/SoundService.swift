@@ -11,6 +11,7 @@ enum SoundType: String, CaseIterable {
     }
 }
 
+@MainActor
 protocol SoundServiceProtocol {
     var isMuted: Bool { get }
     var volume: Float { get }

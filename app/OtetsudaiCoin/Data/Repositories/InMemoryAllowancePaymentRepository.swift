@@ -1,6 +1,6 @@
 import Foundation
 
-class InMemoryAllowancePaymentRepository: AllowancePaymentRepository {
+final class InMemoryAllowancePaymentRepository: AllowancePaymentRepository, @unchecked Sendable {
     private var payments: [AllowancePayment] = []
     private let queue = DispatchQueue(label: "allowance-payment-repo", attributes: .concurrent)
     

@@ -7,47 +7,47 @@ struct RecordView: View {
     var body: some View {
         ZStack {
             NavigationView {
-                VStack(spacing: 20) {
-                if viewModel.isLoading {
-                    ProgressView()
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else if let errorMessage = viewModel.errorMessage {
-                    VStack {
-                        Image(systemName: "exclamationmark.triangle")
-                            .font(.largeTitle)
-                            .foregroundColor(.red)
-                        Text(errorMessage)
-                            .multilineTextAlignment(.center)
-                            .padding()
-                        Button("再試行") {
-                            viewModel.loadTasks()
-                        }
-                        .primaryGradientButton()
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else {
-                    VStack(spacing: 20) {
-                        if let successMessage = viewModel.successMessage {
-                            HStack {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundColor(.green)
-                                Text(successMessage)
-                                    .foregroundColor(.green)
+                ScrollView {
+                    VStack(spacing: 16) {
+                        if viewModel.isLoading {
+                            ProgressView()
+                                .frame(maxWidth: .infinity, minHeight: 200)
+                        } else if let errorMessage = viewModel.errorMessage {
+                            VStack {
+                                Image(systemName: "exclamationmark.triangle")
+                                    .font(.largeTitle)
+                                    .foregroundColor(.red)
+                                Text(errorMessage)
+                                    .multilineTextAlignment(.center)
+                                    .padding()
+                                Button("再試行") {
+                                    viewModel.loadTasks()
+                                }
+                                .primaryGradientButton()
+                            }
+                            .frame(maxWidth: .infinity, minHeight: 200)
+                        } else {
+                            VStack(spacing: 16) {
+                                if let successMessage = viewModel.successMessage {
+                                    HStack {
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .foregroundColor(.green)
+                                        Text(successMessage)
+                                            .foregroundColor(.green)
+                                    }
+                                    .padding()
+                                    .background(Color.green.opacity(0.1))
+                                    .cornerRadius(8)
+                                }
+                                
+                                childSelectionView
+                                
+                                taskListView
+                                
+                                recordButtonView
                             }
                             .padding()
-                            .background(Color.green.opacity(0.1))
-                            .cornerRadius(8)
                         }
-                        
-                        childSelectionView
-                        
-                        taskListView
-                        
-                        recordButtonView
-                        
-                        Spacer()
-                    }
-                    .padding()
                     }
                 }
                 .navigationTitle("お手伝い記録")

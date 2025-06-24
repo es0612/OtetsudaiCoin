@@ -104,7 +104,7 @@ class HelpRecordEditViewModel: ObservableObject {
     
     var hasChanges: Bool {
         guard let task = selectedTask else { return false }
-        let calendar = Calendar.current
+        _ = Calendar.current
         let timeInterval = abs(recordedDate.timeIntervalSince(helpRecord.recordedAt))
         return task.id != helpRecord.helpTaskId || timeInterval > 60 // 1分以上の差があれば変更とみなす
     }
