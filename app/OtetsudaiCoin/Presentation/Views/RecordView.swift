@@ -14,7 +14,7 @@ struct RecordView: View {
                             onRetry: { viewModel.loadTasks() }
                         ) {
                             VStack(spacing: 16) {
-                                if let successMessage = viewModel.successMessage {
+                                if let successMessage = viewModel.viewState.successMessage {
                                     HStack {
                                         Image(systemName: "checkmark.circle.fill")
                                             .foregroundColor(.green)
@@ -38,6 +38,7 @@ struct RecordView: View {
                 }
                 .navigationTitle("お手伝い記録")
                 .onAppear {
+                    viewModel.clearMessages()
                     viewModel.loadData()
                 }
             }
@@ -52,7 +53,7 @@ struct RecordView: View {
                 
                 CoinAnimationView(
                     isVisible: $showCoinAnimation,
-                    coinValue: selectedChild.coinRate,
+                    coinValue: viewModel.selectedTask?.coinRate ?? selectedChild.coinRate,
                     themeColor: selectedChild.themeColor
                 )
             }
@@ -197,6 +198,11 @@ struct TaskCardView: View {
                     .multilineTextAlignment(.center)
                     .foregroundColor(.primary)
                     .lineLimit(2)
+                
+                Text("\(task.coinRate)コイン")
+                    .font(.caption2)
+                    .fontWeight(.semibold)
+                    .foregroundColor(isSelected ? .blue : .secondary)
                 
                 if isSelected {
                     Image(systemName: "checkmark.circle.fill")

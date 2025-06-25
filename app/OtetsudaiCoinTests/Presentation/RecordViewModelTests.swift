@@ -42,9 +42,9 @@ final class RecordViewModelTests: XCTestCase {
         XCTAssertTrue(viewModel.availableTasks.isEmpty)
         XCTAssertNil(viewModel.selectedChild)
         XCTAssertNil(viewModel.selectedTask)
-        XCTAssertFalse(viewModel.isLoading)
-        XCTAssertNil(viewModel.errorMessage)
-        XCTAssertNil(viewModel.successMessage)
+        XCTAssertFalse(viewModel.viewState.isLoading)
+        XCTAssertNil(viewModel.viewState.errorMessage)
+        XCTAssertNil(viewModel.viewState.successMessage)
     }
     
     func testLoadDataSuccess() async {
@@ -151,7 +151,7 @@ final class RecordViewModelTests: XCTestCase {
         
         viewModel.recordHelp()
         
-        XCTAssertEqual(viewModel.errorMessage, "お子様を選択してください")
+        XCTAssertEqual(viewModel.viewState.errorMessage, "お子様を選択してください")
     }
     
     func testRecordHelpWithoutTaskSelection() {
@@ -160,7 +160,7 @@ final class RecordViewModelTests: XCTestCase {
         
         viewModel.recordHelp()
         
-        XCTAssertEqual(viewModel.errorMessage, "お手伝いタスクを選択してください")
+        XCTAssertEqual(viewModel.viewState.errorMessage, "お手伝いタスクを選択してください")
     }
     
     func testRecordHelpFailure() async {
@@ -189,13 +189,13 @@ final class RecordViewModelTests: XCTestCase {
     }
     
     func testClearMessages() {
-        viewModel.errorMessage = "テストエラー"
-        viewModel.successMessage = "テスト成功"
+        viewModel.setError("テストエラー")
+        viewModel.setSuccess("テスト成功")
         
         viewModel.clearMessages()
         
-        XCTAssertNil(viewModel.errorMessage)
-        XCTAssertNil(viewModel.successMessage)
+        XCTAssertNil(viewModel.viewState.errorMessage)
+        XCTAssertNil(viewModel.viewState.successMessage)
     }
     
     // TODO: 効果音テストは後で修正する

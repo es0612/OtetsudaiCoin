@@ -56,7 +56,8 @@ final class HelpRecordEditViewModelTests: XCTestCase {
         
         // 非同期処理の完了を待機
         let expectation = XCTestExpectation(description: "Load data")
-        viewModel.$isLoading
+        viewModel.$viewState
+            .map { $0.isLoading }
             .dropFirst()
             .sink { isLoading in
                 if !isLoading {
@@ -68,7 +69,7 @@ final class HelpRecordEditViewModelTests: XCTestCase {
         await fulfillment(of: [expectation], timeout: 2.0)
         
         // Then
-        XCTAssertFalse(viewModel.isLoading)
+        XCTAssertFalse(viewModel.viewState.isLoading)
         XCTAssertEqual(viewModel.availableTasks.count, 2)
         XCTAssertEqual(viewModel.selectedTask?.id, task1.id)
         XCTAssertNil(viewModel.viewState.errorMessage)
@@ -83,7 +84,8 @@ final class HelpRecordEditViewModelTests: XCTestCase {
         
         // 非同期処理の完了を待機
         let expectation = XCTestExpectation(description: "Load data error")
-        viewModel.$errorMessage
+        viewModel.$viewState
+            .map { $0.errorMessage }
             .dropFirst()
             .sink { errorMessage in
                 if errorMessage != nil {
@@ -95,7 +97,7 @@ final class HelpRecordEditViewModelTests: XCTestCase {
         await fulfillment(of: [expectation], timeout: 2.0)
         
         // Then
-        XCTAssertFalse(viewModel.isLoading)
+        XCTAssertFalse(viewModel.viewState.isLoading)
         XCTAssertTrue(viewModel.availableTasks.isEmpty)
         XCTAssertNotNil(viewModel.viewState.errorMessage)
     }
@@ -112,7 +114,8 @@ final class HelpRecordEditViewModelTests: XCTestCase {
         
         // 非同期処理の完了を待機
         let expectation = XCTestExpectation(description: "Save changes")
-        viewModel.$successMessage
+        viewModel.$viewState
+            .map { $0.successMessage }
             .dropFirst()
             .sink { successMessage in
                 if successMessage != nil {
@@ -124,7 +127,7 @@ final class HelpRecordEditViewModelTests: XCTestCase {
         await fulfillment(of: [expectation], timeout: 2.0)
         
         // Then
-        XCTAssertFalse(viewModel.isLoading)
+        XCTAssertFalse(viewModel.viewState.isLoading)
         XCTAssertNotNil(viewModel.viewState.successMessage)
         XCTAssertNil(viewModel.viewState.errorMessage)
     }
@@ -137,7 +140,7 @@ final class HelpRecordEditViewModelTests: XCTestCase {
         
         // Then
         XCTAssertNotNil(viewModel.viewState.errorMessage)
-        XCTAssertEqual(viewModel.errorMessage, "お手伝いタスクを選択してください")
+        XCTAssertEqual(viewModel.viewState.errorMessage, "お手伝いタスクを選択してください")
     }
     
     func testDeleteRecordSuccess() async {
@@ -146,7 +149,8 @@ final class HelpRecordEditViewModelTests: XCTestCase {
         
         // 非同期処理の完了を待機
         let expectation = XCTestExpectation(description: "Delete record")
-        viewModel.$successMessage
+        viewModel.$viewState
+            .map { $0.successMessage }
             .dropFirst()
             .sink { successMessage in
                 if successMessage != nil {
@@ -158,7 +162,7 @@ final class HelpRecordEditViewModelTests: XCTestCase {
         await fulfillment(of: [expectation], timeout: 2.0)
         
         // Then
-        XCTAssertFalse(viewModel.isLoading)
+        XCTAssertFalse(viewModel.viewState.isLoading)
         XCTAssertNotNil(viewModel.viewState.successMessage)
         XCTAssertNil(viewModel.viewState.errorMessage)
     }
@@ -190,14 +194,14 @@ final class HelpRecordEditViewModelTests: XCTestCase {
     
     func testClearMessages() {
         // Given
-        viewModel.errorMessage = "テストエラー"
-        viewModel.successMessage = "テスト成功"
+        viewModel.setError("テストエラー")
+        viewModel.setSuccess("テスト成功")
         
         // When
         viewModel.clearMessages()
         
         // Then
         XCTAssertNil(viewModel.viewState.errorMessage)
-        XCTAssertNil(viewModel.successMessage)
+        XCTAssertNil(viewModel.viewState.successMessage)
     }
 }

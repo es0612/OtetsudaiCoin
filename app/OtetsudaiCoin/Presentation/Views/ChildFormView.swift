@@ -142,14 +142,21 @@ struct ChildFormView: View {
                     .accessibilityIdentifier("save_button")
                 }
             }
-            .commonAlerts(
-                viewState: viewModel.viewState,
-                onErrorDismiss: { viewModel.clearMessages() },
-                onSuccessDismiss: { 
+            .alert("エラー", isPresented: .constant(viewModel.viewState.errorMessage != nil)) {
+                Button("OK") {
+                    viewModel.clearErrorMessage()
+                }
+            } message: {
+                Text(viewModel.viewState.errorMessage ?? "")
+            }
+            .alert("成功", isPresented: .constant(viewModel.viewState.successMessage != nil)) {
+                Button("OK") {
                     viewModel.clearMessages()
                     dismiss()
                 }
-            )
+            } message: {
+                Text(viewModel.viewState.successMessage ?? "")
+            }
         }
         .onAppear {
             setupInitialValues()

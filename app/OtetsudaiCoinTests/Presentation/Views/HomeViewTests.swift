@@ -68,7 +68,7 @@ final class HomeViewTests: XCTestCase {
     }
     
     func testHomeViewDisplaysLoadingState() throws {
-        viewModel.isLoading = true
+        viewModel.setLoading(true)
         
         let view = HomeView(viewModel: viewModel)
         
@@ -76,7 +76,7 @@ final class HomeViewTests: XCTestCase {
     }
     
     func testHomeViewDisplaysErrorMessage() throws {
-        viewModel.errorMessage = "エラーが発生しました"
+        viewModel.setError("エラーが発生しました")
         
         let view = HomeView(viewModel: viewModel)
         

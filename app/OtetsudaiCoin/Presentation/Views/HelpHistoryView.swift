@@ -97,8 +97,8 @@ struct HelpHistoryView: View {
             StatisticCard(
                 icon: "trophy.fill",
                 title: "平均コイン",
-                value: "\(averageCoinsPerDay)",
-                subtitle: "コイン/日",
+                value: "\(averageCoinsPerRecord)",
+                subtitle: "コイン/回",
                 color: .purple
             )
         }

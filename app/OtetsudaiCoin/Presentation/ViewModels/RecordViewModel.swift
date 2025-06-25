@@ -63,7 +63,15 @@ class RecordViewModel: BaseViewModel {
                 availableChildren = children
                 availableTasks = tasks
                 
-                // 最初の子供を自動選択
+                // 選択された子供が利用可能な子供リストに含まれているかチェック
+                if let selectedChild = selectedChild {
+                    if !children.contains(where: { $0.id == selectedChild.id }) {
+                        // 選択された子供が削除されていた場合、選択をクリア
+                        self.selectedChild = nil
+                    }
+                }
+                
+                // まだ子供が選択されていない場合、最初の子供を自動選択
                 if selectedChild == nil && !children.isEmpty {
                     selectedChild = children.first
                 }
@@ -106,6 +114,10 @@ class RecordViewModel: BaseViewModel {
         selectedChild = child
         // 成功メッセージは保持し、エラーメッセージのみクリア
         clearErrorMessage()
+    }
+    
+    func setPreselectedChild(_ child: Child) {
+        selectedChild = child
     }
     
     func selectTask(_ task: HelpTask) {

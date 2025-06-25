@@ -37,7 +37,7 @@ final class ChildManagementViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.children.count, 2)
         XCTAssertEqual(viewModel.children[0].name, "太郎")
         XCTAssertEqual(viewModel.children[1].name, "花子")
-        XCTAssertFalse(viewModel.isLoading)
+        XCTAssertFalse(viewModel.viewState.isLoading)
         XCTAssertNil(viewModel.viewState.errorMessage)
     }
     
@@ -50,7 +50,7 @@ final class ChildManagementViewModelTests: XCTestCase {
         
         // Then
         XCTAssertTrue(viewModel.children.isEmpty)
-        XCTAssertFalse(viewModel.isLoading)
+        XCTAssertFalse(viewModel.viewState.isLoading)
         XCTAssertNotNil(viewModel.viewState.errorMessage)
     }
     
@@ -139,8 +139,8 @@ final class ChildManagementViewModelTests: XCTestCase {
     
     func testClearMessages() {
         // Given
-        viewModel.errorMessage = "エラーメッセージ"
-        viewModel.successMessage = "成功メッセージ"
+        viewModel.setError("エラーメッセージ")
+        viewModel.setSuccess("成功メッセージ")
         
         // When
         viewModel.clearMessages()

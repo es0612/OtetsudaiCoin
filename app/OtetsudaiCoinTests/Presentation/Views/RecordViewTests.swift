@@ -59,7 +59,7 @@ final class RecordViewTests: XCTestCase {
     }
     
     func testRecordViewDisplaysLoadingState() throws {
-        viewModel.isLoading = true
+        viewModel.setLoading(true)
         
         let view = RecordView(viewModel: viewModel)
         
@@ -67,7 +67,7 @@ final class RecordViewTests: XCTestCase {
     }
     
     func testRecordViewDisplaysErrorMessage() throws {
-        viewModel.errorMessage = "エラーが発生しました"
+        viewModel.setError("エラーが発生しました")
         
         let view = RecordView(viewModel: viewModel)
         
@@ -75,7 +75,7 @@ final class RecordViewTests: XCTestCase {
     }
     
     func testRecordViewDisplaysSuccessMessage() throws {
-        viewModel.successMessage = "記録完了しました！"
+        viewModel.setSuccess("記録完了しました！")
         
         let view = RecordView(viewModel: viewModel)
         
