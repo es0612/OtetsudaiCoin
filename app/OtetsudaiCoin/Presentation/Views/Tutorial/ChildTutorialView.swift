@@ -2,7 +2,7 @@ import SwiftUI
 
 struct ChildTutorialView: View {
     @ObservedObject var tutorialService: TutorialService
-    @ObservedObject var childManagementViewModel: ChildManagementViewModel
+    @Bindable var childManagementViewModel: ChildManagementViewModel
     @State private var currentStep = 0
     @State private var showChildForm = false
     @State private var hasAddedChild = false

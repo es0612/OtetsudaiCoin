@@ -2,8 +2,8 @@ import SwiftUI
 
 struct TutorialContainerView: View {
     @ObservedObject var tutorialService: TutorialService
-    @ObservedObject var childManagementViewModel: ChildManagementViewModel
-    @ObservedObject var recordViewModel: RecordViewModel
+    @Bindable var childManagementViewModel: ChildManagementViewModel
+    @Bindable var recordViewModel: RecordViewModel
     
     var body: some View {
         Group {

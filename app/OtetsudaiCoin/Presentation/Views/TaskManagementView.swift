@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct TaskManagementView: View {
-    @ObservedObject var viewModel: TaskManagementViewModel
+    @Bindable var viewModel: TaskManagementViewModel
     @State private var showingAddTaskForm = false
     @State private var editingTask: HelpTask?
     @State private var showingDeleteAlert = false
@@ -113,9 +113,15 @@ struct TaskRowView: View {
                     .font(.body)
                     .foregroundColor(task.isActive ? .primary : .secondary)
                 
-                Text(task.isActive ? "有効" : "無効")
-                    .font(.caption)
-                    .foregroundColor(task.isActive ? .green : .orange)
+                HStack(spacing: 8) {
+                    Text(task.isActive ? "有効" : "無効")
+                        .font(.caption)
+                        .foregroundColor(task.isActive ? .green : .orange)
+                    
+                    Text("\(task.coinRate)コイン")
+                        .font(.caption)
+                        .foregroundColor(.blue)
+                }
             }
             
             Spacer()
@@ -145,10 +151,11 @@ struct TaskRowView: View {
 }
 
 struct TaskFormView: View {
-    @ObservedObject var viewModel: TaskManagementViewModel
+    @Bindable var viewModel: TaskManagementViewModel
     let editingTask: HelpTask?
     @State private var taskName: String = ""
     @State private var isActive: Bool = true
+    @State private var coinRate: Int = 10
     @Environment(\.dismiss) private var dismiss
     
     var isEditing: Bool {
@@ -161,6 +168,17 @@ struct TaskFormView: View {
                 Section("タスク情報") {
                     TextField("タスク名", text: $taskName)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
+                    
+                    HStack {
+                        Text("コイン単価")
+                        Spacer()
+                        TextField("単価", value: $coinRate, format: .number)
+                            .keyboardType(.numberPad)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .frame(width: 80)
+                        Text("コイン")
+                            .foregroundColor(.secondary)
+                    }
                     
                     Toggle("有効", isOn: $isActive)
                 }
@@ -192,6 +210,7 @@ struct TaskFormView: View {
                 if let task = editingTask {
                     taskName = task.name
                     isActive = task.isActive
+                    coinRate = task.coinRate
                 }
             }
         }
@@ -199,7 +218,7 @@ struct TaskFormView: View {
     
     private func addTask() {
         Task {
-            await viewModel.addTask(name: taskName)
+            await viewModel.addTask(name: taskName, coinRate: coinRate)
             if viewModel.errorMessage == nil {
                 dismiss()
             }
@@ -212,7 +231,8 @@ struct TaskFormView: View {
         let updatedTask = HelpTask(
             id: editingTask.id,
             name: taskName.trimmingCharacters(in: .whitespacesAndNewlines),
-            isActive: isActive
+            isActive: isActive,
+            coinRate: coinRate
         )
         
         Task {

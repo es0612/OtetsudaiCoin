@@ -1,11 +1,10 @@
 import Foundation
 import Combine
 
-@MainActor
 class HelpRecordEditViewModel: BaseViewModel {
-    @Published var selectedTask: HelpTask?
-    @Published var recordedDate: Date = Date()
-    @Published var availableTasks: [HelpTask] = []
+    var selectedTask: HelpTask?
+    var recordedDate: Date = Date()
+    var availableTasks: [HelpTask] = []
     
     private let helpRecord: HelpRecord
     private let child: Child

@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct HelpHistoryView: View {
-    @ObservedObject var viewModel: HelpHistoryViewModel
+    @Bindable var viewModel: HelpHistoryViewModel
     @State private var showingDeleteAlert = false
     @State private var recordToDelete: HelpRecordWithDetails?
     @State private var showingEditView = false

@@ -18,25 +18,28 @@ struct MonthlyRecord {
     }
 }
 
-@MainActor
-class MonthlyHistoryViewModel: ObservableObject {
-    @Published var monthlyRecords: [MonthlyRecord] = []
-    @Published var selectedChild: Child?
-    @Published var isLoading: Bool = false
-    @Published var errorMessage: String?
+@Observable
+class MonthlyHistoryViewModel {
+    var monthlyRecords: [MonthlyRecord] = []
+    var selectedChild: Child?
+    var isLoading: Bool = false
+    var errorMessage: String?
     
     private let helpRecordRepository: HelpRecordRepository
     private let allowancePaymentRepository: AllowancePaymentRepository
+    private let helpTaskRepository: HelpTaskRepository
     private let allowanceCalculator: AllowanceCalculator
     private var cancellables = Set<AnyCancellable>()
     
     init(
         helpRecordRepository: HelpRecordRepository,
         allowancePaymentRepository: AllowancePaymentRepository,
+        helpTaskRepository: HelpTaskRepository,
         allowanceCalculator: AllowanceCalculator
     ) {
         self.helpRecordRepository = helpRecordRepository
         self.allowancePaymentRepository = allowancePaymentRepository
+        self.helpTaskRepository = helpTaskRepository
         self.allowanceCalculator = allowanceCalculator
     }
     
@@ -81,7 +84,8 @@ class MonthlyHistoryViewModel: ObservableObject {
                     )
                     
                     // お小遣い金額を計算
-                    let allowanceAmount = allowanceCalculator.calculateMonthlyAllowance(records: records, child: child)
+                    let tasks = try await helpTaskRepository.findAll()
+                    let allowanceAmount = allowanceCalculator.calculateMonthlyAllowance(records: records, tasks: tasks)
                     
                     let monthlyRecord = MonthlyRecord(
                         month: month,

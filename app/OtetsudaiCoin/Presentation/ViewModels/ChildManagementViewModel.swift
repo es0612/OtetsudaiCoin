@@ -5,9 +5,8 @@ extension Notification.Name {
     static let childrenUpdated = Notification.Name("childrenUpdated")
 }
 
-@MainActor
 class ChildManagementViewModel: BaseViewModel {
-    @Published var children: [Child] = []
+    var children: [Child] = []
     
     private let childRepository: ChildRepository
     
@@ -35,8 +34,8 @@ class ChildManagementViewModel: BaseViewModel {
         }
     }
     
-    func addChild(name: String, themeColor: String, coinRate: Int) async {
-        guard validateChildData(name: name, themeColor: themeColor, coinRate: coinRate) else {
+    func addChild(name: String, themeColor: String) async {
+        guard validateChildData(name: name, themeColor: themeColor) else {
             setError("入力データが無効です")
             return
         }
@@ -50,7 +49,7 @@ class ChildManagementViewModel: BaseViewModel {
         
         clearMessages()
         
-        let child = Child(id: UUID(), name: name.trimmingCharacters(in: .whitespacesAndNewlines), themeColor: themeColor, coinRate: coinRate)
+        let child = Child(id: UUID(), name: name.trimmingCharacters(in: .whitespacesAndNewlines), themeColor: themeColor)
         
         do {
             try await childRepository.save(child)
@@ -65,15 +64,15 @@ class ChildManagementViewModel: BaseViewModel {
         }
     }
     
-    func updateChild(id: UUID, name: String, themeColor: String, coinRate: Int) async {
-        guard validateChildData(name: name, themeColor: themeColor, coinRate: coinRate) else {
+    func updateChild(id: UUID, name: String, themeColor: String) async {
+        guard validateChildData(name: name, themeColor: themeColor) else {
             setError("入力データが無効です")
             return
         }
         
         clearMessages()
         
-        let updatedChild = Child(id: id, name: name.trimmingCharacters(in: .whitespacesAndNewlines), themeColor: themeColor, coinRate: coinRate)
+        let updatedChild = Child(id: id, name: name.trimmingCharacters(in: .whitespacesAndNewlines), themeColor: themeColor)
         
         do {
             try await childRepository.update(updatedChild)
@@ -109,12 +108,11 @@ class ChildManagementViewModel: BaseViewModel {
         }
     }
     
-    func validateChildData(name: String, themeColor: String, coinRate: Int) -> Bool {
+    func validateChildData(name: String, themeColor: String) -> Bool {
         let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
         
         guard !trimmedName.isEmpty else { return false }
         guard Child.isValidThemeColor(themeColor) else { return false }
-        guard Child.isValidCoinRate(coinRate) else { return false }
         
         return true
     }

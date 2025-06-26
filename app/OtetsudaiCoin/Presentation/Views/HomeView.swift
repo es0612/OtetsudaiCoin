@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct HomeView: View {
-    @ObservedObject var viewModel: HomeViewModel
+    @Bindable var viewModel: HomeViewModel
     @State private var showingMonthlyHistory = false
     @State private var showingPaymentConfirmation = false
     
@@ -157,10 +157,10 @@ struct HomeView: View {
                 )
                 
                 StatsCard(
-                    icon: "trophy.fill",
-                    title: "単価",
-                    value: "\(child.coinRate)",
-                    subtitle: "コイン/回",
+                    icon: "calendar",
+                    title: "今月のお手伝い",
+                    value: "\(viewModel.totalRecordsThisMonth)",
+                    subtitle: "回",
                     color: .purple
                 )
             }
@@ -277,6 +277,7 @@ struct HomeView: View {
         let monthlyHistoryViewModel = MonthlyHistoryViewModel(
             helpRecordRepository: helpRecordRepository,
             allowancePaymentRepository: allowancePaymentRepository,
+            helpTaskRepository: CoreDataHelpTaskRepository(context: context),
             allowanceCalculator: AllowanceCalculator()
         )
         

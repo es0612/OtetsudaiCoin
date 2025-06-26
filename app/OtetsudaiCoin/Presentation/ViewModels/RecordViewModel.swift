@@ -5,12 +5,12 @@ extension Notification.Name {
     static let helpRecordUpdated = Notification.Name("helpRecordUpdated")
 }
 
-@MainActor
 class RecordViewModel: BaseViewModel {
-    @Published var availableChildren: [Child] = []
-    @Published var availableTasks: [HelpTask] = []
-    @Published var selectedChild: Child?
-    @Published var selectedTask: HelpTask?
+    var availableChildren: [Child] = []
+    var availableTasks: [HelpTask] = []
+    var selectedChild: Child?
+    var selectedTask: HelpTask?
+    var lastRecordedCoinValue: Int = 10
     
     private let childRepository: ChildRepository
     private let helpTaskRepository: HelpTaskRepository
@@ -59,6 +59,7 @@ class RecordViewModel: BaseViewModel {
             do {
                 let children = try await childRepository.findAll()
                 let tasks = try await helpTaskRepository.findActive()
+                
                 
                 availableChildren = children
                 availableTasks = tasks
@@ -160,6 +161,9 @@ class RecordViewModel: BaseViewModel {
                     // 効果音エラーの場合はエラー音を再生
                     try? soundService.playErrorSound()
                 }
+                
+                // アニメーション用にコイン値を保存
+                lastRecordedCoinValue = task.coinRate
                 
                 // SwiftUIの宣言的な仕組み：データ更新の通知
                 NotificationCenter.default.post(name: .helpRecordUpdated, object: nil)

@@ -1,13 +1,16 @@
 import Foundation
 
 class AllowanceCalculator {
-    func calculateMonthlyAllowance(records: [HelpRecord], child: Child) -> Int {
-        return records.count * child.coinRate
+    func calculateMonthlyAllowance(records: [HelpRecord], tasks: [HelpTask]) -> Int {
+        let taskMap = Dictionary(uniqueKeysWithValues: tasks.map { ($0.id, $0.coinRate) })
+        return records.reduce(0) { total, record in
+            total + (taskMap[record.helpTaskId] ?? 10)
+        }
     }
     
     func calculateMonthlyAllowance(records: [HelpRecord]) -> Int {
-        // 下位互換性のため、デフォルト値100を使用
-        return records.count * 100
+        // 下位互換性のため、デフォルト値10を使用
+        return records.count * 10
     }
     
     func calculateConsecutiveDays(records: [HelpRecord]) -> Int {

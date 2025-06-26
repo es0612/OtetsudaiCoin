@@ -13,6 +13,7 @@ class CoreDataHelpTaskRepository: HelpTaskRepository {
         cdHelpTask.id = helpTask.id
         cdHelpTask.name = helpTask.name
         cdHelpTask.isActive = helpTask.isActive
+        cdHelpTask.coinRate = Int32(helpTask.coinRate)
         
         try context.save()
     }
@@ -60,6 +61,7 @@ class CoreDataHelpTaskRepository: HelpTaskRepository {
         if let cdHelpTask = results.first {
             cdHelpTask.name = helpTask.name
             cdHelpTask.isActive = helpTask.isActive
+            cdHelpTask.coinRate = Int32(helpTask.coinRate)
             try context.save()
         }
     }
@@ -72,6 +74,6 @@ extension CDHelpTask {
             return nil
         }
         
-        return HelpTask(id: id, name: name, isActive: self.isActive)
+        return HelpTask(id: id, name: name, isActive: self.isActive, coinRate: Int(self.coinRate))
     }
 }

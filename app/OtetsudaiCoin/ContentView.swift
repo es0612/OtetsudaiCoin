@@ -18,18 +18,20 @@ struct ContentView: View {
         CoreDataChildRepository(context: PersistenceController.shared.container.viewContext)
     }
     
-    @StateObject private var childManagementViewModel: ChildManagementViewModel
-    @StateObject private var homeViewModel: HomeViewModel
+    @State private var childManagementViewModel: ChildManagementViewModel
+    @State private var homeViewModel: HomeViewModel
     
     init() {
         let childRepo = CoreDataChildRepository(context: PersistenceController.shared.container.viewContext)
         let helpRecordRepo = CoreDataHelpRecordRepository(context: PersistenceController.shared.container.viewContext)
+        let helpTaskRepo = CoreDataHelpTaskRepository(context: PersistenceController.shared.container.viewContext)
         let allowancePaymentRepo = InMemoryAllowancePaymentRepository.shared
         
-        _childManagementViewModel = StateObject(wrappedValue: ChildManagementViewModel(childRepository: childRepo))
-        _homeViewModel = StateObject(wrappedValue: HomeViewModel(
+        _childManagementViewModel = State(wrappedValue: ChildManagementViewModel(childRepository: childRepo))
+        _homeViewModel = State(wrappedValue: HomeViewModel(
             childRepository: childRepo,
             helpRecordRepository: helpRecordRepo,
+            helpTaskRepository: helpTaskRepo,
             allowanceCalculator: AllowanceCalculator(),
             allowancePaymentRepository: allowancePaymentRepo
         ))
@@ -106,8 +108,8 @@ struct ContentView: View {
                 if ProcessInfo.processInfo.arguments.contains("--uitesting") {
                     if existingChildren.isEmpty {
                         let sampleChildren = [
-                            Child(id: UUID(), name: "太郎", themeColor: "#FF5733", coinRate: 100),
-                            Child(id: UUID(), name: "花子", themeColor: "#33FF57", coinRate: 120)
+                            Child(id: UUID(), name: "太郎", themeColor: "#FF5733"),
+                            Child(id: UUID(), name: "花子", themeColor: "#33FF57")
                         ]
                         for child in sampleChildren {
                             try await childRepository.save(child)

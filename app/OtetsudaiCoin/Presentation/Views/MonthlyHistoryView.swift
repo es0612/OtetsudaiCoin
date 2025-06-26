@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct MonthlyHistoryView: View {
-    @ObservedObject var viewModel: MonthlyHistoryViewModel
+    @Bindable var viewModel: MonthlyHistoryViewModel
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
@@ -221,6 +221,7 @@ struct MonthlyRecordRow: View {
     MonthlyHistoryView(viewModel: MonthlyHistoryViewModel(
         helpRecordRepository: helpRecordRepo,
         allowancePaymentRepository: paymentRepo,
+        helpTaskRepository: CoreDataHelpTaskRepository(context: context),
         allowanceCalculator: calculator
     ))
 }

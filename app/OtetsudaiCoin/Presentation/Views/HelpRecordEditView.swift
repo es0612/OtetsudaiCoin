@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct HelpRecordEditView: View {
-    @ObservedObject var viewModel: HelpRecordEditViewModel
+    @Bindable var viewModel: HelpRecordEditViewModel
     @Environment(\.dismiss) private var dismiss
     @State private var showingDeleteAlert = false
     
@@ -171,7 +171,7 @@ struct TaskSelectionRow: View {
     let helpRecordRepository = CoreDataHelpRecordRepository(context: context)
     let helpTaskRepository = CoreDataHelpTaskRepository(context: context)
     
-    let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733", coinRate: 100)
+    let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
     let record = HelpRecord(id: UUID(), childId: child.id, helpTaskId: UUID(), recordedAt: Date())
     
     let viewModel = HelpRecordEditViewModel(

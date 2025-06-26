@@ -11,7 +11,6 @@ enum SoundType: String, CaseIterable {
     }
 }
 
-@MainActor
 protocol SoundServiceProtocol {
     var isMuted: Bool { get }
     var volume: Float { get }
@@ -24,7 +23,6 @@ protocol SoundServiceProtocol {
     func soundFileExists(_ soundType: SoundType) -> Bool
 }
 
-@MainActor
 class SoundService: SoundServiceProtocol {
     private var audioPlayers: [SoundType: AVAudioPlayer] = [:]
     private var _isMuted: Bool = false

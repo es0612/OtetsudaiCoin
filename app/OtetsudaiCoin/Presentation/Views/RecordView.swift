@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct RecordView: View {
-    @ObservedObject var viewModel: RecordViewModel
+    @Bindable var viewModel: RecordViewModel
     @State private var showCoinAnimation = false
     
     var body: some View {
@@ -38,7 +38,8 @@ struct RecordView: View {
                 }
                 .navigationTitle("お手伝い記録")
                 .onAppear {
-                    viewModel.clearMessages()
+                    // エラーメッセージのみクリアし、成功メッセージは保持
+                    viewModel.clearErrorMessage()
                     viewModel.loadData()
                 }
             }
@@ -53,13 +54,13 @@ struct RecordView: View {
                 
                 CoinAnimationView(
                     isVisible: $showCoinAnimation,
-                    coinValue: viewModel.selectedTask?.coinRate ?? selectedChild.coinRate,
+                    coinValue: viewModel.lastRecordedCoinValue,
                     themeColor: selectedChild.themeColor
                 )
             }
         }
-        .onReceive(viewModel.$viewState) { viewState in
-            if viewState.successMessage != nil && !showCoinAnimation {
+        .onChange(of: viewModel.viewState.successMessage) { _, successMessage in
+            if successMessage != nil && !showCoinAnimation {
                 showCoinAnimation = true
             }
         }

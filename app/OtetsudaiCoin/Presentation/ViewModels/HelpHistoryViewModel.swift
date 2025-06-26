@@ -1,13 +1,13 @@
 import Foundation
 import Combine
 
-@MainActor
-class HelpHistoryViewModel: ObservableObject {
-    @Published var helpRecords: [HelpRecordWithDetails] = []
-    @Published var selectedChild: Child?
-    @Published var selectedPeriod: HistoryPeriod = .thisMonth
-    @Published var isLoading: Bool = false
-    @Published var errorMessage: String?
+@Observable
+class HelpHistoryViewModel {
+    var helpRecords: [HelpRecordWithDetails] = []
+    var selectedChild: Child?
+    var selectedPeriod: HistoryPeriod = .thisMonth
+    var isLoading: Bool = false
+    var errorMessage: String?
     
     private let helpRecordRepository: HelpRecordRepository
     private let helpTaskRepository: HelpTaskRepository
@@ -107,7 +107,7 @@ struct HelpRecordWithDetails {
     let task: HelpTask
     
     var earnedCoins: Int {
-        return child.coinRate
+        return task.coinRate
     }
 }
 

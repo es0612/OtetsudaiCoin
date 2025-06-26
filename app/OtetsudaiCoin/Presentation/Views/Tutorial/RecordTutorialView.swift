@@ -2,7 +2,7 @@ import SwiftUI
 
 struct RecordTutorialView: View {
     @ObservedObject var tutorialService: TutorialService
-    @ObservedObject var recordViewModel: RecordViewModel
+    @Bindable var recordViewModel: RecordViewModel
     @State private var currentStep = 0
     @State private var selectedTabForDemo = 1 // 記録タブ
     @State private var hasSelectedChild = false
@@ -208,21 +208,25 @@ struct RecordTutorialView: View {
                     .font(.headline)
                 
                 if !recordViewModel.availableTasks.isEmpty {
-                    LazyVGrid(columns: [
-                        GridItem(.flexible()),
-                        GridItem(.flexible())
-                    ], spacing: 12) {
-                        ForEach(recordViewModel.availableTasks, id: \.id) { task in
-                            TutorialTaskCardView(
-                                task: task,
-                                isSelected: recordViewModel.selectedTask?.id == task.id,
-                                onTap: {
-                                    recordViewModel.selectTask(task)
-                                    hasSelectedTask = true
-                                }
-                            )
+                    ScrollView {
+                        LazyVGrid(columns: [
+                            GridItem(.flexible()),
+                            GridItem(.flexible())
+                        ], spacing: 12) {
+                            ForEach(recordViewModel.availableTasks, id: \.id) { task in
+                                TutorialTaskCardView(
+                                    task: task,
+                                    isSelected: recordViewModel.selectedTask?.id == task.id,
+                                    onTap: {
+                                        recordViewModel.selectTask(task)
+                                        hasSelectedTask = true
+                                    }
+                                )
+                            }
                         }
+                        .padding(.horizontal)
                     }
+                    .frame(maxHeight: 300)
                 }
                 
                 if hasSelectedTask && hasSelectedChild {

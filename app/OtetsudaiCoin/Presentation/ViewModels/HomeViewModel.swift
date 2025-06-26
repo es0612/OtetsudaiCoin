@@ -1,21 +1,22 @@
 import Foundation
 import Combine
 
-@MainActor
-class HomeViewModel: ObservableObject {
-    @Published var children: [Child] = []
-    @Published var selectedChild: Child?
-    @Published var monthlyAllowance: Int = 0
-    @Published var currentMonthEarnings: Int = 0
-    @Published var consecutiveDays: Int = 0
-    @Published var totalRecordsThisMonth: Int = 0
-    @Published var isCurrentMonthPaid: Bool = false
-    @Published var isLoading: Bool = false
-    @Published var errorMessage: String?
-    @Published var successMessage: String?
+@Observable
+class HomeViewModel {
+    var children: [Child] = []
+    var selectedChild: Child?
+    var monthlyAllowance: Int = 0
+    var currentMonthEarnings: Int = 0
+    var consecutiveDays: Int = 0
+    var totalRecordsThisMonth: Int = 0
+    var isCurrentMonthPaid: Bool = false
+    var isLoading: Bool = false
+    var errorMessage: String?
+    var successMessage: String?
     
     private let childRepository: ChildRepository
     private let helpRecordRepository: HelpRecordRepository
+    private let helpTaskRepository: HelpTaskRepository
     private let allowanceCalculator: AllowanceCalculator
     private let allowancePaymentRepository: AllowancePaymentRepository
     private var cancellables: Set<AnyCancellable> = []
@@ -23,11 +24,13 @@ class HomeViewModel: ObservableObject {
     init(
         childRepository: ChildRepository,
         helpRecordRepository: HelpRecordRepository,
+        helpTaskRepository: HelpTaskRepository,
         allowanceCalculator: AllowanceCalculator,
         allowancePaymentRepository: AllowancePaymentRepository
     ) {
         self.childRepository = childRepository
         self.helpRecordRepository = helpRecordRepository
+        self.helpTaskRepository = helpTaskRepository
         self.allowanceCalculator = allowanceCalculator
         self.allowancePaymentRepository = allowancePaymentRepository
         
@@ -82,9 +85,10 @@ class HomeViewModel: ObservableObject {
         Task {
             do {
                 let records = try await helpRecordRepository.findByChildIdInCurrentMonth(child.id)
+                let tasks = try await helpTaskRepository.findAll()
                 
-                monthlyAllowance = allowanceCalculator.calculateMonthlyAllowance(records: records, child: child)
-                currentMonthEarnings = allowanceCalculator.calculateMonthlyAllowance(records: records, child: child)
+                monthlyAllowance = allowanceCalculator.calculateMonthlyAllowance(records: records, tasks: tasks)
+                currentMonthEarnings = allowanceCalculator.calculateMonthlyAllowance(records: records, tasks: tasks)
                 consecutiveDays = allowanceCalculator.calculateConsecutiveDays(records: records)
                 totalRecordsThisMonth = records.count
                 

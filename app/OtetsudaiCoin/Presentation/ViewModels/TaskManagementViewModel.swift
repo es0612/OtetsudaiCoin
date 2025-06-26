@@ -1,12 +1,12 @@
 import Foundation
 import Combine
 
-@MainActor
-class TaskManagementViewModel: ObservableObject {
-    @Published var tasks: [HelpTask] = []
-    @Published var isLoading: Bool = false
-    @Published var errorMessage: String?
-    @Published var successMessage: String?
+@Observable
+class TaskManagementViewModel {
+    var tasks: [HelpTask] = []
+    var isLoading: Bool = false
+    var errorMessage: String?
+    var successMessage: String?
     
     private let helpTaskRepository: HelpTaskRepository
     private var cancellables = Set<AnyCancellable>()
@@ -29,9 +29,14 @@ class TaskManagementViewModel: ObservableObject {
         }
     }
     
-    func addTask(name: String) async {
+    func addTask(name: String, coinRate: Int = 10) async {
         guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             errorMessage = "タスク名を入力してください"
+            return
+        }
+        
+        guard coinRate > 0 else {
+            errorMessage = "コイン単価は1以上で入力してください"
             return
         }
         
@@ -46,7 +51,8 @@ class TaskManagementViewModel: ObservableObject {
         let newTask = HelpTask(
             id: UUID(),
             name: trimmedName,
-            isActive: true
+            isActive: true,
+            coinRate: coinRate
         )
         
         do {
@@ -60,7 +66,7 @@ class TaskManagementViewModel: ObservableObject {
     
     func updateTask(_ task: HelpTask) async {
         do {
-            try await helpTaskRepository.save(task)
+            try await helpTaskRepository.update(task)
             successMessage = "タスクを更新しました"
             await loadTasks()
         } catch {
@@ -82,7 +88,8 @@ class TaskManagementViewModel: ObservableObject {
         let updatedTask = HelpTask(
             id: task.id,
             name: task.name,
-            isActive: !task.isActive
+            isActive: !task.isActive,
+            coinRate: task.coinRate
         )
         await updateTask(updatedTask)
     }

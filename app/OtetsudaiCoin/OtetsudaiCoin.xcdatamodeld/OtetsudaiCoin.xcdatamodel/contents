@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="1" systemVersion="11A491" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithCloudKit="false" userDefinedModelVersionIdentifier="">
     <entity name="CDChild" representedClassName="CDChild" syncable="YES" codeGenerationType="class">
-        <attribute name="coinRate" attributeType="Integer 32" defaultValueString="100" usesScalarValueType="YES"/>
         <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="name" attributeType="String"/>
         <attribute name="themeColor" attributeType="String"/>
@@ -14,6 +13,7 @@
         <relationship name="helpTask" maxCount="1" deletionRule="Nullify" destinationEntity="CDHelpTask" inverseName="helpRecords" inverseEntity="CDHelpTask"/>
     </entity>
     <entity name="CDHelpTask" representedClassName="CDHelpTask" syncable="YES" codeGenerationType="class">
+        <attribute name="coinRate" attributeType="Integer 32" defaultValueString="10" usesScalarValueType="YES"/>
         <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="isActive" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="name" attributeType="String"/>

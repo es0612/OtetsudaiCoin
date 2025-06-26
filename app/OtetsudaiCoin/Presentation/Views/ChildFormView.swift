@@ -2,13 +2,12 @@ import SwiftUI
 
 struct ChildFormView: View {
     @Environment(\.dismiss) private var dismiss
-    @ObservedObject var viewModel: ChildManagementViewModel
+    @Bindable var viewModel: ChildManagementViewModel
     
     let editingChild: Child?
     
     @State private var name: String = ""
     @State private var selectedThemeColor: String = "#3357FF"
-    @State private var coinRate: String = "10"
     @State private var showingColorPicker = false
     
     private var isEditing: Bool {
@@ -29,19 +28,6 @@ struct ChildFormView: View {
                     }
                     .accessibilityIdentifier("name_field")
                     
-                    HStack {
-                        Image(systemName: "dollarsign.circle.fill")
-                            .foregroundColor(.green)
-                            .font(.title2)
-                        
-                        TextField("コイン単価", text: $coinRate)
-                            .keyboardType(.numberPad)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                        
-                        Text("コイン")
-                            .foregroundColor(.secondary)
-                    }
-                    .accessibilityIdentifier("coin_rate_field")
                 }
                 
                 Section("テーマカラー") {
@@ -102,7 +88,7 @@ struct ChildFormView: View {
                                 .font(.headline)
                                 .foregroundColor(name.isEmpty ? .secondary : .primary)
                             
-                            Text("\(coinRate)コイン/回")
+                            Text("お手伝い単価設定済み")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
@@ -165,28 +151,24 @@ struct ChildFormView: View {
     }
     
     private var isValidInput: Bool {
-        !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-        Int(coinRate) != nil &&
-        Int(coinRate)! > 0
+        !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
     
     private func setupInitialValues() {
         if let child = editingChild {
             name = child.name
             selectedThemeColor = child.themeColor
-            coinRate = String(child.coinRate)
         }
     }
     
     private func saveChild() {
         let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard let rate = Int(coinRate), rate > 0 else { return }
         
         Task {
             if let child = editingChild {
-                await viewModel.updateChild(id: child.id, name: trimmedName, themeColor: selectedThemeColor, coinRate: rate)
+                await viewModel.updateChild(id: child.id, name: trimmedName, themeColor: selectedThemeColor)
             } else {
-                await viewModel.addChild(name: trimmedName, themeColor: selectedThemeColor, coinRate: rate)
+                await viewModel.addChild(name: trimmedName, themeColor: selectedThemeColor)
             }
         }
     }

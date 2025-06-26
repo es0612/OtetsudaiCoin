@@ -1,9 +1,9 @@
 import Foundation
 import Combine
 
-@MainActor
-class BaseViewModel: ObservableObject {
-    @Published var viewState = ViewState()
+@Observable
+class BaseViewModel {
+    var viewState = ViewState()
     var cancellables = Set<AnyCancellable>()
     
     var isLoading: Bool { viewState.isLoading }

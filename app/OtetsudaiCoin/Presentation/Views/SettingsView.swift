@@ -1,20 +1,25 @@
 import SwiftUI
+import StoreKit
+
+#if canImport(AppStore)
+import AppStore
+#endif
 
 struct SettingsView: View {
-    @ObservedObject var viewModel: ChildManagementViewModel
+    @Bindable var viewModel: ChildManagementViewModel
     @State private var showingAddChildForm = false
     @State private var editingChild: Child?
     @State private var showingDeleteAlert = false
     @State private var childToDelete: Child?
     @State private var showingTaskManagement = false
     @StateObject private var tutorialService = TutorialService()
-    @StateObject private var taskManagementViewModel: TaskManagementViewModel
+    @State private var taskManagementViewModel: TaskManagementViewModel
     
     init(viewModel: ChildManagementViewModel) {
         self.viewModel = viewModel
         let context = PersistenceController.shared.container.viewContext
         let taskRepository = CoreDataHelpTaskRepository(context: context)
-        self._taskManagementViewModel = StateObject(wrappedValue: TaskManagementViewModel(helpTaskRepository: taskRepository))
+        self._taskManagementViewModel = State(wrappedValue: TaskManagementViewModel(helpTaskRepository: taskRepository))
     }
     
     var body: some View {
@@ -84,15 +89,20 @@ struct SettingsView: View {
                             .foregroundColor(.secondary)
                     }
                     
-                    HStack {
-                        Image(systemName: "star.circle")
-                            .foregroundColor(.yellow)
-                        Text("アプリを評価")
-                        Spacer()
-                        Image(systemName: "chevron.right")
-                            .foregroundColor(.secondary)
-                            .font(.caption)
+                    Button(action: {
+                        requestAppReview()
+                    }) {
+                        HStack {
+                            Image(systemName: "star.circle")
+                                .foregroundColor(.yellow)
+                            Text("アプリを評価")
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.secondary)
+                                .font(.caption)
+                        }
                     }
+                    .foregroundColor(.primary)
                 }
             }
             .navigationTitle("設定")
@@ -160,6 +170,18 @@ struct SettingsView: View {
             )
         }
     }
+    
+    private func requestAppReview() {
+        if #available(iOS 18.0, *) {
+            if let scene = UIApplication.shared.connectedScenes.first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene {
+                AppStore.requestReview(in: scene)
+            }
+        } else {
+            if let scene = UIApplication.shared.connectedScenes.first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene {
+                SKStoreReviewController.requestReview(in: scene)
+            }
+        }
+    }
 }
 
 struct ChildRowView: View {
@@ -184,7 +206,7 @@ struct ChildRowView: View {
                 Text(child.name)
                     .font(.headline)
                 
-                Text("\(child.coinRate)コイン/回")
+                Text("お手伝い頑張り中")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
