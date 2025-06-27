@@ -5,11 +5,21 @@ struct RecordTutorialView: View {
     @Bindable var recordViewModel: RecordViewModel
     @State private var currentStep = 0
     @State private var selectedTabForDemo = 1 // 記録タブ
-    @State private var hasSelectedChild = false
-    @State private var hasSelectedTask = false
-    @State private var hasRecorded = false
     
     let totalSteps = 4
+    
+    // @Observableによる状態管理で計算されるプロパティ
+    private var hasSelectedChild: Bool {
+        recordViewModel.selectedChild != nil
+    }
+    
+    private var hasSelectedTask: Bool {
+        recordViewModel.selectedTask != nil
+    }
+    
+    private var hasRecorded: Bool {
+        recordViewModel.viewState.successMessage != nil
+    }
     
     var body: some View {
         ZStack {
@@ -121,48 +131,70 @@ struct RecordTutorialView: View {
                             ForEach(recordViewModel.availableChildren, id: \.id) { child in
                                 Button(action: {
                                     recordViewModel.selectChild(child)
-                                    hasSelectedChild = true
                                 }) {
                                     VStack {
-                                        Circle()
-                                            .fill(Color(hex: child.themeColor) ?? .blue)
-                                            .frame(width: 60, height: 60)
-                                            .overlay(
-                                                Text(String(child.name.prefix(1)))
-                                                    .font(.title2)
-                                                    .fontWeight(.bold)
-                                                    .foregroundColor(.white)
-                                            )
-                                            .overlay(
-                                                Circle()
-                                                    .stroke(recordViewModel.selectedChild?.id == child.id ? Color.green : Color.clear, lineWidth: 3)
-                                            )
+                                        ZStack {
+                                            Circle()
+                                                .fill(Color(hex: child.themeColor) ?? .blue)
+                                                .frame(width: 60, height: 60)
+                                                .overlay(
+                                                    Text(String(child.name.prefix(1)))
+                                                        .font(.title2)
+                                                        .fontWeight(.bold)
+                                                        .foregroundColor(.white)
+                                                )
+                                                .overlay(
+                                                    // 選択時の白い太い境界線（視認性向上）
+                                                    Circle()
+                                                        .stroke(Color.white, lineWidth: recordViewModel.selectedChild?.id == child.id ? 4 : 0)
+                                                )
+                                                .overlay(
+                                                    // 外側の濃い境界線（コントラスト向上）
+                                                    Circle()
+                                                        .stroke(Color.black.opacity(0.3), lineWidth: recordViewModel.selectedChild?.id == child.id ? 6 : 0)
+                                                )
+                                                .shadow(
+                                                    color: recordViewModel.selectedChild?.id == child.id ? Color.black.opacity(0.3) : Color.clear,
+                                                    radius: recordViewModel.selectedChild?.id == child.id ? 8 : 0,
+                                                    x: 0, y: 2
+                                                )
+                                            
+                                            // 選択時のチェックマークアイコン
+                                            if recordViewModel.selectedChild?.id == child.id {
+                                                VStack {
+                                                    HStack {
+                                                        Spacer()
+                                                        Image(systemName: "checkmark.circle.fill")
+                                                            .font(.system(size: 20))
+                                                            .foregroundColor(.white)
+                                                            .background(
+                                                                Circle()
+                                                                    .fill(Color.green)
+                                                                    .frame(width: 20, height: 20)
+                                                            )
+                                                            .offset(x: 8, y: -8)
+                                                    }
+                                                    Spacer()
+                                                }
+                                            }
+                                        }
                                         
                                         Text(child.name)
                                             .font(.caption)
                                             .foregroundColor(.primary)
+                                            .fontWeight(recordViewModel.selectedChild?.id == child.id ? .bold : .regular)
                                     }
                                 }
                                 .buttonStyle(PlainButtonStyle())
+                                .scaleEffect(recordViewModel.selectedChild?.id == child.id ? 1.1 : 1.0)
+                                .animation(.easeInOut(duration: 0.2), value: recordViewModel.selectedChild?.id == child.id)
                             }
                         }
                         .padding(.horizontal)
                     }
                 } else {
-                    VStack(spacing: 12) {
-                        Text("お子様が登録されていません")
-                            .foregroundColor(.secondary)
-                        
-                        Button(action: {
-                            recordViewModel.loadData()
-                        }) {
-                            HStack {
-                                Image(systemName: "arrow.clockwise")
-                                Text("データを更新")
-                            }
-                        }
-                        .compactGradientButton()
-                    }
+                    Text("お子様が登録されていません")
+                        .foregroundColor(.secondary)
                 }
                 
                 if hasSelectedChild {
@@ -219,7 +251,6 @@ struct RecordTutorialView: View {
                                     isSelected: recordViewModel.selectedTask?.id == task.id,
                                     onTap: {
                                         recordViewModel.selectTask(task)
-                                        hasSelectedTask = true
                                     }
                                 )
                             }
@@ -241,7 +272,6 @@ struct RecordTutorialView: View {
                         
                         Button(action: {
                             recordViewModel.recordHelp()
-                            hasRecorded = true
                         }) {
                             HStack {
                                 Image(systemName: "plus.circle.fill")

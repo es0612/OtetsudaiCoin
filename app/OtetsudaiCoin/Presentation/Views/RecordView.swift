@@ -95,27 +95,62 @@ struct RecordView: View {
                                 viewModel.selectChild(child)
                             }) {
                                 VStack {
-                                    Circle()
-                                        .fill(Color(hex: child.themeColor) ?? .blue)
-                                        .frame(width: 60, height: 60)
-                                        .overlay(
-                                            Text(String(child.name.prefix(1)))
-                                                .font(.title2)
-                                                .fontWeight(.bold)
-                                                .foregroundColor(.white)
-                                        )
-                                        .overlay(
-                                            Circle()
-                                                .stroke(viewModel.selectedChild?.id == child.id ? Color.blue : Color.clear, lineWidth: 3)
-                                        )
+                                    ZStack {
+                                        Circle()
+                                            .fill(Color(hex: child.themeColor) ?? .blue)
+                                            .frame(width: 60, height: 60)
+                                            .overlay(
+                                                Text(String(child.name.prefix(1)))
+                                                    .font(.title2)
+                                                    .fontWeight(.bold)
+                                                    .foregroundColor(.white)
+                                            )
+                                            .overlay(
+                                                // 選択時の白い太い境界線（視認性向上）
+                                                Circle()
+                                                    .stroke(Color.white, lineWidth: viewModel.selectedChild?.id == child.id ? 4 : 0)
+                                            )
+                                            .overlay(
+                                                // 外側の濃い境界線（コントラスト向上）
+                                                Circle()
+                                                    .stroke(Color.black.opacity(0.3), lineWidth: viewModel.selectedChild?.id == child.id ? 6 : 0)
+                                            )
+                                            .shadow(
+                                                color: viewModel.selectedChild?.id == child.id ? Color.black.opacity(0.3) : Color.clear,
+                                                radius: viewModel.selectedChild?.id == child.id ? 8 : 0,
+                                                x: 0, y: 2
+                                            )
+                                        
+                                        // 選択時のチェックマークアイコン
+                                        if viewModel.selectedChild?.id == child.id {
+                                            VStack {
+                                                HStack {
+                                                    Spacer()
+                                                    Image(systemName: "checkmark.circle.fill")
+                                                        .font(.system(size: 20))
+                                                        .foregroundColor(.white)
+                                                        .background(
+                                                            Circle()
+                                                                .fill(Color.green)
+                                                                .frame(width: 20, height: 20)
+                                                        )
+                                                        .offset(x: 8, y: -8)
+                                                }
+                                                Spacer()
+                                            }
+                                        }
+                                    }
                                     
                                     Text(child.name)
                                         .font(.caption)
                                         .foregroundColor(.primary)
+                                        .fontWeight(viewModel.selectedChild?.id == child.id ? .bold : .regular)
                                 }
                             }
                             .accessibilityIdentifier("child_button")
                             .buttonStyle(PlainButtonStyle())
+                            .scaleEffect(viewModel.selectedChild?.id == child.id ? 1.1 : 1.0)
+                            .animation(.easeInOut(duration: 0.2), value: viewModel.selectedChild?.id == child.id)
                         }
                     }
                     .padding(.horizontal)
