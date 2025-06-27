@@ -5,9 +5,12 @@ struct ChildTutorialView: View {
     @Bindable var childManagementViewModel: ChildManagementViewModel
     @State private var currentStep = 0
     @State private var showChildForm = false
-    @State private var hasAddedChild = false
     
     let totalSteps = 3
+    
+    private var hasAddedChild: Bool {
+        !childManagementViewModel.children.isEmpty
+    }
     
     var body: some View {
         ZStack {
@@ -56,10 +59,6 @@ struct ChildTutorialView: View {
             Task {
                 await childManagementViewModel.loadChildren()
             }
-        }
-        .onChange(of: childManagementViewModel.children) { _, children in
-            // SwiftUIの宣言的な仕組み：@Publishedプロパティの変更を自動監視
-            hasAddedChild = !children.isEmpty
         }
     }
     
