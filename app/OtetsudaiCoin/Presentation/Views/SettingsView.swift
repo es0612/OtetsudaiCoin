@@ -15,6 +15,13 @@ struct SettingsView: View {
     @StateObject private var tutorialService = TutorialService()
     @State private var taskManagementViewModel: TaskManagementViewModel
     
+    #if DEBUG
+    @State private var isGeneratingData = false
+    @State private var isClearingData = false
+    @State private var showingSampleDataAlert = false
+    @State private var sampleDataAlertMessage = ""
+    #endif
+    
     init(viewModel: ChildManagementViewModel) {
         self.viewModel = viewModel
         let context = PersistenceController.shared.container.viewContext
@@ -64,6 +71,64 @@ struct SettingsView: View {
                     .foregroundColor(.primary)
                 }
                 
+                
+                #if DEBUG
+                Section("開発者向け") {
+                    Button(action: {
+                        generateSampleData()
+                    }) {
+                        HStack {
+                            if isGeneratingData {
+                                ProgressView()
+                                    .scaleEffect(0.8)
+                            } else {
+                                Image(systemName: "chart.bar.doc.horizontal")
+                                    .foregroundColor(.green)
+                            }
+                            Text("3ヶ月分サンプルデータ生成")
+                            Spacer()
+                        }
+                    }
+                    .foregroundColor(.primary)
+                    .disabled(isGeneratingData)
+                    
+                    Button(action: {
+                        clearRecordsOnly()
+                    }) {
+                        HStack {
+                            if isClearingData {
+                                ProgressView()
+                                    .scaleEffect(0.8)
+                            } else {
+                                Image(systemName: "trash.circle")
+                                    .foregroundColor(.orange)
+                            }
+                            Text("記録データのみ削除")
+                            Spacer()
+                        }
+                    }
+                    .foregroundColor(.primary)
+                    .disabled(isClearingData)
+                    
+                    Button(action: {
+                        clearAllData()
+                    }) {
+                        HStack {
+                            if isClearingData {
+                                ProgressView()
+                                    .scaleEffect(0.8)
+                            } else {
+                                Image(systemName: "exclamationmark.triangle")
+                                    .foregroundColor(.red)
+                            }
+                            Text("全データ削除")
+                            Spacer()
+                        }
+                    }
+                    .foregroundColor(.red)
+                    .disabled(isClearingData)
+                }
+                #endif
                 
                 Section("ヘルプ") {
                     Button(action: {
@@ -153,6 +218,16 @@ struct SettingsView: View {
         } message: {
             Text(viewModel.successMessage ?? "")
         }
+        #if DEBUG
+        .alert("サンプルデータ", isPresented: $showingSampleDataAlert) {
+            Button("OK") {
+                showingSampleDataAlert = false
+                sampleDataAlertMessage = ""
+            }
+        } message: {
+            Text(sampleDataAlertMessage)
+        }
+        #endif
         .fullScreenCover(isPresented: $tutorialService.showTutorial) {
             let context = PersistenceController.shared.container.viewContext
             let childRepository = CoreDataChildRepository(context: context)
@@ -182,6 +257,113 @@ struct SettingsView: View {
             }
         }
     }
+    
+    #if DEBUG
+    private func generateSampleData() {
+        isGeneratingData = true
+        
+        Task {
+            do {
+                let context = PersistenceController.shared.container.viewContext
+                let childRepository = CoreDataChildRepository(context: context)
+                let taskRepository = CoreDataHelpTaskRepository(context: context)
+                let recordRepository = CoreDataHelpRecordRepository(context: context)
+                
+                let sampleDataService = SampleDataService(
+                    childRepository: childRepository,
+                    helpTaskRepository: taskRepository,
+                    helpRecordRepository: recordRepository
+                )
+                
+                try await sampleDataService.generateSampleData()
+                
+                // 子供リストを更新
+                await viewModel.loadChildren()
+                
+                await MainActor.run {
+                    isGeneratingData = false
+                    sampleDataAlertMessage = "3ヶ月分のサンプルデータを生成しました！\n\n・子供: 2人\n・お手伝いタスク: 6個\n・記録: 過去3ヶ月分"
+                    showingSampleDataAlert = true
+                }
+            } catch {
+                await MainActor.run {
+                    isGeneratingData = false
+                    sampleDataAlertMessage = "サンプルデータの生成に失敗しました: \(error.localizedDescription)"
+                    showingSampleDataAlert = true
+                }
+            }
+        }
+    }
+    
+    private func clearRecordsOnly() {
+        isClearingData = true
+        
+        Task {
+            do {
+                let context = PersistenceController.shared.container.viewContext
+                let childRepository = CoreDataChildRepository(context: context)
+                let taskRepository = CoreDataHelpTaskRepository(context: context)
+                let recordRepository = CoreDataHelpRecordRepository(context: context)
+                
+                let sampleDataService = SampleDataService(
+                    childRepository: childRepository,
+                    helpTaskRepository: taskRepository,
+                    helpRecordRepository: recordRepository
+                )
+                
+                try await sampleDataService.clearRecordsOnly()
+                
+                await MainActor.run {
+                    isClearingData = false
+                    sampleDataAlertMessage = "記録データのみ削除しました。\n子供とタスクデータは保持されています。"
+                    showingSampleDataAlert = true
+                }
+            } catch {
+                await MainActor.run {
+                    isClearingData = false
+                    sampleDataAlertMessage = "データの削除に失敗しました: \(error.localizedDescription)"
+                    showingSampleDataAlert = true
+                }
+            }
+        }
+    }
+    
+    private func clearAllData() {
+        isClearingData = true
+        
+        Task {
+            do {
+                let context = PersistenceController.shared.container.viewContext
+                let childRepository = CoreDataChildRepository(context: context)
+                let taskRepository = CoreDataHelpTaskRepository(context: context)
+                let recordRepository = CoreDataHelpRecordRepository(context: context)
+                
+                let sampleDataService = SampleDataService(
+                    childRepository: childRepository,
+                    helpTaskRepository: taskRepository,
+                    helpRecordRepository: recordRepository
+                )
+                
+                try await sampleDataService.clearAllData()
+                
+                // 子供リストを更新
+                await viewModel.loadChildren()
+                
+                await MainActor.run {
+                    isClearingData = false
+                    sampleDataAlertMessage = "全データを削除しました。\n子供、タスク、記録のすべてが削除されました。"
+                    showingSampleDataAlert = true
+                }
+            } catch {
+                await MainActor.run {
+                    isClearingData = false
+                    sampleDataAlertMessage = "データの削除に失敗しました: \(error.localizedDescription)"
+                    showingSampleDataAlert = true
+                }
+            }
+        }
+    }
+    #endif
 }
 
 struct ChildRowView: View {

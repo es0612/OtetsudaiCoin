@@ -66,6 +66,12 @@ struct RecordTutorialView: View {
         .onAppear {
             recordViewModel.loadData()
         }
+        .onChange(of: recordViewModel.viewState.isLoading) { oldValue, newValue in
+            // データロード完了時に自動的に子供を選択
+            if oldValue && !newValue && !recordViewModel.availableChildren.isEmpty && recordViewModel.selectedChild == nil {
+                recordViewModel.selectedChild = recordViewModel.availableChildren.first
+            }
+        }
     }
     
     private var introStep: some View {
