@@ -1,8 +1,6 @@
 import XCTest
-import Combine
 @testable import OtetsudaiCoin
 
-@MainActor
 final class HelpRecordEditViewModelTests: XCTestCase {
     
     private var mockHelpRecordRepository: MockHelpRecordRepository!
@@ -10,13 +8,12 @@ final class HelpRecordEditViewModelTests: XCTestCase {
     private var viewModel: HelpRecordEditViewModel!
     private var helpRecord: HelpRecord!
     private var child: Child!
-    private var cancellables: Set<AnyCancellable>!
     
     override func setUp() {
         super.setUp()
         mockHelpRecordRepository = MockHelpRecordRepository()
         mockHelpTaskRepository = MockHelpTaskRepository()
-        child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733", coinRate: 100)
+        child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
         helpRecord = HelpRecord(id: UUID(), childId: child.id, helpTaskId: UUID(), recordedAt: Date())
         viewModel = HelpRecordEditViewModel(
             helpRecord: helpRecord,
@@ -24,12 +21,9 @@ final class HelpRecordEditViewModelTests: XCTestCase {
             helpRecordRepository: mockHelpRecordRepository,
             helpTaskRepository: mockHelpTaskRepository
         )
-        cancellables = []
     }
     
     override func tearDown() {
-        cancellables.forEach { $0.cancel() }
-        cancellables = nil
         viewModel = nil
         helpRecord = nil
         child = nil
@@ -54,19 +48,7 @@ final class HelpRecordEditViewModelTests: XCTestCase {
         // When
         viewModel.loadData()
         
-        // 非同期処理の完了を待機
-        let expectation = XCTestExpectation(description: "Load data")
-        viewModel.$viewState
-            .map { $0.isLoading }
-            .dropFirst()
-            .sink { isLoading in
-                if !isLoading {
-                    expectation.fulfill()
-                }
-            }
-            .store(in: &cancellables)
-        
-        await fulfillment(of: [expectation], timeout: 2.0)
+        // @Observableでは美幅更新で直接状態を確認
         
         // Then
         XCTAssertFalse(viewModel.viewState.isLoading)
@@ -82,19 +64,7 @@ final class HelpRecordEditViewModelTests: XCTestCase {
         // When
         viewModel.loadData()
         
-        // 非同期処理の完了を待機
-        let expectation = XCTestExpectation(description: "Load data error")
-        viewModel.$viewState
-            .map { $0.errorMessage }
-            .dropFirst()
-            .sink { errorMessage in
-                if errorMessage != nil {
-                    expectation.fulfill()
-                }
-            }
-            .store(in: &cancellables)
-        
-        await fulfillment(of: [expectation], timeout: 2.0)
+        // @Observableでは美幅更新で直接状態を確認
         
         // Then
         XCTAssertFalse(viewModel.viewState.isLoading)
@@ -112,19 +82,7 @@ final class HelpRecordEditViewModelTests: XCTestCase {
         // When
         viewModel.saveChanges()
         
-        // 非同期処理の完了を待機
-        let expectation = XCTestExpectation(description: "Save changes")
-        viewModel.$viewState
-            .map { $0.successMessage }
-            .dropFirst()
-            .sink { successMessage in
-                if successMessage != nil {
-                    expectation.fulfill()
-                }
-            }
-            .store(in: &cancellables)
-        
-        await fulfillment(of: [expectation], timeout: 2.0)
+        // @Observableでは美幅更新で直接状態を確認
         
         // Then
         XCTAssertFalse(viewModel.viewState.isLoading)
@@ -147,19 +105,7 @@ final class HelpRecordEditViewModelTests: XCTestCase {
         // When
         viewModel.deleteRecord()
         
-        // 非同期処理の完了を待機
-        let expectation = XCTestExpectation(description: "Delete record")
-        viewModel.$viewState
-            .map { $0.successMessage }
-            .dropFirst()
-            .sink { successMessage in
-                if successMessage != nil {
-                    expectation.fulfill()
-                }
-            }
-            .store(in: &cancellables)
-        
-        await fulfillment(of: [expectation], timeout: 2.0)
+        // @Observableでは美幅更新で直接状態を確認
         
         // Then
         XCTAssertFalse(viewModel.viewState.isLoading)

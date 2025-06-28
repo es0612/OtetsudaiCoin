@@ -3,28 +3,32 @@ import SwiftUI
 import ViewInspector
 @testable import OtetsudaiCoin
 
-@MainActor
+
 final class RecordViewTests: XCTestCase {
     private var viewModel: RecordViewModel!
     private var mockChildRepository: MockChildRepository!
     private var mockHelpTaskRepository: MockHelpTaskRepository!
     private var mockHelpRecordRepository: MockHelpRecordRepository!
+    private var mockSoundService: MockSoundService!
     
     override func setUp() {
         super.setUp()
         mockChildRepository = MockChildRepository()
         mockHelpTaskRepository = MockHelpTaskRepository()
         mockHelpRecordRepository = MockHelpRecordRepository()
+        mockSoundService = MockSoundService()
         
         viewModel = RecordViewModel(
             childRepository: mockChildRepository,
             helpTaskRepository: mockHelpTaskRepository,
-            helpRecordRepository: mockHelpRecordRepository
+            helpRecordRepository: mockHelpRecordRepository,
+            soundService: mockSoundService
         )
     }
     
     override func tearDown() {
         viewModel = nil
+        mockSoundService = nil
         mockHelpRecordRepository = nil
         mockHelpTaskRepository = nil
         mockChildRepository = nil

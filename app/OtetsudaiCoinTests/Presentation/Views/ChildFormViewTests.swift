@@ -3,7 +3,6 @@ import ViewInspector
 import SwiftUI
 @testable import OtetsudaiCoin
 
-@MainActor
 final class ChildFormViewTests: XCTestCase {
     
     private var childRepository: MockChildRepository!
@@ -64,7 +63,7 @@ final class ChildFormViewTests: XCTestCase {
         
         for testCase in testCases {
             // When
-            await viewModel.addChild(name: "テスト", themeColor: testCase.color, coinRate: 100)
+            await viewModel.addChild(name: "テスト", themeColor: testCase.color)
             
             // Then
             XCTAssertEqual(childRepository.savedChildren.count, 1, "\(testCase.description): 子供が1人追加されるべき")

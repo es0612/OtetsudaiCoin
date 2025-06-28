@@ -2,7 +2,6 @@ import XCTest
 import AVFoundation
 @testable import OtetsudaiCoin
 
-@MainActor
 final class SoundServiceTests: XCTestCase {
     private var soundService: SoundService!
     

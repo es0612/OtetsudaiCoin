@@ -3,7 +3,7 @@ import SwiftUI
 import ViewInspector
 @testable import OtetsudaiCoin
 
-@MainActor
+
 final class CoinAnimationViewTests: XCTestCase {
     
     func testCoinAnimationViewDisplaysCoin() throws {

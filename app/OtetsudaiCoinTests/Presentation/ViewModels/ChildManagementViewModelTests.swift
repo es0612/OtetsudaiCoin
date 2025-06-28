@@ -1,24 +1,18 @@
 import XCTest
-import Combine
 @testable import OtetsudaiCoin
 
-@MainActor
 final class ChildManagementViewModelTests: XCTestCase {
     
     private var childRepository: MockChildRepository!
     private var viewModel: ChildManagementViewModel!
-    private var cancellables: Set<AnyCancellable>!
     
     override func setUp() {
         super.setUp()
         childRepository = MockChildRepository()
         viewModel = ChildManagementViewModel(childRepository: childRepository)
-        cancellables = []
     }
     
     override func tearDown() {
-        cancellables.forEach { $0.cancel() }
-        cancellables = nil
         viewModel = nil
         childRepository = nil
         super.tearDown()
@@ -26,8 +20,8 @@ final class ChildManagementViewModelTests: XCTestCase {
     
     func testLoadChildren() async {
         // Given
-        let child1 = Child(id: UUID(), name: "太郎", themeColor: "#FF5733", coinRate: 100)
-        let child2 = Child(id: UUID(), name: "花子", themeColor: "#33FF57", coinRate: 150)
+        let child1 = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+        let child2 = Child(id: UUID(), name: "花子", themeColor: "#33FF57")
         childRepository.children = [child1, child2]
         
         // When
@@ -58,16 +52,15 @@ final class ChildManagementViewModelTests: XCTestCase {
         // Given
         let name = "新しい子"
         let themeColor = "#9C27B0"
-        let coinRate = 120
         
         // When
-        await viewModel.addChild(name: name, themeColor: themeColor, coinRate: coinRate)
+        await viewModel.addChild(name: name, themeColor: themeColor)
         
         // Then
         XCTAssertEqual(childRepository.savedChildren.count, 1)
         XCTAssertEqual(childRepository.savedChildren[0].name, name)
         XCTAssertEqual(childRepository.savedChildren[0].themeColor, themeColor)
-        XCTAssertEqual(childRepository.savedChildren[0].coinRate, coinRate)
+        // coinRateはChildエンティティから削除されました
         XCTAssertNotNil(viewModel.viewState.successMessage)
     }
     
@@ -75,10 +68,9 @@ final class ChildManagementViewModelTests: XCTestCase {
         // Given
         let name = ""
         let themeColor = "invalid"
-        let coinRate = -10
         
         // When
-        await viewModel.addChild(name: name, themeColor: themeColor, coinRate: coinRate)
+        await viewModel.addChild(name: name, themeColor: themeColor)
         
         // Then
         XCTAssertTrue(childRepository.savedChildren.isEmpty)
@@ -87,28 +79,27 @@ final class ChildManagementViewModelTests: XCTestCase {
     
     func testUpdateChild() async {
         // Given
-        let originalChild = Child(id: UUID(), name: "太郎", themeColor: "#FF5733", coinRate: 100)
+        let originalChild = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
         childRepository.children = [originalChild]
         await viewModel.loadChildren()
         
         let updatedName = "太郎くん"
         let updatedColor = "#9C27B0"
-        let updatedRate = 150
         
         // When
-        await viewModel.updateChild(id: originalChild.id, name: updatedName, themeColor: updatedColor, coinRate: updatedRate)
+        await viewModel.updateChild(id: originalChild.id, name: updatedName, themeColor: updatedColor)
         
         // Then
         XCTAssertEqual(childRepository.updatedChildren.count, 1)
         XCTAssertEqual(childRepository.updatedChildren[0].name, updatedName)
         XCTAssertEqual(childRepository.updatedChildren[0].themeColor, updatedColor)
-        XCTAssertEqual(childRepository.updatedChildren[0].coinRate, updatedRate)
+        // coinRateはChildエンティティから削除されました
         XCTAssertNotNil(viewModel.viewState.successMessage)
     }
     
     func testDeleteChild() async {
         // Given
-        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733", coinRate: 100)
+        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
         childRepository.children = [child]
         await viewModel.loadChildren()
         
@@ -123,18 +114,16 @@ final class ChildManagementViewModelTests: XCTestCase {
     
     func testValidateChildData() {
         // Valid data
-        XCTAssertTrue(viewModel.validateChildData(name: "太郎", themeColor: "#FF5733", coinRate: 100))
+        XCTAssertTrue(viewModel.validateChildData(name: "太郎", themeColor: "#FF5733"))
         
         // Invalid name
-        XCTAssertFalse(viewModel.validateChildData(name: "", themeColor: "#FF5733", coinRate: 100))
-        XCTAssertFalse(viewModel.validateChildData(name: "   ", themeColor: "#FF5733", coinRate: 100))
+        XCTAssertFalse(viewModel.validateChildData(name: "", themeColor: "#FF5733"))
+        XCTAssertFalse(viewModel.validateChildData(name: "   ", themeColor: "#FF5733"))
         
         // Invalid theme color
-        XCTAssertFalse(viewModel.validateChildData(name: "太郎", themeColor: "invalid", coinRate: 100))
+        XCTAssertFalse(viewModel.validateChildData(name: "太郎", themeColor: "invalid"))
         
-        // Invalid coin rate
-        XCTAssertFalse(viewModel.validateChildData(name: "太郎", themeColor: "#FF5733", coinRate: 0))
-        XCTAssertFalse(viewModel.validateChildData(name: "太郎", themeColor: "#FF5733", coinRate: -10))
+        // coinRateの検証はChildエンティティから削除されました
     }
     
     func testClearMessages() {
@@ -161,10 +150,9 @@ final class ChildManagementViewModelTests: XCTestCase {
         let availableColors = viewModel.getAvailableThemeColors()
         let selectedColor = availableColors[5] // 6番目の色を選択
         let name = "テスト"
-        let coinRate = 100
         
         // When
-        await viewModel.addChild(name: name, themeColor: selectedColor, coinRate: coinRate)
+        await viewModel.addChild(name: name, themeColor: selectedColor)
         
         // Then
         XCTAssertEqual(childRepository.savedChildren.count, 1)

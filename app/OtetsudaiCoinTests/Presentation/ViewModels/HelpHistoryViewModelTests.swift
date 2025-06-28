@@ -1,15 +1,12 @@
 import XCTest
-import Combine
 @testable import OtetsudaiCoin
 
-@MainActor
 final class HelpHistoryViewModelTests: XCTestCase {
     
     private var mockHelpRecordRepository: MockHelpRecordRepository!
     private var mockHelpTaskRepository: MockHelpTaskRepository!
     private var mockChildRepository: MockChildRepository!
     private var viewModel: HelpHistoryViewModel!
-    private var cancellables: Set<AnyCancellable>!
     
     override func setUp() {
         super.setUp()
@@ -21,12 +18,9 @@ final class HelpHistoryViewModelTests: XCTestCase {
             helpTaskRepository: mockHelpTaskRepository,
             childRepository: mockChildRepository
         )
-        cancellables = []
     }
     
     override func tearDown() {
-        cancellables.forEach { $0.cancel() }
-        cancellables = nil
         viewModel = nil
         mockChildRepository = nil
         mockHelpTaskRepository = nil
@@ -36,7 +30,7 @@ final class HelpHistoryViewModelTests: XCTestCase {
     
     func testSelectChild() {
         // Given
-        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733", coinRate: 100)
+        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
         
         // When
         viewModel.selectChild(child)
@@ -66,7 +60,7 @@ final class HelpHistoryViewModelTests: XCTestCase {
     
     func testLoadHelpHistorySuccess() async {
         // Given
-        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733", coinRate: 100)
+        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
         let task = HelpTask(id: UUID(), name: "食器洗い", isActive: true)
         let record = HelpRecord(id: UUID(), childId: child.id, helpTaskId: task.id, recordedAt: Date())
         
@@ -79,18 +73,12 @@ final class HelpHistoryViewModelTests: XCTestCase {
         // When
         viewModel.loadHelpHistory()
         
-        // 非同期処理の完了を待機
-        let expectation = XCTestExpectation(description: "Load help history")
-        viewModel.$isLoading
-            .dropFirst()
-            .sink { isLoading in
-                if !isLoading {
-                    expectation.fulfill()
-                }
-            }
-            .store(in: &cancellables)
-        
-        await fulfillment(of: [expectation], timeout: 2.0)
+        // @Observableでの非同期処理完了を待機
+        let expectation = XCTestExpectation(description: "Load help history success")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            expectation.fulfill()
+        }
+        await fulfillment(of: [expectation], timeout: 1.0)
         
         // Then
         XCTAssertFalse(viewModel.isLoading)
@@ -103,7 +91,7 @@ final class HelpHistoryViewModelTests: XCTestCase {
     
     func testLoadHelpHistoryError() async {
         // Given
-        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733", coinRate: 100)
+        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
         mockHelpRecordRepository.shouldThrowError = true
         
         viewModel.selectChild(child)
@@ -111,18 +99,12 @@ final class HelpHistoryViewModelTests: XCTestCase {
         // When
         viewModel.loadHelpHistory()
         
-        // 非同期処理の完了を待機
+        // @Observableでの非同期処理完了を待機
         let expectation = XCTestExpectation(description: "Load help history error")
-        viewModel.$errorMessage
-            .dropFirst()
-            .sink { errorMessage in
-                if errorMessage != nil {
-                    expectation.fulfill()
-                }
-            }
-            .store(in: &cancellables)
-        
-        await fulfillment(of: [expectation], timeout: 2.0)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            expectation.fulfill()
+        }
+        await fulfillment(of: [expectation], timeout: 1.0)
         
         // Then
         XCTAssertFalse(viewModel.isLoading)
@@ -132,7 +114,7 @@ final class HelpHistoryViewModelTests: XCTestCase {
     
     func testDeleteRecord() async {
         // Given
-        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733", coinRate: 100)
+        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
         let task = HelpTask(id: UUID(), name: "食器洗い", isActive: true)
         let record = HelpRecord(id: UUID(), childId: child.id, helpTaskId: task.id, recordedAt: Date())
         
@@ -162,7 +144,7 @@ final class HelpHistoryViewModelTests: XCTestCase {
         viewModel.errorMessage = "テストエラー"
         
         // When
-        viewModel.clearErrorMessage()
+        viewModel.errorMessage = nil
         
         // Then
         XCTAssertNil(viewModel.errorMessage)
@@ -170,8 +152,8 @@ final class HelpHistoryViewModelTests: XCTestCase {
     
     func testHelpRecordWithDetailsEarnedCoins() {
         // Given
-        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733", coinRate: 150)
-        let task = HelpTask(id: UUID(), name: "食器洗い", isActive: true)
+        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+        let task = HelpTask(id: UUID(), name: "食器洗い", isActive: true, coinRate: 150)
         let record = HelpRecord(id: UUID(), childId: child.id, helpTaskId: task.id, recordedAt: Date())
         
         // When

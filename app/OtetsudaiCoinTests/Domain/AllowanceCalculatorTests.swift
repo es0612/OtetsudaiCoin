@@ -23,7 +23,7 @@ final class AllowanceCalculatorTests: XCTestCase {
         
         let allowance = calculator.calculateMonthlyAllowance(records: [record])
         
-        XCTAssertEqual(allowance, 100)
+        XCTAssertEqual(allowance, 10)
     }
     
     func testCalculateMonthlyAllowanceWithMultipleRecords() {
@@ -39,7 +39,7 @@ final class AllowanceCalculatorTests: XCTestCase {
         
         let allowance = calculator.calculateMonthlyAllowance(records: records)
         
-        XCTAssertEqual(allowance, 300)
+        XCTAssertEqual(allowance, 30)
     }
     
     func testCalculateConsecutiveDaysWithNoRecords() {

@@ -3,7 +3,7 @@ import SwiftUI
 import ViewInspector
 @testable import OtetsudaiCoin
 
-@MainActor
+
 final class HelpRecordEditViewTests: XCTestCase {
     
     private var mockHelpRecordRepository: MockHelpRecordRepository!
@@ -15,7 +15,7 @@ final class HelpRecordEditViewTests: XCTestCase {
         mockHelpRecordRepository = MockHelpRecordRepository()
         mockHelpTaskRepository = MockHelpTaskRepository()
         
-        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733", coinRate: 100)
+        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
         let record = HelpRecord(id: UUID(), childId: child.id, helpTaskId: UUID(), recordedAt: Date())
         
         viewModel = HelpRecordEditViewModel(

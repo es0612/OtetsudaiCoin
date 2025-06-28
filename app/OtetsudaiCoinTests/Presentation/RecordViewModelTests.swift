@@ -1,15 +1,12 @@
 import XCTest
-import Combine
 @testable import OtetsudaiCoin
 
-@MainActor
 final class RecordViewModelTests: XCTestCase {
     private var viewModel: RecordViewModel!
     private var mockChildRepository: MockChildRepository!
     private var mockHelpTaskRepository: MockHelpTaskRepository!
     private var mockHelpRecordRepository: MockHelpRecordRepository!
     private var mockSoundService: MockSoundService!
-    private var cancellables: Set<AnyCancellable>!
     
     override func setUp() {
         super.setUp()
@@ -24,11 +21,9 @@ final class RecordViewModelTests: XCTestCase {
             helpRecordRepository: mockHelpRecordRepository,
             soundService: mockSoundService
         )
-        cancellables = Set<AnyCancellable>()
     }
     
     override func tearDown() {
-        cancellables = nil
         viewModel = nil
         mockSoundService = nil
         mockHelpRecordRepository = nil
@@ -60,42 +55,34 @@ final class RecordViewModelTests: XCTestCase {
         mockChildRepository.children = expectedChildren
         mockHelpTaskRepository.tasks = expectedTasks
         
-        let expectation = XCTestExpectation(description: "Data loaded")
-        
-        viewModel.$availableTasks
-            .dropFirst()
-            .sink { tasks in
-                XCTAssertEqual(tasks.count, 2) // アクティブなタスクのみ
-                XCTAssertTrue(tasks.allSatisfy { $0.isActive })
-                expectation.fulfill()
-            }
-            .store(in: &cancellables)
-        
         viewModel.loadData()
         
+        // @Observableでの非同期処理完了を待機
+        let expectation = XCTestExpectation(description: "Load data success")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            expectation.fulfill()
+        }
         await fulfillment(of: [expectation], timeout: 1.0)
         
         XCTAssertEqual(viewModel.availableChildren.count, 2)
+        XCTAssertEqual(viewModel.availableTasks.count, 2) // アクティブなタスクのみ
+        XCTAssertTrue(viewModel.availableTasks.allSatisfy { $0.isActive })
         XCTAssertEqual(viewModel.selectedChild?.name, "太郎") // 最初の子供が自動選択される
     }
     
     func testLoadDataFailure() async {
         mockHelpTaskRepository.shouldThrowError = true
         
-        let expectation = XCTestExpectation(description: "Error occurred")
-        
-        viewModel.$viewState
-            .map { $0.errorMessage }
-            .compactMap { $0 }
-            .sink { errorMessage in
-                XCTAssertNotNil(errorMessage)
-                expectation.fulfill()
-            }
-            .store(in: &cancellables)
-        
         viewModel.loadData()
         
+        // @Observableでの非同期処理完了を待機
+        let expectation = XCTestExpectation(description: "Load data failure")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            expectation.fulfill()
+        }
         await fulfillment(of: [expectation], timeout: 1.0)
+        
+        XCTAssertNotNil(viewModel.viewState.errorMessage)
     }
     
     func testSelectChild() {
@@ -123,22 +110,17 @@ final class RecordViewModelTests: XCTestCase {
         viewModel.selectChild(child)
         viewModel.selectTask(task)
         
-        let expectation = XCTestExpectation(description: "Help recorded successfully")
-        
-        viewModel.$viewState
-            .map { $0.successMessage }
-            .compactMap { $0 }
-            .sink { successMessage in
-                XCTAssertEqual(successMessage, "お手伝いを記録しました！")
-                expectation.fulfill()
-            }
-            .store(in: &cancellables)
-        
         viewModel.recordHelp()
         
+        // @Observableでの非同期処理完了を待機
+        let expectation = XCTestExpectation(description: "Record help success")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            expectation.fulfill()
+        }
         await fulfillment(of: [expectation], timeout: 1.0)
         
         // 記録後の状態確認
+        XCTAssertEqual(viewModel.viewState.successMessage, "お手伝いを記録しました！")
         XCTAssertNil(viewModel.selectedTask)
         XCTAssertEqual(mockHelpRecordRepository.records.count, 1)
         XCTAssertEqual(mockHelpRecordRepository.records.first?.childId, child.id)
@@ -172,20 +154,16 @@ final class RecordViewModelTests: XCTestCase {
         
         mockHelpRecordRepository.shouldThrowError = true
         
-        let expectation = XCTestExpectation(description: "Error occurred")
-        
-        viewModel.$viewState
-            .map { $0.errorMessage }
-            .compactMap { $0 }
-            .sink { errorMessage in
-                XCTAssertNotNil(errorMessage)
-                expectation.fulfill()
-            }
-            .store(in: &cancellables)
-        
         viewModel.recordHelp()
         
+        // @Observableでの非同期処理完了を待機
+        let expectation = XCTestExpectation(description: "Record help failure")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            expectation.fulfill()
+        }
         await fulfillment(of: [expectation], timeout: 1.0)
+        
+        XCTAssertNotNil(viewModel.viewState.errorMessage)
     }
     
     func testClearMessages() {

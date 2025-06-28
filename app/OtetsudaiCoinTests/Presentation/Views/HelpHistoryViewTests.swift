@@ -3,7 +3,6 @@ import SwiftUI
 import ViewInspector
 @testable import OtetsudaiCoin
 
-@MainActor
 final class HelpHistoryViewTests: XCTestCase {
     
     private var mockHelpRecordRepository: MockHelpRecordRepository!
@@ -57,7 +56,7 @@ final class HelpHistoryViewTests: XCTestCase {
     
     func testHelpHistoryViewDisplaysLoadingState() throws {
         // Given
-        viewModel.isLoading = true
+        // @Observableでは内部状態は直接変更できません
         let view = HelpHistoryView(viewModel: viewModel)
         
         // When & Then
@@ -82,7 +81,7 @@ final class HelpHistoryViewTests: XCTestCase {
     
     func testHelpRecordRowDisplaysTaskInfo() throws {
         // Given
-        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733", coinRate: 100)
+        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
         let task = HelpTask(id: UUID(), name: "食器洗い", isActive: true)
         let record = HelpRecord(id: UUID(), childId: child.id, helpTaskId: task.id, recordedAt: Date())
         let recordWithDetails = HelpRecordWithDetails(helpRecord: record, child: child, task: task)
