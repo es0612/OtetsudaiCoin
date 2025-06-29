@@ -12,7 +12,7 @@ struct SettingsView: View {
     @State private var showingDeleteAlert = false
     @State private var childToDelete: Child?
     @State private var showingTaskManagement = false
-    @StateObject private var tutorialService = TutorialService()
+    @State private var tutorialService = TutorialService()
     @State private var taskManagementViewModel: TaskManagementViewModel
     
     #if DEBUG
@@ -22,6 +22,7 @@ struct SettingsView: View {
     @State private var sampleDataAlertMessage = ""
     #endif
     
+    @MainActor
     init(viewModel: ChildManagementViewModel) {
         self.viewModel = viewModel
         let context = PersistenceController.shared.container.viewContext

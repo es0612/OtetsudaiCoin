@@ -6,6 +6,7 @@ final class ChildManagementViewModelTests: XCTestCase {
     private var childRepository: MockChildRepository!
     private var viewModel: ChildManagementViewModel!
     
+    @MainActor
     override func setUp() {
         super.setUp()
         childRepository = MockChildRepository()
@@ -18,6 +19,7 @@ final class ChildManagementViewModelTests: XCTestCase {
         super.tearDown()
     }
     
+    @MainActor
     func testLoadChildren() async {
         // Given
         let child1 = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
@@ -35,6 +37,7 @@ final class ChildManagementViewModelTests: XCTestCase {
         XCTAssertNil(viewModel.viewState.errorMessage)
     }
     
+    @MainActor
     func testLoadChildrenWithError() async {
         // Given
         childRepository.shouldThrowError = true
@@ -48,6 +51,7 @@ final class ChildManagementViewModelTests: XCTestCase {
         XCTAssertNotNil(viewModel.viewState.errorMessage)
     }
     
+    @MainActor
     func testAddChild() async {
         // Given
         let name = "新しい子"
@@ -64,6 +68,7 @@ final class ChildManagementViewModelTests: XCTestCase {
         XCTAssertNotNil(viewModel.viewState.successMessage)
     }
     
+    @MainActor
     func testAddChildWithInvalidData() async {
         // Given
         let name = ""
@@ -77,6 +82,7 @@ final class ChildManagementViewModelTests: XCTestCase {
         XCTAssertNotNil(viewModel.viewState.errorMessage)
     }
     
+    @MainActor
     func testUpdateChild() async {
         // Given
         let originalChild = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
@@ -97,6 +103,7 @@ final class ChildManagementViewModelTests: XCTestCase {
         XCTAssertNotNil(viewModel.viewState.successMessage)
     }
     
+    @MainActor
     func testDeleteChild() async {
         // Given
         let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
@@ -112,6 +119,7 @@ final class ChildManagementViewModelTests: XCTestCase {
         XCTAssertNotNil(viewModel.viewState.successMessage)
     }
     
+    @MainActor
     func testValidateChildData() {
         // Valid data
         XCTAssertTrue(viewModel.validateChildData(name: "太郎", themeColor: "#FF5733"))
@@ -126,6 +134,7 @@ final class ChildManagementViewModelTests: XCTestCase {
         // coinRateの検証はChildエンティティから削除されました
     }
     
+    @MainActor
     func testClearMessages() {
         // Given
         viewModel.setError("エラーメッセージ")
@@ -139,12 +148,14 @@ final class ChildManagementViewModelTests: XCTestCase {
         XCTAssertNil(viewModel.viewState.successMessage)
     }
     
+    @MainActor
     func testGetAvailableThemeColors() {
         let colors = viewModel.getAvailableThemeColors()
         XCTAssertFalse(colors.isEmpty)
         XCTAssertTrue(colors.allSatisfy { Child.isValidThemeColor($0) })
     }
     
+    @MainActor
     func testThemeColorSelection() async {
         // Given
         let availableColors = viewModel.getAvailableThemeColors()

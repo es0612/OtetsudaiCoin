@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct RecordTutorialView: View {
-    @ObservedObject var tutorialService: TutorialService
+    @Bindable var tutorialService: TutorialService
     @Bindable var recordViewModel: RecordViewModel
     @State private var currentStep = 0
     @State private var selectedTabForDemo = 1 // 記録タブ
@@ -143,6 +143,7 @@ struct RecordTutorialView: View {
                                             Circle()
                                                 .fill(Color(hex: child.themeColor) ?? .blue)
                                                 .frame(width: 60, height: 60)
+                                                .aspectRatio(1, contentMode: .fit)
                                                 .overlay(
                                                     Text(String(child.name.prefix(1)))
                                                         .font(.title2)
@@ -485,19 +486,30 @@ struct CompletionFeature: View {
 }
 
 #Preview {
-    let context = PersistenceController.preview.container.viewContext
-    let childRepository = CoreDataChildRepository(context: context)
-    let taskRepository = CoreDataHelpTaskRepository(context: context)
-    let recordRepository = CoreDataHelpRecordRepository(context: context)
+    @Previewable @State var previewRecordViewModel: RecordViewModel?
     
-    let recordViewModel = RecordViewModel(
-        childRepository: childRepository,
-        helpTaskRepository: taskRepository,
-        helpRecordRepository: recordRepository
-    )
-    
-    RecordTutorialView(
-        tutorialService: TutorialService(),
-        recordViewModel: recordViewModel
-    )
+    Group {
+        if let recordViewModel = previewRecordViewModel {
+            RecordTutorialView(
+                tutorialService: TutorialService(),
+                recordViewModel: recordViewModel
+            )
+        } else {
+            Text("Loading...")
+        }
+    }
+    .task {
+        await MainActor.run {
+            let context = PersistenceController.preview.container.viewContext
+            let childRepository = CoreDataChildRepository(context: context)
+            let taskRepository = CoreDataHelpTaskRepository(context: context)
+            let recordRepository = CoreDataHelpRecordRepository(context: context)
+            
+            previewRecordViewModel = RecordViewModel(
+                childRepository: childRepository,
+                helpTaskRepository: taskRepository,
+                helpRecordRepository: recordRepository
+            )
+        }
+    }
 }

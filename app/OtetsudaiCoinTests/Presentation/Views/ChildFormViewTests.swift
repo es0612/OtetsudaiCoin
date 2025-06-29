@@ -8,6 +8,7 @@ final class ChildFormViewTests: XCTestCase {
     private var childRepository: MockChildRepository!
     private var viewModel: ChildManagementViewModel!
     
+    @MainActor
     override func setUp() {
         super.setUp()
         childRepository = MockChildRepository()
@@ -20,6 +21,7 @@ final class ChildFormViewTests: XCTestCase {
         super.tearDown()
     }
     
+    @MainActor
     func testColorSelectionInFormView() throws {
         // Given
         let view = ChildFormView(viewModel: viewModel, editingChild: nil)
@@ -34,6 +36,7 @@ final class ChildFormViewTests: XCTestCase {
         }))
     }
     
+    @MainActor
     func testAvailableThemeColorsCount() {
         // Given
         let colors = viewModel.getAvailableThemeColors()
@@ -47,6 +50,7 @@ final class ChildFormViewTests: XCTestCase {
         }
     }
     
+    @MainActor
     func testColorPickerSelection() async {
         // Given
         let availableColors = viewModel.getAvailableThemeColors()
@@ -78,6 +82,7 @@ final class ChildFormViewTests: XCTestCase {
         }
     }
     
+    @MainActor
     func testDefaultColorValue() {
         // Given
         let view = ChildFormView(viewModel: viewModel, editingChild: nil)

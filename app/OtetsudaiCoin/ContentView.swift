@@ -11,7 +11,7 @@ import CoreData
 struct ContentView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @State private var selectedTab = 0
-    @StateObject private var tutorialService = TutorialService()
+    @State private var tutorialService = TutorialService()
     
     // 共通のRepositoryインスタンス
     private var sharedChildRepository: ChildRepository {
@@ -21,6 +21,7 @@ struct ContentView: View {
     @State private var childManagementViewModel: ChildManagementViewModel
     @State private var homeViewModel: HomeViewModel
     
+    @MainActor
     init() {
         let childRepo = CoreDataChildRepository(context: PersistenceController.shared.container.viewContext)
         let helpRecordRepo = CoreDataHelpRecordRepository(context: PersistenceController.shared.container.viewContext)

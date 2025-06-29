@@ -1,15 +1,16 @@
 import SwiftUI
 
 struct ChildTutorialView: View {
-    @ObservedObject var tutorialService: TutorialService
+    @Bindable var tutorialService: TutorialService
     @Bindable var childManagementViewModel: ChildManagementViewModel
     @State private var currentStep = 0
     @State private var showChildForm = false
+    @State private var childrenCount = 0
     
     let totalSteps = 3
     
     private var hasAddedChild: Bool {
-        !childManagementViewModel.children.isEmpty
+        childrenCount > 0 || !childManagementViewModel.children.isEmpty
     }
     
     var body: some View {
@@ -54,11 +55,31 @@ struct ChildTutorialView: View {
         }
         .sheet(isPresented: $showChildForm) {
             ChildFormView(viewModel: childManagementViewModel, editingChild: nil)
+                .onDisappear {
+                    // シートが閉じられた時に子供データを再読み込み
+                    Task {
+                        await childManagementViewModel.loadChildren()
+                    }
+                }
         }
         .onAppear {
             Task {
                 await childManagementViewModel.loadChildren()
+                await MainActor.run {
+                    childrenCount = childManagementViewModel.children.count
+                }
             }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .childrenUpdated)) { _ in
+            Task {
+                await childManagementViewModel.loadChildren()
+                await MainActor.run {
+                    childrenCount = childManagementViewModel.children.count
+                }
+            }
+        }
+        .onChange(of: childManagementViewModel.children) { oldValue, newValue in
+            childrenCount = newValue.count
         }
     }
     
@@ -288,12 +309,23 @@ struct TutorialStep: View {
 }
 
 #Preview {
-    let context = PersistenceController.preview.container.viewContext
-    let childRepository = CoreDataChildRepository(context: context)
-    let childManagementViewModel = ChildManagementViewModel(childRepository: childRepository)
+    @Previewable @State var previewViewModel: ChildManagementViewModel?
     
-    ChildTutorialView(
-        tutorialService: TutorialService(),
-        childManagementViewModel: childManagementViewModel
-    )
+    Group {
+        if let viewModel = previewViewModel {
+            ChildTutorialView(
+                tutorialService: TutorialService(),
+                childManagementViewModel: viewModel
+            )
+        } else {
+            Text("Loading...")
+        }
+    }
+    .task {
+        await MainActor.run {
+            let context = PersistenceController.preview.container.viewContext
+            let childRepository = CoreDataChildRepository(context: context)
+            previewViewModel = ChildManagementViewModel(childRepository: childRepository)
+        }
+    }
 }

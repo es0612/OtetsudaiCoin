@@ -94,7 +94,7 @@ struct RecordView: View {
                             Button(action: {
                                 viewModel.selectChild(child)
                             }) {
-                                VStack {
+                                VStack(spacing: 8) {
                                     ZStack {
                                         Circle()
                                             .fill(Color(hex: child.themeColor) ?? .blue)
@@ -154,8 +154,9 @@ struct RecordView: View {
                         }
                     }
                     .padding(.horizontal)
+                    .padding(.vertical, 8)
                 }
-                .frame(height: 100)
+                .frame(height: 150)
             }
         }
     }

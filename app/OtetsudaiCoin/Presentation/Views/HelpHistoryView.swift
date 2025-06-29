@@ -52,6 +52,13 @@ struct HelpHistoryView: View {
                 createEditView(for: record)
             }
         }
+        .onChange(of: viewModel.helpRecords.count) { oldCount, newCount in
+            // 削除により件数が減った場合、編集シートを閉じる
+            if newCount < oldCount && showingEditView {
+                showingEditView = false
+                recordToEdit = nil
+            }
+        }
     }
     
     private var filterSection: some View {
@@ -331,16 +338,27 @@ struct StatisticCard: View {
 }
 
 #Preview {
-    let context = PersistenceController.preview.container.viewContext
-    let helpRecordRepository = CoreDataHelpRecordRepository(context: context)
-    let helpTaskRepository = CoreDataHelpTaskRepository(context: context)
-    let childRepository = CoreDataChildRepository(context: context)
+    @Previewable @State var previewViewModel: HelpHistoryViewModel?
     
-    let viewModel = HelpHistoryViewModel(
-        helpRecordRepository: helpRecordRepository,
-        helpTaskRepository: helpTaskRepository,
-        childRepository: childRepository
-    )
-    
-    HelpHistoryView(viewModel: viewModel)
+    Group {
+        if let viewModel = previewViewModel {
+            HelpHistoryView(viewModel: viewModel)
+        } else {
+            Text("Loading...")
+        }
+    }
+    .task {
+        await MainActor.run {
+            let context = PersistenceController.preview.container.viewContext
+            let helpRecordRepository = CoreDataHelpRecordRepository(context: context)
+            let helpTaskRepository = CoreDataHelpTaskRepository(context: context)
+            let childRepository = CoreDataChildRepository(context: context)
+            
+            previewViewModel = HelpHistoryViewModel(
+                helpRecordRepository: helpRecordRepository,
+                helpTaskRepository: helpTaskRepository,
+                childRepository: childRepository
+            )
+        }
+    }
 }

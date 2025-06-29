@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct TutorialContainerView: View {
-    @ObservedObject var tutorialService: TutorialService
+    @Bindable var tutorialService: TutorialService
     @Bindable var childManagementViewModel: ChildManagementViewModel
     @Bindable var recordViewModel: RecordViewModel
     
@@ -39,23 +39,34 @@ struct TutorialContainerView: View {
 }
 
 #Preview {
-    let context = PersistenceController.preview.container.viewContext
-    let childRepository = CoreDataChildRepository(context: context)
-    let taskRepository = CoreDataHelpTaskRepository(context: context)
-    let recordRepository = CoreDataHelpRecordRepository(context: context)
+    @State var previewChildManagementViewModel: ChildManagementViewModel?
+    @State var previewRecordViewModel: RecordViewModel?
     
-    let childManagementViewModel = ChildManagementViewModel(childRepository: childRepository)
-    let recordViewModel = RecordViewModel(
-        childRepository: childRepository,
-        helpTaskRepository: taskRepository,
-        helpRecordRepository: recordRepository
-    )
-    
-    let tutorialService = TutorialService()
-    
-    TutorialContainerView(
-        tutorialService: tutorialService,
-        childManagementViewModel: childManagementViewModel,
-        recordViewModel: recordViewModel
-    )
+    Group {
+        if let childVM = previewChildManagementViewModel,
+           let recordVM = previewRecordViewModel {
+            TutorialContainerView(
+                tutorialService: TutorialService(),
+                childManagementViewModel: childVM,
+                recordViewModel: recordVM
+            )
+        } else {
+            Text("Loading...")
+        }
+    }
+    .task {
+        await MainActor.run {
+            let context = PersistenceController.preview.container.viewContext
+            let childRepository = CoreDataChildRepository(context: context)
+            let taskRepository = CoreDataHelpTaskRepository(context: context)
+            let recordRepository = CoreDataHelpRecordRepository(context: context)
+            
+            previewChildManagementViewModel = ChildManagementViewModel(childRepository: childRepository)
+            previewRecordViewModel = RecordViewModel(
+                childRepository: childRepository,
+                helpTaskRepository: taskRepository,
+                helpRecordRepository: recordRepository
+            )
+        }
+    }
 }

@@ -5,6 +5,7 @@ extension Notification.Name {
     static let childrenUpdated = Notification.Name("childrenUpdated")
 }
 
+@MainActor
 class ChildManagementViewModel: BaseViewModel {
     var children: [Child] = []
     
@@ -53,6 +54,11 @@ class ChildManagementViewModel: BaseViewModel {
         
         do {
             try await childRepository.save(child)
+            
+            // UI更新を即座に反映
+            children.append(child)
+            
+            // 確実にデータを再読み込み
             await loadChildren()
             
             // SwiftUIの宣言的な仕組み：データ更新の通知

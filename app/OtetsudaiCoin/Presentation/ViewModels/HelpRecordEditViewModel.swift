@@ -1,6 +1,7 @@
 import Foundation
 import Combine
 
+@Observable
 class HelpRecordEditViewModel: BaseViewModel {
     var selectedTask: HelpTask?
     var recordedDate: Date = Date()
@@ -28,7 +29,7 @@ class HelpRecordEditViewModel: BaseViewModel {
     func loadData() {
         setLoading(true)
         
-        Task {
+        Task { @MainActor in
             do {
                 let tasks = try await helpTaskRepository.findActive()
                 availableTasks = tasks
@@ -51,7 +52,7 @@ class HelpRecordEditViewModel: BaseViewModel {
         
         setLoading(true)
         
-        Task {
+        Task { @MainActor in
             do {
                 let updatedRecord = HelpRecord(
                     id: helpRecord.id,
@@ -75,7 +76,7 @@ class HelpRecordEditViewModel: BaseViewModel {
     func deleteRecord() {
         setLoading(true)
         
-        Task {
+        Task { @MainActor in
             do {
                 try await helpRecordRepository.delete(helpRecord.id)
                 

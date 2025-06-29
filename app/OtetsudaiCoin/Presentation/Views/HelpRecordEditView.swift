@@ -167,19 +167,30 @@ struct TaskSelectionRow: View {
 }
 
 #Preview {
-    let context = PersistenceController.preview.container.viewContext
-    let helpRecordRepository = CoreDataHelpRecordRepository(context: context)
-    let helpTaskRepository = CoreDataHelpTaskRepository(context: context)
+    @Previewable @State var previewViewModel: HelpRecordEditViewModel?
     
-    let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
-    let record = HelpRecord(id: UUID(), childId: child.id, helpTaskId: UUID(), recordedAt: Date())
-    
-    let viewModel = HelpRecordEditViewModel(
-        helpRecord: record,
-        child: child,
-        helpRecordRepository: helpRecordRepository,
-        helpTaskRepository: helpTaskRepository
-    )
-    
-    HelpRecordEditView(viewModel: viewModel)
+    Group {
+        if let viewModel = previewViewModel {
+            HelpRecordEditView(viewModel: viewModel)
+        } else {
+            Text("Loading...")
+        }
+    }
+    .task {
+        await MainActor.run {
+            let context = PersistenceController.preview.container.viewContext
+            let helpRecordRepository = CoreDataHelpRecordRepository(context: context)
+            let helpTaskRepository = CoreDataHelpTaskRepository(context: context)
+            
+            let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+            let record = HelpRecord(id: UUID(), childId: child.id, helpTaskId: UUID(), recordedAt: Date())
+            
+            previewViewModel = HelpRecordEditViewModel(
+                helpRecord: record,
+                child: child,
+                helpRecordRepository: helpRecordRepository,
+                helpTaskRepository: helpTaskRepository
+            )
+        }
+    }
 }

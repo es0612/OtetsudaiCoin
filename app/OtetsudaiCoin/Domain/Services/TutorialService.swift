@@ -1,10 +1,11 @@
 import Foundation
 
-class TutorialService: ObservableObject {
-    @Published var isFirstLaunch: Bool = true
-    @Published var hasCompletedChildTutorial: Bool = false
-    @Published var hasCompletedRecordTutorial: Bool = false
-    @Published var showTutorial: Bool = false
+@Observable
+class TutorialService {
+    var isFirstLaunch: Bool = true
+    var hasCompletedChildTutorial: Bool = false
+    var hasCompletedRecordTutorial: Bool = false
+    var showTutorial: Bool = false
     
     private let userDefaults = UserDefaults.standard
     

@@ -39,6 +39,7 @@ final class HelpRecordEditViewModelTests: XCTestCase {
         XCTAssertNil(viewModel.selectedTask)
     }
     
+    @MainActor
     func testLoadDataSuccess() async {
         // Given
         let task1 = HelpTask(id: helpRecord.helpTaskId, name: "食器洗い", isActive: true)
@@ -48,7 +49,8 @@ final class HelpRecordEditViewModelTests: XCTestCase {
         // When
         viewModel.loadData()
         
-        // @Observableでは美幅更新で直接状態を確認
+        // 非同期処理の完了を待機
+        try? await Task.sleep(nanoseconds: 100_000_000) // 0.1秒待機
         
         // Then
         XCTAssertFalse(viewModel.viewState.isLoading)
@@ -57,6 +59,7 @@ final class HelpRecordEditViewModelTests: XCTestCase {
         XCTAssertNil(viewModel.viewState.errorMessage)
     }
     
+    @MainActor
     func testLoadDataError() async {
         // Given
         mockHelpTaskRepository.shouldThrowError = true
@@ -64,7 +67,8 @@ final class HelpRecordEditViewModelTests: XCTestCase {
         // When
         viewModel.loadData()
         
-        // @Observableでは美幅更新で直接状態を確認
+        // 非同期処理の完了を待機
+        try? await Task.sleep(nanoseconds: 100_000_000) // 0.1秒待機
         
         // Then
         XCTAssertFalse(viewModel.viewState.isLoading)
@@ -72,6 +76,7 @@ final class HelpRecordEditViewModelTests: XCTestCase {
         XCTAssertNotNil(viewModel.viewState.errorMessage)
     }
     
+    @MainActor
     func testSaveChangesSuccess() async {
         // Given
         let newTask = HelpTask(id: UUID(), name: "掃除", isActive: true)
@@ -79,10 +84,14 @@ final class HelpRecordEditViewModelTests: XCTestCase {
         let newDate = Date().addingTimeInterval(3600)
         viewModel.recordedDate = newDate
         
+        // MockHelpRecordRepositoryに元のレコードを追加
+        mockHelpRecordRepository.records.append(helpRecord)
+        
         // When
         viewModel.saveChanges()
         
-        // @Observableでは美幅更新で直接状態を確認
+        // 非同期処理の完了を待機（長めに設定）
+        try? await Task.sleep(nanoseconds: 300_000_000) // 0.3秒待機
         
         // Then
         XCTAssertFalse(viewModel.viewState.isLoading)
@@ -101,11 +110,13 @@ final class HelpRecordEditViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.viewState.errorMessage, "お手伝いタスクを選択してください")
     }
     
+    @MainActor
     func testDeleteRecordSuccess() async {
         // When
         viewModel.deleteRecord()
         
-        // @Observableでは美幅更新で直接状態を確認
+        // 非同期処理の完了を待機
+        try? await Task.sleep(nanoseconds: 100_000_000) // 0.1秒待機
         
         // Then
         XCTAssertFalse(viewModel.viewState.isLoading)

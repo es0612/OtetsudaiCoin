@@ -119,4 +119,32 @@ class MonthlyHistoryViewModel {
     func clearError() {
         errorMessage = nil
     }
+    
+    func payAllowance(for monthlyRecord: MonthlyRecord) async {
+        guard let child = selectedChild else { return }
+        
+        isLoading = true
+        errorMessage = nil
+        
+        do {
+            let payment = AllowancePayment(
+                id: UUID(),
+                childId: child.id,
+                amount: monthlyRecord.allowanceAmount,
+                month: monthlyRecord.month,
+                year: monthlyRecord.year,
+                paidAt: Date(),
+                note: "\(monthlyRecord.year)年\(monthlyRecord.month)月のお小遣い支払い"
+            )
+            
+            try await allowancePaymentRepository.save(payment)
+            
+            // データを再読み込み
+            loadMonthlyHistory()
+            
+        } catch {
+            errorMessage = "支払いの記録に失敗しました: \(error.localizedDescription)"
+            isLoading = false
+        }
+    }
 }

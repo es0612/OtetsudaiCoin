@@ -143,6 +143,14 @@ struct ChildFormView: View {
             } message: {
                 Text(viewModel.viewState.successMessage ?? "")
             }
+            .onChange(of: viewModel.viewState.successMessage) { oldValue, newValue in
+                if newValue != nil && oldValue == nil {
+                    // 成功メッセージが新しく設定された場合、少し遅延してからdismiss
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        dismiss()
+                    }
+                }
+            }
         }
         .onAppear {
             setupInitialValues()
@@ -195,7 +203,20 @@ struct ColorSelectionButton: View {
 }
 
 #Preview {
-    let context = PersistenceController.preview.container.viewContext
-    let repository = CoreDataChildRepository(context: context)
-    ChildFormView(viewModel: ChildManagementViewModel(childRepository: repository), editingChild: nil)
+    @State var previewViewModel: ChildManagementViewModel?
+    
+    Group {
+        if let viewModel = previewViewModel {
+            ChildFormView(viewModel: viewModel, editingChild: nil)
+        } else {
+            Text("Loading...")
+        }
+    }
+    .task {
+        await MainActor.run {
+            let context = PersistenceController.preview.container.viewContext
+            let repository = CoreDataChildRepository(context: context)
+            previewViewModel = ChildManagementViewModel(childRepository: repository)
+        }
+    }
 }

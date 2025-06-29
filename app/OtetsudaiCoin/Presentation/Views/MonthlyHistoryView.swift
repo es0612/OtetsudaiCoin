@@ -37,7 +37,11 @@ struct MonthlyHistoryView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     List(viewModel.monthlyRecords, id: \.monthYearString) { monthlyRecord in
-                        MonthlyRecordRow(monthlyRecord: monthlyRecord)
+                        MonthlyRecordRow(monthlyRecord: monthlyRecord) { record in
+                            Task {
+                                await viewModel.payAllowance(for: record)
+                            }
+                        }
                     }
                     .listStyle(PlainListStyle())
                 }
@@ -72,7 +76,9 @@ struct MonthlyHistoryView: View {
 
 struct MonthlyRecordRow: View {
     let monthlyRecord: MonthlyRecord
+    let onPayment: (MonthlyRecord) -> Void
     @State private var isExpanded = false
+    @State private var showingPaymentConfirmation = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -197,6 +203,40 @@ struct MonthlyRecordRow: View {
                         }
                         .padding(.leading, 8)
                     }
+                    
+                    // 支払いボタンを追加
+                    if !monthlyRecord.isPaid && monthlyRecord.allowanceAmount > 0 {
+                        Divider()
+                        
+                        Button(action: {
+                            showingPaymentConfirmation = true
+                        }) {
+                            HStack {
+                                Image(systemName: "creditcard.fill")
+                                    .foregroundColor(.white)
+                                Text("\(monthlyRecord.monthYearString)のお小遣いを支払う")
+                                    .foregroundColor(.white)
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                Spacer()
+                                Text("\(monthlyRecord.allowanceAmount)コイン")
+                                    .foregroundColor(.white)
+                                    .font(.subheadline)
+                                    .fontWeight(.bold)
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 12)
+                            .background(
+                                LinearGradient(
+                                    colors: [.blue, .purple],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
                 }
                 .padding(.top, 8)
             }
@@ -209,19 +249,40 @@ struct MonthlyRecordRow: View {
         )
         .padding(.horizontal)
         .padding(.vertical, 4)
+        .alert("お小遣い支払い確認", isPresented: $showingPaymentConfirmation) {
+            Button("キャンセル", role: .cancel) { }
+            Button("支払う") {
+                onPayment(monthlyRecord)
+            }
+        } message: {
+            Text("\(monthlyRecord.monthYearString)のお小遣い\(monthlyRecord.allowanceAmount)コインを支払いますか？")
+        }
     }
 }
 
 #Preview {
-    let context = PersistenceController.shared.container.viewContext
-    let helpRecordRepo = CoreDataHelpRecordRepository(context: context)
-    let paymentRepo = InMemoryAllowancePaymentRepository.shared
-    let calculator = AllowanceCalculator()
+    @Previewable @State var previewViewModel: MonthlyHistoryViewModel?
     
-    MonthlyHistoryView(viewModel: MonthlyHistoryViewModel(
-        helpRecordRepository: helpRecordRepo,
-        allowancePaymentRepository: paymentRepo,
-        helpTaskRepository: CoreDataHelpTaskRepository(context: context),
-        allowanceCalculator: calculator
-    ))
+    Group {
+        if let viewModel = previewViewModel {
+            MonthlyHistoryView(viewModel: viewModel)
+        } else {
+            Text("Loading...")
+        }
+    }
+    .task {
+        await MainActor.run {
+            let context = PersistenceController.preview.container.viewContext
+            let helpRecordRepo = CoreDataHelpRecordRepository(context: context)
+            let paymentRepo = InMemoryAllowancePaymentRepository.shared
+            let calculator = AllowanceCalculator()
+            
+            previewViewModel = MonthlyHistoryViewModel(
+                helpRecordRepository: helpRecordRepo,
+                allowancePaymentRepository: paymentRepo,
+                helpTaskRepository: CoreDataHelpTaskRepository(context: context),
+                allowanceCalculator: calculator
+            )
+        }
+    }
 }
