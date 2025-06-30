@@ -18,7 +18,7 @@ struct RecordTutorialView: View {
     }
     
     private var hasRecorded: Bool {
-        recordViewModel.viewState.successMessage != nil
+        recordViewModel.hasRecordedInSession
     }
     
     var body: some View {
@@ -172,14 +172,14 @@ struct RecordTutorialView: View {
                                                     HStack {
                                                         Spacer()
                                                         Image(systemName: "checkmark.circle.fill")
-                                                            .font(.system(size: 20))
+                                                            .font(.system(size: 16))
                                                             .foregroundColor(.white)
                                                             .background(
                                                                 Circle()
                                                                     .fill(Color.green)
-                                                                    .frame(width: 20, height: 20)
+                                                                    .frame(width: 16, height: 16)
                                                             )
-                                                            .offset(x: 8, y: -8)
+                                                            .offset(x: 2, y: -2)
                                                     }
                                                     Spacer()
                                                 }
@@ -371,8 +371,10 @@ struct RecordTutorialView: View {
                     }
                 }
                 .buttonStyle(.borderedProminent)
-                .disabled(currentStep == 1 && !hasSelectedChild)
-                .disabled(currentStep == 2 && (!hasSelectedTask || !hasRecorded))
+                .disabled(
+                    (currentStep == 1 && !hasSelectedChild) ||
+                    (currentStep == 2 && (!hasSelectedTask || !hasRecorded))
+                )
             }
             
             Button("チュートリアルをスキップ") {

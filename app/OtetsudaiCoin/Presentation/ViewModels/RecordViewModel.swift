@@ -11,6 +11,7 @@ class RecordViewModel: BaseViewModel {
     var selectedChild: Child?
     var selectedTask: HelpTask?
     var lastRecordedCoinValue: Int = 10
+    var hasRecordedInSession: Bool = false
     
     private let childRepository: ChildRepository
     private let helpTaskRepository: HelpTaskRepository
@@ -168,6 +169,7 @@ class RecordViewModel: BaseViewModel {
                 // SwiftUIの宣言的な仕組み：データ更新の通知
                 NotificationCenter.default.post(name: .helpRecordUpdated, object: nil)
                 
+                hasRecordedInSession = true
                 setSuccess("お手伝いを記録しました！")
                 selectedTask = nil
             } catch {

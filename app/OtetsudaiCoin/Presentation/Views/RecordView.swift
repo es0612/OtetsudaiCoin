@@ -127,14 +127,14 @@ struct RecordView: View {
                                                 HStack {
                                                     Spacer()
                                                     Image(systemName: "checkmark.circle.fill")
-                                                        .font(.system(size: 20))
+                                                        .font(.system(size: 18))
                                                         .foregroundColor(.white)
                                                         .background(
                                                             Circle()
                                                                 .fill(Color.green)
-                                                                .frame(width: 20, height: 20)
+                                                                .frame(width: 18, height: 18)
                                                         )
-                                                        .offset(x: 8, y: -8)
+                                                        .offset(x: 4, y: -4)
                                                 }
                                                 Spacer()
                                             }

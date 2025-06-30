@@ -24,6 +24,9 @@ class HelpRecordEditViewModel: BaseViewModel {
         self.helpTaskRepository = helpTaskRepository
         self.recordedDate = helpRecord.recordedAt
         super.init()
+        
+        // 初期化時にデータを読み込む
+        loadData()
     }
     
     func loadData() {
