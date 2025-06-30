@@ -30,9 +30,6 @@ struct HelpRecordEditView: View {
                 }
             })
         }
-        .onAppear {
-            viewModel.loadData()
-        }
         .onChange(of: viewModel.viewState.successMessage) { _, successMessage in
             if successMessage != nil {
                 dismiss()

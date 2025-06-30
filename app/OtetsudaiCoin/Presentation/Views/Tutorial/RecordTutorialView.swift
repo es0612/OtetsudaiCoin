@@ -63,13 +63,20 @@ struct RecordTutorialView: View {
                     .padding()
             }
         }
-        .onAppear {
-            recordViewModel.loadData()
-        }
         .onChange(of: recordViewModel.viewState.isLoading) { oldValue, newValue in
-            // データロード完了時に自動的に子供を選択
-            if oldValue && !newValue && !recordViewModel.availableChildren.isEmpty && recordViewModel.selectedChild == nil {
-                recordViewModel.selectedChild = recordViewModel.availableChildren.first
+            // データロード完了時に自動的に子供を選択（onChange重複実行を防ぐため条件を厳密化）
+            if oldValue == true && newValue == false && !recordViewModel.availableChildren.isEmpty && recordViewModel.selectedChild == nil {
+                DispatchQueue.main.async {
+                    recordViewModel.selectedChild = recordViewModel.availableChildren.first
+                }
+            }
+        }
+        .onChange(of: recordViewModel.viewState.successMessage) { oldValue, newValue in
+            // 記録成功時にhasRecordedInSessionを確実に更新
+            if oldValue == nil && newValue != nil {
+                DispatchQueue.main.async {
+                    recordViewModel.hasRecordedInSession = true
+                }
             }
         }
     }
@@ -138,31 +145,30 @@ struct RecordTutorialView: View {
                                 Button(action: {
                                     recordViewModel.selectChild(child)
                                 }) {
-                                    VStack {
+                                    VStack(spacing: 4) {
                                         ZStack {
                                             Circle()
                                                 .fill(Color(hex: child.themeColor) ?? .blue)
-                                                .frame(width: 60, height: 60)
-                                                .aspectRatio(1, contentMode: .fit)
+                                                .frame(width: 50, height: 50)
                                                 .overlay(
                                                     Text(String(child.name.prefix(1)))
-                                                        .font(.title2)
+                                                        .font(.title3)
                                                         .fontWeight(.bold)
                                                         .foregroundColor(.white)
                                                 )
                                                 .overlay(
                                                     // 選択時の白い太い境界線（視認性向上）
                                                     Circle()
-                                                        .stroke(Color.white, lineWidth: recordViewModel.selectedChild?.id == child.id ? 4 : 0)
+                                                        .stroke(Color.white, lineWidth: recordViewModel.selectedChild?.id == child.id ? 3 : 0)
                                                 )
                                                 .overlay(
                                                     // 外側の濃い境界線（コントラスト向上）
                                                     Circle()
-                                                        .stroke(Color.black.opacity(0.3), lineWidth: recordViewModel.selectedChild?.id == child.id ? 6 : 0)
+                                                        .stroke(Color.black.opacity(0.3), lineWidth: recordViewModel.selectedChild?.id == child.id ? 4 : 0)
                                                 )
                                                 .shadow(
                                                     color: recordViewModel.selectedChild?.id == child.id ? Color.black.opacity(0.3) : Color.clear,
-                                                    radius: recordViewModel.selectedChild?.id == child.id ? 8 : 0,
+                                                    radius: recordViewModel.selectedChild?.id == child.id ? 6 : 0,
                                                     x: 0, y: 2
                                                 )
                                             
@@ -172,25 +178,29 @@ struct RecordTutorialView: View {
                                                     HStack {
                                                         Spacer()
                                                         Image(systemName: "checkmark.circle.fill")
-                                                            .font(.system(size: 16))
+                                                            .font(.system(size: 14))
                                                             .foregroundColor(.white)
                                                             .background(
                                                                 Circle()
                                                                     .fill(Color.green)
-                                                                    .frame(width: 16, height: 16)
+                                                                    .frame(width: 14, height: 14)
                                                             )
-                                                            .offset(x: 2, y: -2)
+                                                            .offset(x: 0, y: -1)
                                                     }
                                                     Spacer()
                                                 }
                                             }
                                         }
+                                        .frame(width: 60, height: 60)
                                         
                                         Text(child.name)
-                                            .font(.caption)
+                                            .font(.caption2)
                                             .foregroundColor(.primary)
                                             .fontWeight(recordViewModel.selectedChild?.id == child.id ? .bold : .regular)
+                                            .lineLimit(1)
+                                            .frame(width: 60)
                                     }
+                                    .frame(width: 70, height: 90)
                                 }
                                 .buttonStyle(PlainButtonStyle())
                                 .scaleEffect(recordViewModel.selectedChild?.id == child.id ? 1.1 : 1.0)

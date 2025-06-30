@@ -94,30 +94,30 @@ struct RecordView: View {
                             Button(action: {
                                 viewModel.selectChild(child)
                             }) {
-                                VStack(spacing: 8) {
+                                VStack(spacing: 4) {
                                     ZStack {
                                         Circle()
                                             .fill(Color(hex: child.themeColor) ?? .blue)
-                                            .frame(width: 60, height: 60)
+                                            .frame(width: 50, height: 50)
                                             .overlay(
                                                 Text(String(child.name.prefix(1)))
-                                                    .font(.title2)
+                                                    .font(.title3)
                                                     .fontWeight(.bold)
                                                     .foregroundColor(.white)
                                             )
                                             .overlay(
                                                 // 選択時の白い太い境界線（視認性向上）
                                                 Circle()
-                                                    .stroke(Color.white, lineWidth: viewModel.selectedChild?.id == child.id ? 4 : 0)
+                                                    .stroke(Color.white, lineWidth: viewModel.selectedChild?.id == child.id ? 3 : 0)
                                             )
                                             .overlay(
                                                 // 外側の濃い境界線（コントラスト向上）
                                                 Circle()
-                                                    .stroke(Color.black.opacity(0.3), lineWidth: viewModel.selectedChild?.id == child.id ? 6 : 0)
+                                                    .stroke(Color.black.opacity(0.3), lineWidth: viewModel.selectedChild?.id == child.id ? 4 : 0)
                                             )
                                             .shadow(
                                                 color: viewModel.selectedChild?.id == child.id ? Color.black.opacity(0.3) : Color.clear,
-                                                radius: viewModel.selectedChild?.id == child.id ? 8 : 0,
+                                                radius: viewModel.selectedChild?.id == child.id ? 6 : 0,
                                                 x: 0, y: 2
                                             )
                                         
@@ -127,25 +127,29 @@ struct RecordView: View {
                                                 HStack {
                                                     Spacer()
                                                     Image(systemName: "checkmark.circle.fill")
-                                                        .font(.system(size: 18))
+                                                        .font(.system(size: 14))
                                                         .foregroundColor(.white)
                                                         .background(
                                                             Circle()
                                                                 .fill(Color.green)
-                                                                .frame(width: 18, height: 18)
+                                                                .frame(width: 14, height: 14)
                                                         )
-                                                        .offset(x: 4, y: -4)
+                                                        .offset(x: 0, y: -1)
                                                 }
                                                 Spacer()
                                             }
                                         }
                                     }
+                                    .frame(width: 60, height: 60)
                                     
                                     Text(child.name)
-                                        .font(.caption)
+                                        .font(.caption2)
                                         .foregroundColor(.primary)
                                         .fontWeight(viewModel.selectedChild?.id == child.id ? .bold : .regular)
+                                        .lineLimit(1)
+                                        .frame(width: 60)
                                 }
+                                .frame(width: 70, height: 90)
                             }
                             .accessibilityIdentifier("child_button")
                             .buttonStyle(PlainButtonStyle())

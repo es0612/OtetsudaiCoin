@@ -99,6 +99,7 @@ final class HelpRecordEditViewModelTests: XCTestCase {
         XCTAssertNil(viewModel.viewState.errorMessage)
     }
     
+    @MainActor
     func testSaveChangesWithoutTask() {
         // Given: タスクが選択されていない状態
         

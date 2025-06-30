@@ -13,6 +13,12 @@ class RecordViewModel: BaseViewModel {
     var lastRecordedCoinValue: Int = 10
     var hasRecordedInSession: Bool = false
     
+    func resetSessionState() {
+        hasRecordedInSession = false
+        selectedTask = nil
+        clearMessages()
+    }
+    
     private let childRepository: ChildRepository
     private let helpTaskRepository: HelpTaskRepository
     private let helpRecordRepository: HelpRecordRepository

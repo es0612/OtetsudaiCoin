@@ -26,27 +26,34 @@ class HelpRecordEditViewModel: BaseViewModel {
         super.init()
         
         // 初期化時にデータを読み込む
-        loadData()
+        Task { @MainActor in
+            loadData()
+        }
     }
     
+    @MainActor
     func loadData() {
         setLoading(true)
         
-        Task { @MainActor in
+        Task {
             do {
                 let tasks = try await helpTaskRepository.findActive()
-                availableTasks = tasks
                 
-                // 現在のタスクを選択状態にする
-                selectedTask = tasks.first { $0.id == helpRecord.helpTaskId }
-                
-                setLoading(false)
+                await MainActor.run {
+                    availableTasks = tasks
+                    // 現在のタスクを選択状態にする
+                    selectedTask = tasks.first { $0.id == helpRecord.helpTaskId }
+                    setLoading(false)
+                }
             } catch {
-                setError("データの読み込みに失敗しました: \(error.localizedDescription)")
+                await MainActor.run {
+                    setError("データの読み込みに失敗しました: \(error.localizedDescription)")
+                }
             }
         }
     }
     
+    @MainActor
     func saveChanges() {
         guard let task = selectedTask else {
             setError("お手伝いタスクを選択してください")
@@ -55,7 +62,7 @@ class HelpRecordEditViewModel: BaseViewModel {
         
         setLoading(true)
         
-        Task { @MainActor in
+        Task {
             do {
                 let updatedRecord = HelpRecord(
                     id: helpRecord.id,
@@ -66,29 +73,36 @@ class HelpRecordEditViewModel: BaseViewModel {
                 
                 try await helpRecordRepository.update(updatedRecord)
                 
-                // SwiftUIの宣言的な仕組み：データ更新の通知
-                NotificationCenter.default.post(name: .helpRecordUpdated, object: nil)
-                
-                setSuccess("記録を更新しました")
+                await MainActor.run {
+                    // SwiftUIの宣言的な仕組み：データ更新の通知
+                    NotificationCenter.default.post(name: .helpRecordUpdated, object: nil)
+                    setSuccess("記録を更新しました")
+                }
             } catch {
-                setError("記録の更新に失敗しました: \(error.localizedDescription)")
+                await MainActor.run {
+                    setError("記録の更新に失敗しました: \(error.localizedDescription)")
+                }
             }
         }
     }
     
+    @MainActor
     func deleteRecord() {
         setLoading(true)
         
-        Task { @MainActor in
+        Task {
             do {
                 try await helpRecordRepository.delete(helpRecord.id)
                 
-                // SwiftUIの宣言的な仕組み：データ更新の通知
-                NotificationCenter.default.post(name: .helpRecordUpdated, object: nil)
-                
-                setSuccess("記録を削除しました")
+                await MainActor.run {
+                    // SwiftUIの宣言的な仕組み：データ更新の通知
+                    NotificationCenter.default.post(name: .helpRecordUpdated, object: nil)
+                    setSuccess("記録を削除しました")
+                }
             } catch {
-                setError("記録の削除に失敗しました: \(error.localizedDescription)")
+                await MainActor.run {
+                    setError("記録の削除に失敗しました: \(error.localizedDescription)")
+                }
             }
         }
     }

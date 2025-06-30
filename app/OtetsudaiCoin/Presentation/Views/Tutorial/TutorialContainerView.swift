@@ -29,10 +29,13 @@ struct TutorialContainerView: View {
         }
         .animation(.easeInOut(duration: 0.6), value: tutorialService.shouldShowChildTutorial)
         .animation(.easeInOut(duration: 0.6), value: tutorialService.shouldShowRecordTutorial)
-        .onChange(of: tutorialService.shouldShowRecordTutorial) { _, newValue in
-            if newValue {
-                // SwiftUIの宣言的な仕組みを活用してデータ同期
-                recordViewModel.loadData()
+        .onChange(of: tutorialService.shouldShowRecordTutorial) { oldValue, newValue in
+            if oldValue == false && newValue == true {
+                // チュートリアル開始時のみデータを読み込み（重複実行を防ぐ）
+                DispatchQueue.main.async {
+                    recordViewModel.resetSessionState()
+                    recordViewModel.loadData()
+                }
             }
         }
     }
