@@ -101,10 +101,14 @@ class HelpHistoryViewModel {
 
 // MARK: - サポートモデル
 
-struct HelpRecordWithDetails {
+struct HelpRecordWithDetails: Identifiable {
     let helpRecord: HelpRecord
     let child: Child
     let task: HelpTask
+    
+    var id: UUID {
+        return helpRecord.id
+    }
     
     var earnedCoins: Int {
         return task.coinRate

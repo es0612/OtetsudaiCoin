@@ -4,7 +4,6 @@ struct HelpHistoryView: View {
     @Bindable var viewModel: HelpHistoryViewModel
     @State private var showingDeleteAlert = false
     @State private var recordToDelete: HelpRecordWithDetails?
-    @State private var showingEditView = false
     @State private var recordToEdit: HelpRecordWithDetails?
     
     var body: some View {
@@ -47,15 +46,12 @@ struct HelpHistoryView: View {
         } message: {
             Text(viewModel.errorMessage ?? "")
         }
-        .sheet(isPresented: $showingEditView) {
-            if let record = recordToEdit {
-                createEditView(for: record)
-            }
+        .sheet(item: $recordToEdit) { record in
+            createEditView(for: record)
         }
         .onChange(of: viewModel.helpRecords.count) { oldCount, newCount in
             // 削除により件数が減った場合、編集シートを閉じる
-            if newCount < oldCount && showingEditView {
-                showingEditView = false
+            if newCount < oldCount && recordToEdit != nil {
                 recordToEdit = nil
             }
         }
@@ -171,7 +167,6 @@ struct HelpHistoryView: View {
                             record: record,
                             onEdit: {
                                 recordToEdit = record
-                                showingEditView = true
                             },
                             onDelete: {
                                 recordToDelete = record

@@ -383,7 +383,7 @@ struct RecordTutorialView: View {
                 .buttonStyle(.borderedProminent)
                 .disabled(
                     (currentStep == 1 && !hasSelectedChild) ||
-                    (currentStep == 2 && (!hasSelectedTask || !hasRecorded))
+                    (currentStep == 2 && !hasRecorded)
                 )
             }
             

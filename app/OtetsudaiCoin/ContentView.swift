@@ -12,6 +12,7 @@ struct ContentView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @State private var selectedTab = 0
     @State private var tutorialService = TutorialService()
+    @State private var showSplashScreen = true
     
     // 共通のRepositoryインスタンス
     private var sharedChildRepository: ChildRepository {
@@ -39,6 +40,25 @@ struct ContentView: View {
     }
     
     var body: some View {
+        ZStack {
+            if showSplashScreen {
+                SplashScreenView {
+                    withAnimation(.easeInOut(duration: 0.8)) {
+                        showSplashScreen = false
+                    }
+                }
+                .transition(.opacity)
+            } else {
+                mainAppView
+                    .transition(.opacity)
+            }
+        }
+        .onAppear {
+            setupInitialData()
+        }
+    }
+    
+    private var mainAppView: some View {
         TabView(selection: $selectedTab) {
             HomeView(viewModel: homeViewModel)
                 .tabItem {
@@ -75,7 +95,7 @@ struct ContentView: View {
             )
         }
         .onAppear {
-            setupInitialData()
+            // スプラッシュスクリーン終了後にチュートリアルチェック
             tutorialService.checkFirstLaunch()
         }
     }
