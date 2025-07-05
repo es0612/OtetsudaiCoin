@@ -42,8 +42,8 @@ struct TutorialContainerView: View {
 }
 
 #Preview {
-    @State var previewChildManagementViewModel: ChildManagementViewModel?
-    @State var previewRecordViewModel: RecordViewModel?
+    @Previewable @State var previewChildManagementViewModel: ChildManagementViewModel?
+    @Previewable @State var previewRecordViewModel: RecordViewModel?
     
     Group {
         if let childVM = previewChildManagementViewModel,

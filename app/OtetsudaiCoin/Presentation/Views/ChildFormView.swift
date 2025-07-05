@@ -203,7 +203,7 @@ struct ColorSelectionButton: View {
 }
 
 #Preview {
-    @State var previewViewModel: ChildManagementViewModel?
+    @Previewable @State var previewViewModel: ChildManagementViewModel?
     
     Group {
         if let viewModel = previewViewModel {
