@@ -9,14 +9,15 @@ struct HomeView: View {
         NavigationView {
             VStack {
                 if viewModel.isLoading {
-                    ProgressView()
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    SkeletonViews.HomeViewSkeleton()
                 } else if let errorMessage = viewModel.errorMessage {
                     VStack {
                         Image(systemName: "exclamationmark.triangle")
                             .font(.largeTitle)
-                            .foregroundColor(.red)
+                            .foregroundColor(AccessibilityColors.errorRed)
                         Text(errorMessage)
+                            .appFont(.errorMessage)
+                            .foregroundColor(AccessibilityColors.errorRed)
                             .multilineTextAlignment(.center)
                             .padding()
                         Button("再試行") {
@@ -29,10 +30,10 @@ struct HomeView: View {
                     VStack {
                         Image(systemName: "person.crop.circle.badge.plus")
                             .font(.largeTitle)
-                            .foregroundColor(.gray)
+                            .foregroundColor(AccessibilityColors.textSecondary)
                         Text("お子様を登録してください")
-                            .font(.title2)
-                            .foregroundColor(.gray)
+                            .appFont(.sectionHeader)
+                            .foregroundColor(AccessibilityColors.textSecondary)
                             .padding()
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -102,17 +103,15 @@ struct HomeView: View {
                     .frame(width: 80, height: 80)
                     .overlay(
                         Text(String(child.name.prefix(1)))
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
+                            .appFont(.appTitle)
                             .foregroundColor(.white)
                     )
                     .shadow(color: (Color(hex: child.themeColor) ?? .blue).opacity(0.3), radius: 8, x: 0, y: 4)
                 
                 HStack(spacing: 8) {
                     Text("\(child.name)ちゃんの記録")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.primary)
+                        .appFont(.sectionHeader)
+                        .foregroundColor(AccessibilityColors.textPrimary)
                     
                     NavigationLink(destination: createHelpHistoryView(for: child)) {
                         Image(systemName: "list.clipboard")
@@ -174,13 +173,13 @@ struct HomeView: View {
                     VStack(spacing: 8) {
                         HStack {
                             Image(systemName: "checkmark.circle.fill")
-                                .foregroundColor(.green)
+                                .foregroundColor(AccessibilityColors.successGreen)
                             Text("今月のお小遣いは支払い済みです")
-                                .foregroundColor(.secondary)
+                                .foregroundColor(AccessibilityColors.textSecondary)
                             Spacer()
                             Text("\(viewModel.monthlyAllowance)コイン")
                                 .font(.caption)
-                                .foregroundColor(.green)
+                                .foregroundColor(AccessibilityColors.successGreen)
                                 .fontWeight(.medium)
                         }
                         
@@ -188,15 +187,15 @@ struct HomeView: View {
                             VStack(spacing: 4) {
                                 HStack {
                                     Image(systemName: "exclamationmark.triangle.fill")
-                                        .foregroundColor(.orange)
+                                        .foregroundColor(AccessibilityColors.warningOrange)
                                         .font(.caption)
                                     Text("支払い後の追加獲得分")
                                         .font(.caption)
-                                        .foregroundColor(.orange)
+                                        .foregroundColor(AccessibilityColors.warningOrange)
                                     Spacer()
                                     Text("\(viewModel.currentMonthEarnings - viewModel.monthlyAllowance)コイン")
                                         .font(.caption)
-                                        .foregroundColor(.orange)
+                                        .foregroundColor(AccessibilityColors.warningOrange)
                                         .fontWeight(.medium)
                                 }
                                 
@@ -237,7 +236,7 @@ struct HomeView: View {
                         if viewModel.monthlyAllowance == 0 {
                             Text("今月のお手伝い記録がありません")
                                 .font(.caption)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(AccessibilityColors.textSecondary)
                         }
                     }
                 }
@@ -289,7 +288,7 @@ struct HomeView: View {
     private var childrenListView: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("お子様を選択")
-                .font(.headline)
+                .appFont(.sectionHeader)
                 .padding(.horizontal)
             
             LazyVStack(spacing: 8) {
@@ -309,7 +308,7 @@ struct HomeView: View {
                             
                             Text(child.name)
                                 .font(.title3)
-                                .foregroundColor(.primary)
+                                .foregroundColor(AccessibilityColors.textPrimary)
                             
                             Spacer()
                             
@@ -349,16 +348,15 @@ struct StatsCard: View {
                 .foregroundColor(color)
             
             Text(title)
-                .font(.caption)
+                .appFont(.captionText)
                 .foregroundColor(.secondary)
             
             Text(value)
-                .font(.title)
-                .fontWeight(.bold)
+                .appFont(.primaryInfo)
                 .foregroundColor(color)
             
             Text(subtitle)
-                .font(.caption2)
+                .appFont(.captionText)
                 .foregroundColor(.secondary)
         }
         .frame(maxWidth: .infinity)

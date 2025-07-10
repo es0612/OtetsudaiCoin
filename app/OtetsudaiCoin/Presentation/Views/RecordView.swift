@@ -11,18 +11,19 @@ struct RecordView: View {
                     VStack(spacing: 16) {
                         StateBasedContent(
                             viewState: viewModel.viewState,
-                            onRetry: { viewModel.loadTasks() }
+                            onRetry: { viewModel.loadTasks() },
                         ) {
                             VStack(spacing: 16) {
                                 if let successMessage = viewModel.viewState.successMessage {
                                     HStack {
                                         Image(systemName: "checkmark.circle.fill")
-                                            .foregroundColor(.green)
+                                            .foregroundColor(AccessibilityColors.successGreen)
                                         Text(successMessage)
-                                            .foregroundColor(.green)
+                                            .appFont(.buttonText)
+                                            .foregroundColor(AccessibilityColors.successGreen)
                                     }
                                     .padding()
-                                    .background(Color.green.opacity(0.1))
+                                    .background(AccessibilityColors.successGreenLight)
                                     .cornerRadius(8)
                                 }
                                 
@@ -77,12 +78,13 @@ struct RecordView: View {
     private var childSelectionView: some View {
         VStack(alignment: .leading) {
             Text("お手伝いする人を選んでください")
-                .font(.headline)
+                .appFont(.sectionHeader)
                 .padding(.horizontal)
             
             if viewModel.availableChildren.isEmpty {
                 Text("お子様が登録されていません")
-                    .foregroundColor(.secondary)
+                    .appFont(.bodyText)
+                    .foregroundColor(AccessibilityColors.textSecondary)
                     .padding()
                     .frame(maxWidth: .infinity, alignment: .center)
                     .background(Color.gray.opacity(0.1))
@@ -143,8 +145,8 @@ struct RecordView: View {
                                     .frame(width: 60, height: 60)
                                     
                                     Text(child.name)
-                                        .font(.caption2)
-                                        .foregroundColor(.primary)
+                                        .appFont(.caption)
+                                        .foregroundColor(AccessibilityColors.textPrimary)
                                         .fontWeight(viewModel.selectedChild?.id == child.id ? .bold : .regular)
                                         .lineLimit(1)
                                         .frame(width: 60)
@@ -168,12 +170,13 @@ struct RecordView: View {
     private var taskListView: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("今日のお手伝い")
-                .font(.headline)
+                .appFont(.sectionHeader)
                 .padding(.horizontal)
             
             if viewModel.availableTasks.isEmpty {
                 Text("利用可能なお手伝いタスクがありません")
-                    .foregroundColor(.secondary)
+                    .appFont(.bodyText)
+                    .foregroundColor(AccessibilityColors.textSecondary)
                     .padding()
                     .frame(maxWidth: .infinity, alignment: .center)
                     .background(Color.gray.opacity(0.1))
@@ -234,14 +237,14 @@ struct TaskCardView: View {
                 }
                 
                 Text(task.name)
-                    .font(.caption)
+                    .appFont(.cardTitle)
                     .fontWeight(.medium)
                     .multilineTextAlignment(.center)
-                    .foregroundColor(.primary)
+                    .foregroundColor(AccessibilityColors.textPrimary)
                     .lineLimit(2)
                 
                 Text("\(task.coinRate)コイン")
-                    .font(.caption2)
+                    .appFont(.caption)
                     .fontWeight(.semibold)
                     .foregroundColor(isSelected ? .blue : .secondary)
                 
