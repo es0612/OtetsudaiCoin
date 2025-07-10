@@ -13,6 +13,7 @@ class HelpHistoryViewModel {
     private let helpTaskRepository: HelpTaskRepository
     private let childRepository: ChildRepository
     private var cancellables: Set<AnyCancellable> = []
+    private var loadHistoryTask: Task<Void, Never>?
     
     init(
         helpRecordRepository: HelpRecordRepository,
@@ -37,10 +38,13 @@ class HelpHistoryViewModel {
     func loadHelpHistory() {
         guard let child = selectedChild else { return }
         
+        // 実行中のタスクをキャンセル
+        loadHistoryTask?.cancel()
+        
         isLoading = true
         errorMessage = nil
         
-        Task {
+        loadHistoryTask = Task {
             do {
                 let dateRange = selectedPeriod.dateRange
                 let records = try await helpRecordRepository.findByChildId(child.id)
@@ -48,6 +52,9 @@ class HelpHistoryViewModel {
                         record.recordedAt >= dateRange.start && record.recordedAt <= dateRange.end
                     }
                     .sorted { $0.recordedAt > $1.recordedAt }
+                
+                // タスクがキャンセルされていないか確認
+                guard !Task.isCancelled else { return }
                 
                 // 詳細情報を取得
                 var recordsWithDetails: [HelpRecordWithDetails] = []
@@ -60,11 +67,18 @@ class HelpHistoryViewModel {
                         )
                         recordsWithDetails.append(recordWithDetails)
                     }
+                    
+                    // 各ループでキャンセル確認
+                    guard !Task.isCancelled else { return }
                 }
+                
+                // 最終的なキャンセル確認
+                guard !Task.isCancelled else { return }
                 
                 helpRecords = recordsWithDetails
                 isLoading = false
             } catch {
+                guard !Task.isCancelled else { return }
                 errorMessage = "履歴の読み込みに失敗しました: \(error.localizedDescription)"
                 isLoading = false
             }

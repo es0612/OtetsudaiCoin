@@ -1,9 +1,6 @@
 import Foundation
 import Combine
 
-extension Notification.Name {
-    static let helpRecordUpdated = Notification.Name("helpRecordUpdated")
-}
 
 class RecordViewModel: BaseViewModel {
     var availableChildren: [Child] = []
@@ -23,6 +20,7 @@ class RecordViewModel: BaseViewModel {
     private let helpTaskRepository: HelpTaskRepository
     private let helpRecordRepository: HelpRecordRepository
     private let soundService: SoundServiceProtocol
+    private var loadChildrenTask: Task<Void, Never>?
     
     init(
         childRepository: ChildRepository,
@@ -38,35 +36,31 @@ class RecordViewModel: BaseViewModel {
     }
     
     override func setupNotificationListeners() {
-        // SwiftUIの宣言的な仕組み：子供データ更新の自動監視
-        NotificationCenter.default
-            .publisher(for: .childrenUpdated)
-            .sink { [weak self] _ in
-                Task { @MainActor in
-                    self?.loadChildren()
-                }
-            }
-            .store(in: &cancellables)
+        // NotificationManagerを使用して通知を監視
+        NotificationManager.shared.observeChildrenUpdates(
+            action: { [weak self] in self?.loadChildren() },
+            cancellables: &cancellables
+        )
         
-        // SwiftUIの宣言的な仕組み：お手伝い記録更新の自動監視
-        NotificationCenter.default
-            .publisher(for: .helpRecordUpdated)
-            .sink { [weak self] _ in
-                Task { @MainActor in
-                    self?.loadData()
-                }
-            }
-            .store(in: &cancellables)
+        NotificationManager.shared.observeHelpRecordUpdates(
+            action: { [weak self] in self?.loadData() },
+            cancellables: &cancellables
+        )
     }
     
     func loadData() {
+        // 実行中のタスクをキャンセル
+        cancelLoadDataTask()
+        
         setLoading(true)
         
-        Task {
+        loadDataTask = Task {
             do {
                 let children = try await childRepository.findAll()
                 let tasks = try await helpTaskRepository.findActive()
                 
+                // タスクがキャンセルされていないか確認
+                guard !Task.isCancelled else { return }
                 
                 availableChildren = children
                 availableTasks = tasks
@@ -86,7 +80,8 @@ class RecordViewModel: BaseViewModel {
                 
                 setLoading(false)
             } catch {
-                setError("データの読み込みに失敗しました: \(error.localizedDescription)")
+                guard !Task.isCancelled else { return }
+                setUserFriendlyError(error)
             }
         }
     }
@@ -96,10 +91,17 @@ class RecordViewModel: BaseViewModel {
     }
     
     func loadChildren() {
+        // 実行中のタスクをキャンセル
+        loadChildrenTask?.cancel()
+        
         // 子供データのみ更新
-        Task {
+        loadChildrenTask = Task {
             do {
                 let children = try await childRepository.findAll()
+                
+                // タスクがキャンセルされていないか確認
+                guard !Task.isCancelled else { return }
+                
                 availableChildren = children
                 
                 // 選択された子供が削除されていた場合、選択をクリア
@@ -113,7 +115,8 @@ class RecordViewModel: BaseViewModel {
                     selectedChild = children.first
                 }
             } catch {
-                setError("子供データの読み込みに失敗しました: \(error.localizedDescription)")
+                guard !Task.isCancelled else { return }
+                setUserFriendlyError(error)
             }
         }
     }
@@ -172,14 +175,14 @@ class RecordViewModel: BaseViewModel {
                 // アニメーション用にコイン値を保存
                 lastRecordedCoinValue = task.coinRate
                 
-                // SwiftUIの宣言的な仕組み：データ更新の通知
-                NotificationCenter.default.post(name: .helpRecordUpdated, object: nil)
+                // データ更新の通知
+                NotificationManager.shared.notifyHelpRecordUpdated()
                 
                 hasRecordedInSession = true
                 setSuccess("お手伝いを記録しました！")
                 selectedTask = nil
             } catch {
-                setError("記録の保存に失敗しました: \(error.localizedDescription)")
+                setUserFriendlyError(error)
             }
         }
     }

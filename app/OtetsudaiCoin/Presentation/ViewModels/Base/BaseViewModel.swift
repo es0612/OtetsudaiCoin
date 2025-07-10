@@ -5,6 +5,7 @@ import Combine
 class BaseViewModel {
     var viewState = ViewState()
     var cancellables = Set<AnyCancellable>()
+    var loadDataTask: Task<Void, Never>?
     
     var isLoading: Bool { viewState.isLoading }
     var errorMessage: String? { viewState.errorMessage }
@@ -40,5 +41,10 @@ class BaseViewModel {
     
     func setSuccess(_ message: String) {
         viewState.setSuccess(message)
+    }
+    
+    func cancelLoadDataTask() {
+        loadDataTask?.cancel()
+        loadDataTask = nil
     }
 }

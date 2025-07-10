@@ -30,6 +30,7 @@ class MonthlyHistoryViewModel {
     private let helpTaskRepository: HelpTaskRepository
     private let allowanceCalculator: AllowanceCalculator
     private var cancellables = Set<AnyCancellable>()
+    private var loadHistoryTask: Task<Void, Never>?
     
     init(
         helpRecordRepository: HelpRecordRepository,
@@ -51,10 +52,13 @@ class MonthlyHistoryViewModel {
     func loadMonthlyHistory() {
         guard let child = selectedChild else { return }
         
+        // 実行中のタスクをキャンセル
+        loadHistoryTask?.cancel()
+        
         isLoading = true
         errorMessage = nil
         
-        Task {
+        loadHistoryTask = Task {
             do {
                 // 過去12ヶ月のデータを取得
                 let calendar = Calendar.current
@@ -66,6 +70,9 @@ class MonthlyHistoryViewModel {
                           let monthInterval = calendar.dateInterval(of: .month, for: targetDate) else {
                         continue
                     }
+                    
+                    // タスクがキャンセルされていないか確認
+                    guard !Task.isCancelled else { return }
                     
                     let month = calendar.component(.month, from: targetDate)
                     let year = calendar.component(.year, from: targetDate)
@@ -102,10 +109,14 @@ class MonthlyHistoryViewModel {
                     }
                 }
                 
+                // 最終的なキャンセル確認
+                guard !Task.isCancelled else { return }
+                
                 monthlyRecords = monthlyData
                 isLoading = false
                 
             } catch {
+                guard !Task.isCancelled else { return }
                 errorMessage = "履歴の読み込みに失敗しました: \(error.localizedDescription)"
                 isLoading = false
             }

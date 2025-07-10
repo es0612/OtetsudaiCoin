@@ -10,23 +10,37 @@ class TaskManagementViewModel {
     
     private let helpTaskRepository: HelpTaskRepository
     private var cancellables = Set<AnyCancellable>()
+    private var loadTasksTask: Task<Void, Never>?
     
     init(helpTaskRepository: HelpTaskRepository) {
         self.helpTaskRepository = helpTaskRepository
     }
     
     func loadTasks() async {
+        // 実行中のタスクをキャンセル
+        loadTasksTask?.cancel()
+        
         isLoading = true
         errorMessage = nil
         
-        do {
-            let allTasks = try await helpTaskRepository.findAll()
-            tasks = allTasks.sorted { $0.name < $1.name }
-            isLoading = false
-        } catch {
-            errorMessage = "タスクの読み込みに失敗しました: \(error.localizedDescription)"
-            isLoading = false
+        loadTasksTask = Task {
+            do {
+                let allTasks = try await helpTaskRepository.findAll()
+                
+                // タスクがキャンセルされていないか確認
+                guard !Task.isCancelled else { return }
+                
+                tasks = allTasks.sorted { $0.name < $1.name }
+                isLoading = false
+            } catch {
+                guard !Task.isCancelled else { return }
+                errorMessage = "タスクの読み込みに失敗しました: \(error.localizedDescription)"
+                isLoading = false
+            }
         }
+        
+        // タスクの完了を待つ
+        await loadTasksTask?.value
     }
     
     func addTask(name: String, coinRate: Int = 10) async {

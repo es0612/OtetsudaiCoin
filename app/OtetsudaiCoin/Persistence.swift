@@ -7,9 +7,31 @@
 
 
 import CoreData
+import os.log
+import Combine
+
+/// Core Dataの永続化エラー
+enum PersistenceError: LocalizedError {
+    case storeLoadingFailed(Error)
+    case contextSaveFailed(Error)
+    
+    var errorDescription: String? {
+        switch self {
+        case .storeLoadingFailed(let error):
+            return "データベースの読み込みに失敗しました: \(error.localizedDescription)"
+        case .contextSaveFailed(let error):
+            return "データの保存に失敗しました: \(error.localizedDescription)"
+        }
+    }
+}
 
 struct PersistenceController {
     static let shared = PersistenceController()
+    
+    private static let logger = Logger(subsystem: "com.asapapalab.OtetsudaiCoin", category: "CoreData")
+    
+    /// 永続化エラーを通知するPublisher
+    static let errorPublisher = PassthroughSubject<PersistenceError, Never>()
 
     @MainActor
     static let preview: PersistenceController = {
@@ -22,10 +44,9 @@ struct PersistenceController {
         do {
             try viewContext.save()
         } catch {
-            // Replace this implementation with code to handle the error appropriately.
-            // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-            let nsError = error as NSError
-            fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
+            // プレビュー環境でのエラーハンドリング
+            Self.logger.error("プレビューデータの保存に失敗しました: \(error.localizedDescription)")
+            // プレビュー環境では続行可能
         }
         return result
     }()
@@ -38,19 +59,26 @@ struct PersistenceController {
             container.persistentStoreDescriptions.first!.url = URL(fileURLWithPath: "/dev/null")
         }
         container.loadPersistentStores(completionHandler: { (storeDescription, error) in
-            if let error = error as NSError? {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-
+            if let error = error {
+                // エラーログの出力
+                Self.logger.error("Core Dataストアの読み込みに失敗しました: \(error.localizedDescription)")
+                
+                // エラーを通知
+                Self.errorPublisher.send(.storeLoadingFailed(error))
+                
                 /*
-                 Typical reasons for an error here include:
-                 * The parent directory does not exist, cannot be created, or disallows writing.
-                 * The persistent store is not accessible, due to permissions or data protection when the device is locked.
-                 * The device is out of space.
-                 * The store could not be migrated to the current model version.
-                 Check the error message to determine what the actual problem was.
+                 本番環境では以下のような対応を検討:
+                 * ストアファイルの削除と再作成
+                 * ユーザーへのエラーメッセージ表示
+                 * 代替データストアの使用
+                 * エラー報告機能の活用
                  */
-                fatalError("Unresolved error \(error), \(error.userInfo)")
+                
+                // デバッグ環境では詳細なエラー情報を表示
+                #if DEBUG
+                let nsError = error as NSError
+                print("Core Data エラー詳細: \(nsError), \(nsError.userInfo)")
+                #endif
             }
         })
         container.viewContext.automaticallyMergesChangesFromParent = true

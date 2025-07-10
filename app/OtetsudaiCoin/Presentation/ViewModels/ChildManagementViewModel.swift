@@ -1,15 +1,13 @@
 import Foundation
 import Combine
 
-extension Notification.Name {
-    static let childrenUpdated = Notification.Name("childrenUpdated")
-}
 
 @MainActor
 class ChildManagementViewModel: BaseViewModel {
     var children: [Child] = []
     
     private let childRepository: ChildRepository
+    private var loadChildrenTask: Task<Void, Never>?
     
     private let themeColors: [String] = [
         "#FF5733", "#33FF57", "#3357FF", "#FF33F1", "#F1FF33",
@@ -25,14 +23,28 @@ class ChildManagementViewModel: BaseViewModel {
     }
     
     func loadChildren() async {
+        // 実行中のタスクをキャンセル
+        loadChildrenTask?.cancel()
+        
         setLoading(true)
         
-        do {
-            children = try await childRepository.findAll()
-            setLoading(false)
-        } catch {
-            setError("子供情報の読み込みに失敗しました: \(error.localizedDescription)")
+        loadChildrenTask = Task {
+            do {
+                let loadedChildren = try await childRepository.findAll()
+                
+                // タスクがキャンセルされていないか確認
+                guard !Task.isCancelled else { return }
+                
+                children = loadedChildren
+                setLoading(false)
+            } catch {
+                guard !Task.isCancelled else { return }
+                setUserFriendlyError(error)
+            }
         }
+        
+        // タスクの完了を待つ
+        await loadChildrenTask?.value
     }
     
     func addChild(name: String, themeColor: String) async {
@@ -61,12 +73,12 @@ class ChildManagementViewModel: BaseViewModel {
             // 確実にデータを再読み込み
             await loadChildren()
             
-            // SwiftUIの宣言的な仕組み：データ更新の通知
-            NotificationCenter.default.post(name: .childrenUpdated, object: nil)
+            // データ更新の通知
+            NotificationManager.shared.notifyChildrenUpdated()
             
             setSuccess("\(name)を追加しました")
         } catch {
-            setError("子供の追加に失敗しました: \(error.localizedDescription)")
+            setUserFriendlyError(error)
         }
     }
     
@@ -84,12 +96,12 @@ class ChildManagementViewModel: BaseViewModel {
             try await childRepository.update(updatedChild)
             await loadChildren()
             
-            // SwiftUIの宣言的な仕組み：データ更新の通知
-            NotificationCenter.default.post(name: .childrenUpdated, object: nil)
+            // データ更新の通知
+            NotificationManager.shared.notifyChildrenUpdated()
             
             setSuccess("\(name)の情報を更新しました")
         } catch {
-            setError("子供の更新に失敗しました: \(error.localizedDescription)")
+            setUserFriendlyError(error)
         }
     }
     
@@ -105,12 +117,12 @@ class ChildManagementViewModel: BaseViewModel {
             try await childRepository.delete(id)
             await loadChildren()
             
-            // SwiftUIの宣言的な仕組み：データ更新の通知
-            NotificationCenter.default.post(name: .childrenUpdated, object: nil)
+            // データ更新の通知
+            NotificationManager.shared.notifyChildrenUpdated()
             
             setSuccess("\(child.name)を削除しました")
         } catch {
-            setError("子供の削除に失敗しました: \(error.localizedDescription)")
+            setUserFriendlyError(error)
         }
     }
     

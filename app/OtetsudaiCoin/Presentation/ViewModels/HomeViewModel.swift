@@ -20,6 +20,7 @@ class HomeViewModel {
     private let allowanceCalculator: AllowanceCalculator
     private let allowancePaymentRepository: AllowancePaymentRepository
     private var cancellables: Set<AnyCancellable> = []
+    private var refreshDataTask: Task<Void, Never>?
     
     init(
         childRepository: ChildRepository,
@@ -34,25 +35,16 @@ class HomeViewModel {
         self.allowanceCalculator = allowanceCalculator
         self.allowancePaymentRepository = allowancePaymentRepository
         
-        // SwiftUIの宣言的な仕組み：NotificationCenterでデータ更新を自動監視
-        NotificationCenter.default
-            .publisher(for: .helpRecordUpdated)
-            .sink { [weak self] _ in
-                Task { @MainActor in
-                    self?.refreshData()
-                }
-            }
-            .store(in: &cancellables)
+        // NotificationManagerを使用してデータ更新を自動監視
+        NotificationManager.shared.observeHelpRecordUpdates(
+            action: { [weak self] in self?.refreshData() },
+            cancellables: &cancellables
+        )
         
-        // 子供データ更新の監視
-        NotificationCenter.default
-            .publisher(for: .childrenUpdated)
-            .sink { [weak self] _ in
-                Task { @MainActor in
-                    self?.loadChildren()
-                }
-            }
-            .store(in: &cancellables)
+        NotificationManager.shared.observeChildrenUpdates(
+            action: { [weak self] in self?.loadChildren() },
+            cancellables: &cancellables
+        )
     }
     
     func loadChildren() {
@@ -65,13 +57,18 @@ class HomeViewModel {
                 children = loadedChildren
                 isLoading = false
             } catch {
-                errorMessage = "子供の情報を読み込めませんでした: \(error.localizedDescription)"
+                errorMessage = ErrorMessageConverter.convertToUserFriendlyMessage(error)
                 isLoading = false
             }
         }
     }
     
     func selectChild(_ child: Child) {
+        // 既に同じ子供が選択されている場合は何もしない
+        if selectedChild?.id == child.id {
+            return
+        }
+        
         selectedChild = child
         refreshData()
     }
@@ -79,39 +76,71 @@ class HomeViewModel {
     func refreshData() {
         guard let child = selectedChild else { return }
         
+        // 実行中のタスクをキャンセル
+        refreshDataTask?.cancel()
+        
         isLoading = true
         errorMessage = nil
         
-        Task {
+        refreshDataTask = Task {
             do {
-                let records = try await helpRecordRepository.findByChildIdInCurrentMonth(child.id)
-                let tasks = try await helpTaskRepository.findAll()
+                // データ取得を並行処理で高速化
+                async let recordsTask = helpRecordRepository.findByChildIdInCurrentMonth(child.id)
+                async let tasksTask = helpTaskRepository.findAll()
+                async let paymentTask = getCurrentMonthPayment(for: child.id)
                 
-                monthlyAllowance = allowanceCalculator.calculateMonthlyAllowance(records: records, tasks: tasks)
-                currentMonthEarnings = allowanceCalculator.calculateMonthlyAllowance(records: records, tasks: tasks)
-                consecutiveDays = allowanceCalculator.calculateConsecutiveDays(records: records)
-                totalRecordsThisMonth = records.count
+                let records = try await recordsTask
+                let tasks = try await tasksTask
+                let payment = try await paymentTask
                 
-                // 今月が支払い済みかチェック
-                let calendar = Calendar.current
-                let now = Date()
-                let currentMonth = calendar.component(.month, from: now)
-                let currentYear = calendar.component(.year, from: now)
+                // タスクがキャンセルされていないか確認
+                guard !Task.isCancelled else { return }
                 
-                let payment = try await allowancePaymentRepository.findByChildIdAndMonth(child.id, month: currentMonth, year: currentYear)
-                isCurrentMonthPaid = payment != nil
-                
-                // 支払い済みの場合は支払い済み金額を表示
-                if let payment = payment {
-                    monthlyAllowance = payment.amount
-                }
+                // 計算処理を分離
+                updateDisplayValues(records: records, tasks: tasks, payment: payment)
                 
                 isLoading = false
             } catch {
-                errorMessage = "データの読み込みに失敗しました: \(error.localizedDescription)"
+                guard !Task.isCancelled else { return }
+                errorMessage = ErrorMessageConverter.convertToUserFriendlyMessage(error)
                 isLoading = false
             }
         }
+    }
+    
+    // MARK: - Private Methods
+    
+    /// 現在月の支払い記録を取得
+    private func getCurrentMonthPayment(for childId: UUID) async throws -> AllowancePayment? {
+        let calendar = Calendar.current
+        let now = Date()
+        let currentMonth = calendar.component(.month, from: now)
+        let currentYear = calendar.component(.year, from: now)
+        
+        return try await allowancePaymentRepository.findByChildIdAndMonth(
+            childId, 
+            month: currentMonth, 
+            year: currentYear
+        )
+    }
+    
+    /// 表示用の値を更新
+    private func updateDisplayValues(
+        records: [HelpRecord], 
+        tasks: [HelpTask], 
+        payment: AllowancePayment?
+    ) {
+        // お小遣い計算
+        let calculatedAllowance = allowanceCalculator.calculateMonthlyAllowance(records: records, tasks: tasks)
+        currentMonthEarnings = calculatedAllowance
+        
+        // 支払い状況による表示切り替え
+        isCurrentMonthPaid = payment != nil
+        monthlyAllowance = payment?.amount ?? calculatedAllowance
+        
+        // その他の統計値
+        consecutiveDays = allowanceCalculator.calculateConsecutiveDays(records: records)
+        totalRecordsThisMonth = records.count
     }
     
     func payMonthlyAllowance() {
@@ -178,10 +207,10 @@ class HomeViewModel {
                 refreshData()
                 
                 // 他の画面にも通知
-                NotificationCenter.default.post(name: .helpRecordUpdated, object: nil)
+                NotificationManager.shared.notifyHelpRecordUpdated()
                 
             } catch {
-                errorMessage = "支払い記録の保存に失敗しました: \(error.localizedDescription)"
+                errorMessage = ErrorMessageConverter.convertToUserFriendlyMessage(error)
                 isLoading = false
             }
         }

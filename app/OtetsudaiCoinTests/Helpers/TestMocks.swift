@@ -65,6 +65,7 @@ class MockHelpTaskRepository: HelpTaskRepository {
     var tasks: [HelpTask] = []
     var shouldThrowError = false
     var errorToThrow = NSError(domain: "TestError", code: 1, userInfo: nil)
+    var findCallCount = 0
     
     func save(_ task: HelpTask) async throws {
         if shouldThrowError {
@@ -81,10 +82,15 @@ class MockHelpTaskRepository: HelpTaskRepository {
     }
     
     func findAll() async throws -> [HelpTask] {
+        findCallCount += 1
         if shouldThrowError {
             throw errorToThrow
         }
         return tasks
+    }
+    
+    func resetCallCount() {
+        findCallCount = 0
     }
     
     func findActive() async throws -> [HelpTask] {
@@ -116,6 +122,7 @@ class MockHelpRecordRepository: HelpRecordRepository {
     var records: [HelpRecord] = []
     var shouldThrowError = false
     var errorToThrow = NSError(domain: "TestError", code: 1, userInfo: nil)
+    var findCallCount = 0
     
     func save(_ record: HelpRecord) async throws {
         if shouldThrowError {
@@ -153,11 +160,16 @@ class MockHelpRecordRepository: HelpRecordRepository {
     }
     
     func findByChildIdInCurrentMonth(_ childId: UUID) async throws -> [HelpRecord] {
+        findCallCount += 1
         if shouldThrowError {
             throw errorToThrow
         }
         let filteredRecords = records.filter { $0.childId == childId }
         return filteredRecords.filter { $0.isInCurrentMonth() }
+    }
+    
+    func resetCallCount() {
+        findCallCount = 0
     }
     
     func delete(_ id: UUID) async throws {

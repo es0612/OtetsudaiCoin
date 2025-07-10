@@ -47,7 +47,7 @@ class HelpRecordEditViewModel: BaseViewModel {
                 }
             } catch {
                 await MainActor.run {
-                    setError("データの読み込みに失敗しました: \(error.localizedDescription)")
+                    setUserFriendlyError(error)
                 }
             }
         }
@@ -74,13 +74,13 @@ class HelpRecordEditViewModel: BaseViewModel {
                 try await helpRecordRepository.update(updatedRecord)
                 
                 await MainActor.run {
-                    // SwiftUIの宣言的な仕組み：データ更新の通知
-                    NotificationCenter.default.post(name: .helpRecordUpdated, object: nil)
+                    // データ更新の通知
+                    NotificationManager.shared.notifyHelpRecordUpdated()
                     setSuccess("記録を更新しました")
                 }
             } catch {
                 await MainActor.run {
-                    setError("記録の更新に失敗しました: \(error.localizedDescription)")
+                    setUserFriendlyError(error)
                 }
             }
         }
@@ -95,13 +95,13 @@ class HelpRecordEditViewModel: BaseViewModel {
                 try await helpRecordRepository.delete(helpRecord.id)
                 
                 await MainActor.run {
-                    // SwiftUIの宣言的な仕組み：データ更新の通知
-                    NotificationCenter.default.post(name: .helpRecordUpdated, object: nil)
+                    // データ更新の通知
+                    NotificationManager.shared.notifyHelpRecordUpdated()
                     setSuccess("記録を削除しました")
                 }
             } catch {
                 await MainActor.run {
-                    setError("記録の削除に失敗しました: \(error.localizedDescription)")
+                    setUserFriendlyError(error)
                 }
             }
         }

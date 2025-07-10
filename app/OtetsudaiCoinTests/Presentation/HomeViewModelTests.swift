@@ -102,6 +102,57 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.consecutiveDays, 5)
         XCTAssertEqual(viewModel.totalRecordsThisMonth, 2)
     }
+    
+    func testSelectSameChildMultipleTimes() {
+        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+        let records = [
+            HelpRecord(id: UUID(), childId: child.id, helpTaskId: UUID(), recordedAt: Date())
+        ]
+        
+        mockHelpRecordRepository.records = records
+        mockAllowanceCalculator.monthlyAllowance = 500
+        mockAllowanceCalculator.consecutiveDays = 3
+        
+        // 最初の選択
+        viewModel.selectChild(child)
+        XCTAssertEqual(viewModel.selectedChild?.id, child.id)
+        
+        // APIコール回数をリセット
+        mockHelpRecordRepository.resetCallCount()
+        mockHelpTaskRepository.resetCallCount()
+        
+        // 同じ子供を再選択
+        viewModel.selectChild(child)
+        
+        // APIコールが実行されないことを確認
+        XCTAssertEqual(mockHelpRecordRepository.findCallCount, 0)
+        XCTAssertEqual(mockHelpTaskRepository.findCallCount, 0)
+        
+        // 選択された子供は変わらず
+        XCTAssertEqual(viewModel.selectedChild?.id, child.id)
+    }
+    
+    func testSelectDifferentChildAfterSameChild() {
+        let child1 = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+        let child2 = Child(id: UUID(), name: "花子", themeColor: "#33FF57")
+        
+        mockHelpRecordRepository.records = []
+        mockAllowanceCalculator.monthlyAllowance = 300
+        
+        // 最初の子供を選択
+        viewModel.selectChild(child1)
+        XCTAssertEqual(viewModel.selectedChild?.id, child1.id)
+        
+        // 同じ子供を再選択（refreshDataは呼ばれない）
+        mockHelpRecordRepository.resetCallCount()
+        viewModel.selectChild(child1)
+        XCTAssertEqual(mockHelpRecordRepository.findCallCount, 0)
+        
+        // 異なる子供を選択（refreshDataが呼ばれる）
+        viewModel.selectChild(child2)
+        XCTAssertEqual(viewModel.selectedChild?.id, child2.id)
+        XCTAssertEqual(mockHelpRecordRepository.findCallCount, 1)
+    }
 }
 
 // MARK: - Mock Classes

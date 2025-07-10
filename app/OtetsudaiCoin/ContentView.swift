@@ -14,29 +14,21 @@ struct ContentView: View {
     @State private var tutorialService = TutorialService()
     @State private var showSplashScreen = true
     
-    // 共通のRepositoryインスタンス
-    private var sharedChildRepository: ChildRepository {
-        CoreDataChildRepository(context: PersistenceController.shared.container.viewContext)
-    }
+    // ファクトリーを使用した依存性注入
+    private let repositoryFactory: RepositoryFactory
+    private let viewModelFactory: ViewModelFactory
     
     @State private var childManagementViewModel: ChildManagementViewModel
     @State private var homeViewModel: HomeViewModel
     
     @MainActor
     init() {
-        let childRepo = CoreDataChildRepository(context: PersistenceController.shared.container.viewContext)
-        let helpRecordRepo = CoreDataHelpRecordRepository(context: PersistenceController.shared.container.viewContext)
-        let helpTaskRepo = CoreDataHelpTaskRepository(context: PersistenceController.shared.container.viewContext)
-        let allowancePaymentRepo = InMemoryAllowancePaymentRepository.shared
+        let context = PersistenceController.shared.container.viewContext
+        self.repositoryFactory = RepositoryFactory(context: context)
+        self.viewModelFactory = ViewModelFactory(repositoryFactory: repositoryFactory)
         
-        _childManagementViewModel = State(wrappedValue: ChildManagementViewModel(childRepository: childRepo))
-        _homeViewModel = State(wrappedValue: HomeViewModel(
-            childRepository: childRepo,
-            helpRecordRepository: helpRecordRepo,
-            helpTaskRepository: helpTaskRepo,
-            allowanceCalculator: AllowanceCalculator(),
-            allowancePaymentRepository: allowancePaymentRepo
-        ))
+        _childManagementViewModel = State(wrappedValue: viewModelFactory.createChildManagementViewModel())
+        _homeViewModel = State(wrappedValue: viewModelFactory.createHomeViewModel())
     }
     
     var body: some View {
@@ -67,7 +59,7 @@ struct ContentView: View {
                 }
                 .tag(0)
             
-            RecordView(viewModel: createRecordViewModel())
+            RecordView(viewModel: viewModelFactory.createRecordViewModel())
                 .tabItem {
                     Image(systemName: "plus.circle.fill")
                     Text("記録")
@@ -91,7 +83,7 @@ struct ContentView: View {
             TutorialContainerView(
                 tutorialService: tutorialService,
                 childManagementViewModel: childManagementViewModel,
-                recordViewModel: createRecordViewModel()
+                recordViewModel: viewModelFactory.createRecordViewModel()
             )
         }
         .onAppear {
@@ -101,23 +93,11 @@ struct ContentView: View {
     }
     
     
-    private func createRecordViewModel() -> RecordViewModel {
-        let helpTaskRepository = CoreDataHelpTaskRepository(context: viewContext)
-        let helpRecordRepository = CoreDataHelpRecordRepository(context: viewContext)
-        let childRepository = CoreDataChildRepository(context: PersistenceController.shared.container.viewContext)
-        
-        return RecordViewModel(
-            childRepository: childRepository,
-            helpTaskRepository: helpTaskRepository,
-            helpRecordRepository: helpRecordRepository
-        )
-    }
-    
     
     private func setupInitialData() {
         // 初回起動時のサンプルデータセットアップ
-        let childRepository = CoreDataChildRepository(context: viewContext)
-        let helpTaskRepository = CoreDataHelpTaskRepository(context: viewContext)
+        let childRepository = repositoryFactory.createChildRepository()
+        let helpTaskRepository = repositoryFactory.createHelpTaskRepository()
         
         Task {
             do {
@@ -139,7 +119,7 @@ struct ContentView: View {
                 }
                 
                 // 月末自動リセットをチェック
-                let helpRecordRepository = CoreDataHelpRecordRepository(context: viewContext)
+                let helpRecordRepository = repositoryFactory.createHelpRecordRepository()
                 let monthlyResetService = MonthlyResetService(helpRecordRepository: helpRecordRepository)
                 try await monthlyResetService.checkAndPerformMonthlyReset()
                 

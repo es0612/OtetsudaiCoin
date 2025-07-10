@@ -5,6 +5,7 @@ struct RecordTutorialView: View {
     @Bindable var recordViewModel: RecordViewModel
     @State private var currentStep = 0
     @State private var selectedTabForDemo = 1 // 記録タブ
+    @State private var showCoinAnimation = false
     
     let totalSteps = 4
     
@@ -62,6 +63,21 @@ struct RecordTutorialView: View {
                 navigationButtons
                     .padding()
             }
+            
+            // コインアニメーションオーバーレイ
+            if showCoinAnimation, let selectedChild = recordViewModel.selectedChild {
+                Color.black.opacity(0.3)
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        showCoinAnimation = false
+                    }
+                
+                CoinAnimationView(
+                    isVisible: $showCoinAnimation,
+                    coinValue: recordViewModel.lastRecordedCoinValue,
+                    themeColor: selectedChild.themeColor
+                )
+            }
         }
         .onChange(of: recordViewModel.viewState.isLoading) { oldValue, newValue in
             // データロード完了時に自動的に子供を選択（onChange重複実行を防ぐため条件を厳密化）
@@ -76,6 +92,16 @@ struct RecordTutorialView: View {
             if oldValue == nil && newValue != nil {
                 DispatchQueue.main.async {
                     recordViewModel.hasRecordedInSession = true
+                    // コインアニメーションを表示
+                    showCoinAnimation = true
+                }
+            }
+        }
+        .onChange(of: showCoinAnimation) { _, isShowing in
+            if !isShowing {
+                // アニメーション終了時に成功メッセージをクリア
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    recordViewModel.clearMessages()
                 }
             }
         }
@@ -299,10 +325,13 @@ struct RecordTutorialView: View {
                         .disabled(hasRecorded)
                         
                         if hasRecorded {
-                            Text("記録されました！🎉")
-                                .font(.title3)
-                                .fontWeight(.semibold)
-                                .foregroundColor(.green)
+                            HStack {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(.green)
+                                Text("記録完了！アニメーションを確認してください")
+                                    .foregroundColor(.green)
+                                    .fontWeight(.semibold)
+                            }
                         }
                     }
                     .padding()
