@@ -83,7 +83,7 @@ struct RecordView: View {
             
             if viewModel.availableChildren.isEmpty {
                 Text("お子様が登録されていません")
-                    .appFont(.bodyText)
+                    .appFont(.secondaryInfo)
                     .foregroundColor(AccessibilityColors.textSecondary)
                     .padding()
                     .frame(maxWidth: .infinity, alignment: .center)
@@ -175,7 +175,7 @@ struct RecordView: View {
             
             if viewModel.availableTasks.isEmpty {
                 Text("利用可能なお手伝いタスクがありません")
-                    .appFont(.bodyText)
+                    .appFont(.secondaryInfo)
                     .foregroundColor(AccessibilityColors.textSecondary)
                     .padding()
                     .frame(maxWidth: .infinity, alignment: .center)
