@@ -1,11 +1,14 @@
 import Foundation
 import CoreData
 
+@MainActor
 class CoreDataHelpTaskRepository: HelpTaskRepository {
     private let context: NSManagedObjectContext
+    private let persistenceController: PersistenceController
     
-    init(context: NSManagedObjectContext) {
+    init(context: NSManagedObjectContext, persistenceController: PersistenceController = .shared) {
         self.context = context
+        self.persistenceController = persistenceController
     }
     
     func save(_ helpTask: HelpTask) async throws {
@@ -15,7 +18,7 @@ class CoreDataHelpTaskRepository: HelpTaskRepository {
         cdHelpTask.isActive = helpTask.isActive
         cdHelpTask.coinRate = Int32(helpTask.coinRate)
         
-        try context.save()
+        try persistenceController.saveContext()
     }
     
     func findById(_ id: UUID) async throws -> HelpTask? {
@@ -49,7 +52,7 @@ class CoreDataHelpTaskRepository: HelpTaskRepository {
             context.delete(result)
         }
         
-        try context.save()
+        try persistenceController.saveContext()
     }
     
     func update(_ helpTask: HelpTask) async throws {
@@ -62,7 +65,7 @@ class CoreDataHelpTaskRepository: HelpTaskRepository {
             cdHelpTask.name = helpTask.name
             cdHelpTask.isActive = helpTask.isActive
             cdHelpTask.coinRate = Int32(helpTask.coinRate)
-            try context.save()
+            try persistenceController.saveContext()
         }
     }
 }

@@ -9,6 +9,7 @@ import Foundation
 import CoreData
 
 /// Repositoryインスタンスを一元管理するファクトリークラス
+@MainActor
 class RepositoryFactory {
     private let context: NSManagedObjectContext
     
@@ -37,6 +38,7 @@ class RepositoryFactory {
 }
 
 /// ViewModelを作成するためのファクトリークラス
+@MainActor
 class ViewModelFactory {
     private let repositoryFactory: RepositoryFactory
     
@@ -46,7 +48,6 @@ class ViewModelFactory {
     
     // MARK: - ViewModel Creation
     
-    @MainActor
     func createChildManagementViewModel() -> ChildManagementViewModel {
         ChildManagementViewModel(
             childRepository: repositoryFactory.createChildRepository()

@@ -2,6 +2,7 @@ import XCTest
 import CoreData
 @testable import OtetsudaiCoin
 
+@MainActor
 final class CoreDataChildRepositoryTests: XCTestCase {
     private var repository: CoreDataChildRepository!
     private var context: NSManagedObjectContext!

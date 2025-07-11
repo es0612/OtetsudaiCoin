@@ -1,11 +1,14 @@
 import Foundation
 import CoreData
 
+@MainActor
 class CoreDataHelpRecordRepository: HelpRecordRepository {
     private let context: NSManagedObjectContext
+    private let persistenceController: PersistenceController
     
-    init(context: NSManagedObjectContext) {
+    init(context: NSManagedObjectContext, persistenceController: PersistenceController = .shared) {
         self.context = context
+        self.persistenceController = persistenceController
     }
     
     func save(_ helpRecord: HelpRecord) async throws {
@@ -25,7 +28,7 @@ class CoreDataHelpRecordRepository: HelpRecordRepository {
             cdHelpRecord.helpTask = cdHelpTask
         }
         
-        try context.save()
+        try persistenceController.saveContext()
     }
     
     func findById(_ id: UUID) async throws -> HelpRecord? {
@@ -81,7 +84,7 @@ class CoreDataHelpRecordRepository: HelpRecordRepository {
             context.delete(result)
         }
         
-        try context.save()
+        try persistenceController.saveContext()
     }
     
     func update(_ helpRecord: HelpRecord) async throws {
@@ -106,7 +109,7 @@ class CoreDataHelpRecordRepository: HelpRecordRepository {
                 cdHelpRecord.helpTask = cdHelpTask
             }
             
-            try context.save()
+            try persistenceController.saveContext()
         }
     }
 }

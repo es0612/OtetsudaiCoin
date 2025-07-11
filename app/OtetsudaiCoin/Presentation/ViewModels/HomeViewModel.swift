@@ -47,6 +47,12 @@ class HomeViewModel {
         )
     }
     
+    deinit {
+        // メモリリーク防止のためタスクをキャンセル
+        refreshDataTask?.cancel()
+        cancellables.removeAll()
+    }
+    
     func loadChildren() {
         isLoading = true
         errorMessage = nil
@@ -82,7 +88,7 @@ class HomeViewModel {
         isLoading = true
         errorMessage = nil
         
-        refreshDataTask = Task {
+        refreshDataTask = Task { @MainActor in
             do {
                 // データ取得を並行処理で高速化
                 async let recordsTask = helpRecordRepository.findByChildIdInCurrentMonth(child.id)
@@ -94,16 +100,28 @@ class HomeViewModel {
                 let payment = try await paymentTask
                 
                 // タスクがキャンセルされていないか確認
-                guard !Task.isCancelled else { return }
+                guard !Task.isCancelled else { 
+                    await MainActor.run {
+                        isLoading = false
+                    }
+                    return 
+                }
                 
                 // 計算処理を分離
-                updateDisplayValues(records: records, tasks: tasks, payment: payment)
+                await MainActor.run {
+                    updateDisplayValues(records: records, tasks: tasks, payment: payment)
+                    isLoading = false
+                }
                 
-                isLoading = false
             } catch {
-                guard !Task.isCancelled else { return }
-                errorMessage = ErrorMessageConverter.convertToUserFriendlyMessage(error)
-                isLoading = false
+                await MainActor.run {
+                    guard !Task.isCancelled else { 
+                        isLoading = false
+                        return 
+                    }
+                    errorMessage = ErrorMessageConverter.convertToUserFriendlyMessage(error)
+                    isLoading = false
+                }
             }
         }
     }

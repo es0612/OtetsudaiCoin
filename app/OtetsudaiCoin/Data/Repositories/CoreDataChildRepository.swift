@@ -1,11 +1,14 @@
 import Foundation
 import CoreData
 
+@MainActor
 class CoreDataChildRepository: ChildRepository {
     private let context: NSManagedObjectContext
+    private let persistenceController: PersistenceController
     
-    init(context: NSManagedObjectContext) {
+    init(context: NSManagedObjectContext, persistenceController: PersistenceController = .shared) {
         self.context = context
+        self.persistenceController = persistenceController
     }
     
     func save(_ child: Child) async throws {
@@ -14,7 +17,7 @@ class CoreDataChildRepository: ChildRepository {
         cdChild.name = child.name
         cdChild.themeColor = child.themeColor
         
-        try context.save()
+        try persistenceController.saveContext()
     }
     
     func findById(_ id: UUID) async throws -> Child? {
@@ -41,7 +44,7 @@ class CoreDataChildRepository: ChildRepository {
             context.delete(result)
         }
         
-        try context.save()
+        try persistenceController.saveContext()
     }
     
     func update(_ child: Child) async throws {
@@ -53,7 +56,7 @@ class CoreDataChildRepository: ChildRepository {
         if let cdChild = results.first {
             cdChild.name = child.name
             cdChild.themeColor = child.themeColor
-            try context.save()
+            try persistenceController.saveContext()
         }
     }
 }

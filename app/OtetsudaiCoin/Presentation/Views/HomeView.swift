@@ -5,6 +5,10 @@ struct HomeView: View {
     @State private var showingMonthlyHistory = false
     @State private var showingPaymentConfirmation = false
     
+    // ViewModelのキャッシュ化
+    @State private var helpHistoryViewModel: HelpHistoryViewModel?
+    @State private var monthlyHistoryViewModel: MonthlyHistoryViewModel?
+    
     var body: some View {
         NavigationView {
             VStack {
@@ -70,8 +74,8 @@ struct HomeView: View {
             Text(viewModel.successMessage ?? "")
         }
         .sheet(isPresented: $showingMonthlyHistory) {
-            if let selectedChild = viewModel.selectedChild {
-                createMonthlyHistoryView(for: selectedChild)
+            if let monthlyViewModel = monthlyHistoryViewModel {
+                MonthlyHistoryView(viewModel: monthlyViewModel)
             }
         }
         .alert("支払い確認", isPresented: $showingPaymentConfirmation) {
@@ -113,13 +117,14 @@ struct HomeView: View {
                         .appFont(.sectionHeader)
                         .foregroundColor(AccessibilityColors.textPrimary)
                     
-                    NavigationLink(destination: createHelpHistoryView(for: child)) {
+                    NavigationLink(destination: getHelpHistoryView(for: child)) {
                         Image(systemName: "list.clipboard")
                             .font(.title3)
                             .foregroundColor(Color(hex: child.themeColor) ?? .blue)
                     }
                     
                     Button(action: {
+                        prepareMonthlyHistoryViewModel(for: child)
                         showingMonthlyHistory = true
                     }) {
                         Image(systemName: "calendar.badge.clock")
@@ -251,38 +256,54 @@ struct HomeView: View {
         .padding(.horizontal)
     }
     
-    private func createHelpHistoryView(for child: Child) -> some View {
-        let context = PersistenceController.shared.container.viewContext
-        let helpRecordRepository = CoreDataHelpRecordRepository(context: context)
-        let helpTaskRepository = CoreDataHelpTaskRepository(context: context)
-        let childRepository = CoreDataChildRepository(context: context)
+    private func getHelpHistoryView(for child: Child) -> some View {
+        // ViewModelをキャッシュして再利用
+        if helpHistoryViewModel == nil {
+            Task { @MainActor in
+                let context = PersistenceController.shared.container.viewContext
+                let helpRecordRepository = CoreDataHelpRecordRepository(context: context)
+                let helpTaskRepository = CoreDataHelpTaskRepository(context: context)
+                let childRepository = CoreDataChildRepository(context: context)
+                
+                helpHistoryViewModel = HelpHistoryViewModel(
+                    helpRecordRepository: helpRecordRepository,
+                    helpTaskRepository: helpTaskRepository,
+                    childRepository: childRepository
+                )
+            }
+        }
         
-        let historyViewModel = HelpHistoryViewModel(
-            helpRecordRepository: helpRecordRepository,
-            helpTaskRepository: helpTaskRepository,
-            childRepository: childRepository
-        )
+        helpHistoryViewModel?.selectChild(child)
         
-        historyViewModel.selectChild(child)
-        
-        return HelpHistoryView(viewModel: historyViewModel)
+        return Group {
+            if let historyViewModel = helpHistoryViewModel {
+                HelpHistoryView(viewModel: historyViewModel)
+            } else {
+                ProgressView("読み込み中...")
+            }
+        }
     }
     
-    private func createMonthlyHistoryView(for child: Child) -> some View {
-        let context = PersistenceController.shared.container.viewContext
-        let helpRecordRepository = CoreDataHelpRecordRepository(context: context)
-        let allowancePaymentRepository = InMemoryAllowancePaymentRepository.shared
-        
-        let monthlyHistoryViewModel = MonthlyHistoryViewModel(
-            helpRecordRepository: helpRecordRepository,
-            allowancePaymentRepository: allowancePaymentRepository,
-            helpTaskRepository: CoreDataHelpTaskRepository(context: context),
-            allowanceCalculator: AllowanceCalculator()
-        )
-        
-        monthlyHistoryViewModel.selectChild(child)
-        
-        return MonthlyHistoryView(viewModel: monthlyHistoryViewModel)
+    private func prepareMonthlyHistoryViewModel(for child: Child) {
+        // ViewModelをキャッシュして再利用
+        if monthlyHistoryViewModel == nil {
+            Task { @MainActor in
+                let context = PersistenceController.shared.container.viewContext
+                let helpRecordRepository = CoreDataHelpRecordRepository(context: context)
+                let allowancePaymentRepository = InMemoryAllowancePaymentRepository.shared
+                
+                monthlyHistoryViewModel = MonthlyHistoryViewModel(
+                    helpRecordRepository: helpRecordRepository,
+                    allowancePaymentRepository: allowancePaymentRepository,
+                    helpTaskRepository: CoreDataHelpTaskRepository(context: context),
+                    allowanceCalculator: AllowanceCalculator()
+                )
+                
+                monthlyHistoryViewModel?.selectChild(child)
+            }
+        } else {
+            monthlyHistoryViewModel?.selectChild(child)
+        }
     }
     
     private var childrenListView: some View {

@@ -6,22 +6,25 @@ final class AllowanceCalculatorTests: XCTestCase {
     func testCalculateMonthlyAllowanceWithNoRecords() {
         let calculator = AllowanceCalculator()
         let records: [HelpRecord] = []
+        let tasks: [HelpTask] = []
         
-        let allowance = calculator.calculateMonthlyAllowance(records: records)
+        let allowance = calculator.calculateMonthlyAllowance(records: records, tasks: tasks)
         
         XCTAssertEqual(allowance, 0)
     }
     
     func testCalculateMonthlyAllowanceWithSingleRecord() {
         let calculator = AllowanceCalculator()
+        let helpTaskId = UUID()
         let record = HelpRecord(
             id: UUID(),
             childId: UUID(),
-            helpTaskId: UUID(),
+            helpTaskId: helpTaskId,
             recordedAt: Date()
         )
+        let task = HelpTask(id: helpTaskId, name: "テストタスク", isActive: true, coinRate: 10)
         
-        let allowance = calculator.calculateMonthlyAllowance(records: [record])
+        let allowance = calculator.calculateMonthlyAllowance(records: [record], tasks: [task])
         
         XCTAssertEqual(allowance, 10)
     }
@@ -36,8 +39,9 @@ final class AllowanceCalculatorTests: XCTestCase {
             HelpRecord(id: UUID(), childId: childId, helpTaskId: helpTaskId, recordedAt: Date()),
             HelpRecord(id: UUID(), childId: childId, helpTaskId: helpTaskId, recordedAt: Date())
         ]
+        let task = HelpTask(id: helpTaskId, name: "テストタスク", isActive: true, coinRate: 10)
         
-        let allowance = calculator.calculateMonthlyAllowance(records: records)
+        let allowance = calculator.calculateMonthlyAllowance(records: records, tasks: [task])
         
         XCTAssertEqual(allowance, 30)
     }

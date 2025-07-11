@@ -44,6 +44,12 @@ class MonthlyHistoryViewModel {
         self.allowanceCalculator = allowanceCalculator
     }
     
+    deinit {
+        // メモリリーク防止のためタスクをキャンセル
+        loadHistoryTask?.cancel()
+        cancellables.removeAll()
+    }
+    
     func selectChild(_ child: Child) {
         selectedChild = child
         loadMonthlyHistory()
@@ -58,7 +64,7 @@ class MonthlyHistoryViewModel {
         isLoading = true
         errorMessage = nil
         
-        loadHistoryTask = Task {
+        loadHistoryTask = Task { @MainActor in
             do {
                 // 過去12ヶ月のデータを取得
                 let calendar = Calendar.current
@@ -72,7 +78,12 @@ class MonthlyHistoryViewModel {
                     }
                     
                     // タスクがキャンセルされていないか確認
-                    guard !Task.isCancelled else { return }
+                    guard !Task.isCancelled else { 
+                        await MainActor.run {
+                            isLoading = false
+                        }
+                        return 
+                    }
                     
                     let month = calendar.component(.month, from: targetDate)
                     let year = calendar.component(.year, from: targetDate)
@@ -109,16 +120,26 @@ class MonthlyHistoryViewModel {
                     }
                 }
                 
-                // 最終的なキャンセル確認
-                guard !Task.isCancelled else { return }
-                
-                monthlyRecords = monthlyData
-                isLoading = false
+                // 最終的なキャンセル確認とUI更新
+                await MainActor.run {
+                    guard !Task.isCancelled else { 
+                        isLoading = false
+                        return 
+                    }
+                    
+                    monthlyRecords = monthlyData
+                    isLoading = false
+                }
                 
             } catch {
-                guard !Task.isCancelled else { return }
-                errorMessage = "履歴の読み込みに失敗しました: \(error.localizedDescription)"
-                isLoading = false
+                await MainActor.run {
+                    guard !Task.isCancelled else { 
+                        isLoading = false
+                        return 
+                    }
+                    errorMessage = "履歴の読み込みに失敗しました: \(error.localizedDescription)"
+                    isLoading = false
+                }
             }
         }
     }

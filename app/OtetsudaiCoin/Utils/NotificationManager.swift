@@ -40,10 +40,11 @@ class NotificationManager {
     ) {
         NotificationCenter.default
             .publisher(for: .helpRecordUpdated)
-            .sink { _ in
-                Task { @MainActor in
-                    action()
-                }
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                // メモリリーク防止のためweak参照を使用し、同期実行でタスク生成を避ける
+                guard self != nil else { return }
+                action()
             }
             .store(in: &cancellables)
     }
@@ -58,10 +59,11 @@ class NotificationManager {
     ) {
         NotificationCenter.default
             .publisher(for: .childrenUpdated)
-            .sink { _ in
-                Task { @MainActor in
-                    action()
-                }
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                // メモリリーク防止のためweak参照を使用し、同期実行でタスク生成を避ける
+                guard self != nil else { return }
+                action()
             }
             .store(in: &cancellables)
     }
@@ -76,10 +78,11 @@ class NotificationManager {
     ) {
         NotificationCenter.default
             .publisher(for: .tasksUpdated)
-            .sink { _ in
-                Task { @MainActor in
-                    action()
-                }
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                // メモリリーク防止のためweak参照を使用し、同期実行でタスク生成を避ける
+                guard self != nil else { return }
+                action()
             }
             .store(in: &cancellables)
     }

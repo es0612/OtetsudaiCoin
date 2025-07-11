@@ -25,6 +25,7 @@ enum PersistenceError: LocalizedError {
     }
 }
 
+@MainActor
 struct PersistenceController {
     static let shared = PersistenceController()
     
@@ -33,7 +34,6 @@ struct PersistenceController {
     /// 永続化エラーを通知するPublisher
     static let errorPublisher = PassthroughSubject<PersistenceError, Never>()
 
-    @MainActor
     static let preview: PersistenceController = {
         let result = PersistenceController(inMemory: true)
         let viewContext = result.container.viewContext
@@ -82,5 +82,24 @@ struct PersistenceController {
             }
         })
         container.viewContext.automaticallyMergesChangesFromParent = true
+        
+        // Core Dataのコンテキストがメインスレッドで動作することを保証
+        container.viewContext.automaticallyMergesChangesFromParent = true
+        container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+    }
+    
+    /// メインスレッドでのコンテキスト保存
+    func saveContext() throws {
+        let context = container.viewContext
+        
+        if context.hasChanges {
+            do {
+                try context.save()
+            } catch {
+                Self.logger.error("コンテキストの保存に失敗しました: \(error.localizedDescription)")
+                Self.errorPublisher.send(.contextSaveFailed(error))
+                throw PersistenceError.contextSaveFailed(error)
+            }
+        }
     }
 }
