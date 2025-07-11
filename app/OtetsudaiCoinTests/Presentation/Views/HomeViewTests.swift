@@ -47,10 +47,10 @@ final class HomeViewTests: XCTestCase {
         viewModel.children = children
         
         let view = HomeView(viewModel: viewModel)
-        let list = try view.inspect().find(ViewType.List.self)
         
-        XCTAssertNoThrow(try list.find(text: "太郎"))
-        XCTAssertNoThrow(try list.find(text: "花子"))
+        // LazyVStackを使用しているため、テキストの存在を直接確認
+        XCTAssertNoThrow(try view.inspect().find(text: "太郎"))
+        XCTAssertNoThrow(try view.inspect().find(text: "花子"))
     }
     
     func testHomeViewDisplaysChildStatsWhenSelected() throws {
@@ -93,10 +93,11 @@ final class HomeViewTests: XCTestCase {
         viewModel.children = children
         
         let view = HomeView(viewModel: viewModel)
-        let list = try view.inspect().find(ViewType.List.self)
-        let firstRow = try list.find(ViewType.Button.self, containing: "太郎")
         
-        try firstRow.tap()
+        // LazyVStackの中のボタンを探す
+        let button = try view.inspect().find(ViewType.Button.self, containing: "太郎")
+        
+        try button.tap()
         
         XCTAssertEqual(viewModel.selectedChild?.name, "太郎")
     }

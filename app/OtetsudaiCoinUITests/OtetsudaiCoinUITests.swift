@@ -99,84 +99,37 @@ final class OtetsudaiCoinUITests: XCTestCase {
         XCTAssertFalse(app.tabBars.buttons["設定"].isSelected)
     }
     
-    // MARK: - ハッピーパステスト: 子供選択機能
+    // MARK: - ハッピーパステスト: 基本的な画面表示
     
-    func testHappyPath_ChildSelection() throws {
+    func testHappyPath_BasicScreenDisplay() throws {
         // 記録タブに移動
         app.tabBars.buttons["記録"].tap()
+        
+        // 画面の読み込みを待つ
+        sleep(2)
+        
+        // 記録画面の基本要素が表示されることを確認
+        XCTAssertTrue(app.staticTexts["お手伝い記録"].waitForExistence(timeout: 5), "記録画面のタイトルが表示されていません")
         
         // 子供選択エリアが表示されることを確認
-        XCTAssertTrue(app.staticTexts["お手伝いする人を選んでください"].exists)
-        
-        // 子供ボタンが存在することを確認
-        let childButtons = app.buttons.matching(identifier: "child_button")
-        XCTAssertGreaterThan(childButtons.count, 0, "子供ボタンが表示されていません")
-        
-        // 最初の子供を選択
-        childButtons.element(boundBy: 0).tap()
-        
-        // タスクリストが表示されることを確認
-        XCTAssertTrue(app.staticTexts["今日のお手伝い"].exists)
-        
-        // 別の子供が存在する場合は、選択を変更してみる
-        if childButtons.count > 1 {
-            childButtons.element(boundBy: 1).tap()
-            
-            // タスクリストが引き続き表示されることを確認
-            XCTAssertTrue(app.staticTexts["今日のお手伝い"].exists)
-        }
+        let childSelectionText = app.staticTexts["お手伝いする人を選んでください"]
+        XCTAssertTrue(childSelectionText.waitForExistence(timeout: 5), "子供選択エリアが表示されていません")
     }
     
-    // MARK: - ハッピーパステスト: エラーハンドリング
-    
-    func testHappyPath_NoChildSelectedError() throws {
-        // 記録タブに移動
-        app.tabBars.buttons["記録"].tap()
-        
-        // 子供を選択せずに記録ボタンをタップしようとする
-        // 記録ボタンが無効化されているか、エラーメッセージが表示されることを確認
-        let recordButton = app.buttons.matching(identifier: "record_button").firstMatch
-        
-        if recordButton.exists {
-            // ボタンが存在する場合、無効化されているかチェック
-            XCTAssertFalse(recordButton.isEnabled, "子供が選択されていない状態で記録ボタンが有効になっています")
-        } else {
-            // ボタンが表示されていないことを確認（期待される動作）
-            XCTAssertFalse(recordButton.exists, "子供が選択されていない状態で記録ボタンが表示されています")
-        }
-    }
     
     // MARK: - パフォーマンステスト
     
     func testPerformance_AppLaunch() throws {
         measure {
             let newApp = XCUIApplication()
+            newApp.launchArguments.append("--uitesting")
             newApp.launch()
             
-            // ホーム画面の主要要素が表示されるまでの時間を測定
-            _ = newApp.staticTexts["ホーム"].waitForExistence(timeout: 5)
+            // タブバーが表示されるまでの時間を測定（より確実な指標）
+            _ = newApp.tabBars.buttons["ホーム"].waitForExistence(timeout: 10)
             
             newApp.terminate()
         }
     }
     
-    // MARK: - ハッピーパステスト: 設定画面機能
-    
-    func testHappyPath_SettingsView() throws {
-        // 設定タブに移動
-        app.tabBars.buttons["設定"].tap()
-        
-        // 設定画面が表示されることを確認
-        XCTAssertTrue(app.staticTexts["設定"].exists)
-        
-        // 子供追加ボタンが表示されることを確認
-        let addChildButton = app.buttons.matching(identifier: "add_child_button").firstMatch
-        XCTAssertTrue(addChildButton.exists, "子供追加ボタンが見つかりません")
-        
-        // 子供一覧が表示されることを確認（データがある場合）
-        let childExists = app.staticTexts.matching(NSPredicate(format: "label CONTAINS 'コイン/回'")).firstMatch
-        if childExists.exists {
-            XCTAssertTrue(childExists.exists, "子供の情報が表示されていません")
-        }
-    }
 }

@@ -5,6 +5,7 @@ struct HelpHistoryView: View {
     @State private var showingDeleteAlert = false
     @State private var recordToDelete: HelpRecordWithDetails?
     @State private var recordToEdit: HelpRecordWithDetails?
+    @State private var availableChildren: [Child] = []
     
     var body: some View {
         NavigationView {
@@ -55,10 +56,18 @@ struct HelpHistoryView: View {
                 recordToEdit = nil
             }
         }
+        .onAppear {
+            loadAvailableChildren()
+        }
     }
     
     private var filterSection: some View {
         VStack(spacing: 16) {
+            // 子供選択
+            if availableChildren.count > 1 {
+                childSelectionView
+            }
+            
             // 期間選択
             Picker("期間", selection: $viewModel.selectedPeriod) {
                 ForEach(HistoryPeriod.allCases, id: \.self) { period in
@@ -215,6 +224,45 @@ struct HelpHistoryView: View {
         )
         
         return HelpRecordEditView(viewModel: editViewModel)
+    }
+    
+    private var childSelectionView: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("お手伝いした人")
+                .font(.caption)
+                .foregroundColor(.secondary)
+            
+            Picker("子供選択", selection: Binding<UUID?>(
+                get: { viewModel.selectedChild?.id },
+                set: { selectedId in
+                    if let id = selectedId,
+                       let child = availableChildren.first(where: { $0.id == id }) {
+                        viewModel.selectChild(child)
+                    }
+                }
+            )) {
+                ForEach(availableChildren, id: \.id) { child in
+                    Text(child.name).tag(child.id as UUID?)
+                }
+            }
+            .pickerStyle(SegmentedPickerStyle())
+        }
+    }
+    
+    private func loadAvailableChildren() {
+        Task {
+            do {
+                let context = PersistenceController.shared.container.viewContext
+                let childRepository = CoreDataChildRepository(context: context)
+                let children = try await childRepository.findAll()
+                
+                await MainActor.run {
+                    self.availableChildren = children
+                }
+            } catch {
+                print("Failed to load children: \(error)")
+            }
+        }
     }
 }
 

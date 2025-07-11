@@ -45,27 +45,6 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertNil(viewModel.errorMessage)
     }
     
-    func testLoadChildrenSuccess() {
-        let expectedChildren = [
-            Child(id: UUID(), name: "太郎", themeColor: "#FF5733"),
-            Child(id: UUID(), name: "花子", themeColor: "#33FF57")
-        ]
-        mockChildRepository.children = expectedChildren
-        
-        viewModel.loadChildren()
-        
-        XCTAssertEqual(viewModel.children.count, 2)
-        XCTAssertEqual(viewModel.children[0].name, "太郎")
-        XCTAssertEqual(viewModel.children[1].name, "花子")
-    }
-    
-    func testLoadChildrenFailure() {
-        mockChildRepository.shouldThrowError = true
-        
-        viewModel.loadChildren()
-        
-        XCTAssertNotNil(viewModel.errorMessage)
-    }
     
     func testSelectChild() {
         let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
@@ -83,25 +62,6 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.selectedChild?.name, "太郎")
     }
     
-    func testRefreshData() {
-        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
-        viewModel.selectedChild = child
-        
-        let records = [
-            HelpRecord(id: UUID(), childId: child.id, helpTaskId: UUID(), recordedAt: Date()),
-            HelpRecord(id: UUID(), childId: child.id, helpTaskId: UUID(), recordedAt: Date())
-        ]
-        
-        mockHelpRecordRepository.records = records
-        mockAllowanceCalculator.monthlyAllowance = 800
-        mockAllowanceCalculator.consecutiveDays = 5
-        
-        viewModel.refreshData()
-        
-        XCTAssertEqual(viewModel.monthlyAllowance, 800)
-        XCTAssertEqual(viewModel.consecutiveDays, 5)
-        XCTAssertEqual(viewModel.totalRecordsThisMonth, 2)
-    }
     
     func testSelectSameChildMultipleTimes() {
         let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")

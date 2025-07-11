@@ -33,6 +33,11 @@ class HelpHistoryViewModel {
                 }
             }
             .store(in: &cancellables)
+        
+        // 初期データの読み込み
+        Task {
+            await loadInitialData()
+        }
     }
     
     func loadHelpHistory() {
@@ -92,7 +97,15 @@ class HelpHistoryViewModel {
     
     func selectPeriod(_ period: HistoryPeriod) {
         selectedPeriod = period
-        loadHelpHistory()
+        
+        // 子供が未選択の場合は初期データを読み込み
+        if selectedChild == nil {
+            Task {
+                await loadInitialData()
+            }
+        } else {
+            loadHelpHistory()
+        }
     }
     
     func deleteRecord(_ recordId: UUID) {
@@ -110,6 +123,27 @@ class HelpHistoryViewModel {
     
     func clearErrorMessage() {
         errorMessage = nil
+    }
+    
+    // MARK: - 初期データ読み込み
+    
+    /// 初期データの読み込み（最初の子供を自動選択）
+    @MainActor
+    func loadInitialData() async {
+        do {
+            let children = try await childRepository.findAll()
+            
+            // 子供が未選択かつ利用可能な子供がいる場合、最初の子供を選択
+            if selectedChild == nil, let firstChild = children.first {
+                selectedChild = firstChild
+                loadHelpHistory()
+            } else if selectedChild != nil {
+                // 既に子供が選択されている場合は履歴をロード
+                loadHelpHistory()
+            }
+        } catch {
+            errorMessage = "子供の情報を読み込めませんでした: \(error.localizedDescription)"
+        }
     }
 }
 

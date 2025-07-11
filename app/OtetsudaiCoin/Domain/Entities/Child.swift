@@ -1,6 +1,6 @@
 import Foundation
 
-struct Child: Equatable {
+struct Child: Equatable, Hashable {
     let id: UUID
     let name: String
     let themeColor: String
@@ -13,6 +13,10 @@ struct Child: Equatable {
     
     static func == (lhs: Child, rhs: Child) -> Bool {
         return lhs.id == rhs.id
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
     }
     
     static func isValidThemeColor(_ color: String) -> Bool {
