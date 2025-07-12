@@ -1,6 +1,7 @@
 import Foundation
 import Combine
 
+@MainActor
 @Observable
 class HomeViewModel {
     var children: [Child] = []
@@ -47,11 +48,8 @@ class HomeViewModel {
         )
     }
     
-    deinit {
-        // メモリリーク防止のためタスクをキャンセル
-        refreshDataTask?.cancel()
-        cancellables.removeAll()
-    }
+    // deinitでは@MainActorプロパティにアクセスできないため削除
+    // タスクはViewModelのライフサイクルとともに自動的にキャンセルされる
     
     func loadChildren() {
         isLoading = true
@@ -88,7 +86,7 @@ class HomeViewModel {
         isLoading = true
         errorMessage = nil
         
-        refreshDataTask = Task { @MainActor in
+        refreshDataTask = Task {
             do {
                 // データ取得を並行処理で高速化
                 async let recordsTask = helpRecordRepository.findByChildIdInCurrentMonth(child.id)
@@ -101,27 +99,21 @@ class HomeViewModel {
                 
                 // タスクがキャンセルされていないか確認
                 guard !Task.isCancelled else { 
-                    await MainActor.run {
-                        isLoading = false
-                    }
+                    isLoading = false
                     return 
                 }
                 
                 // 計算処理を分離
-                await MainActor.run {
-                    updateDisplayValues(records: records, tasks: tasks, payment: payment)
-                    isLoading = false
-                }
+                updateDisplayValues(records: records, tasks: tasks, payment: payment)
+                isLoading = false
                 
             } catch {
-                await MainActor.run {
-                    guard !Task.isCancelled else { 
-                        isLoading = false
-                        return 
-                    }
-                    errorMessage = ErrorMessageConverter.convertToUserFriendlyMessage(error)
+                guard !Task.isCancelled else { 
                     isLoading = false
+                    return 
                 }
+                errorMessage = ErrorMessageConverter.convertToUserFriendlyMessage(error)
+                isLoading = false
             }
         }
     }

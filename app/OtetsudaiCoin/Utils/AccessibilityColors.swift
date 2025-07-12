@@ -56,11 +56,11 @@ struct AccessibilityColors {
     
     // MARK: - Neutral Colors
     
-    /// 主要テキスト色（白背景でコントラスト比7:1以上）
-    static let textPrimary = Color(hex: "#1A1A1A") ?? .primary
+    /// 主要テキスト色（ダーク・ライトモード対応）
+    static let textPrimary = Color.primary
     
-    /// 副次テキスト色（白背景でコントラスト比4.5:1以上）
-    static let textSecondary = Color(hex: "#666666") ?? .secondary
+    /// 副次テキスト色（ダーク・ライトモード対応）
+    static let textSecondary = Color.secondary
     
     /// 無効テキスト色（装飾用、重要な情報には使用しない）
     static let textDisabled = Color(hex: "#999999") ?? .gray

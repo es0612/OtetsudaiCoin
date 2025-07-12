@@ -10,6 +10,7 @@ final class HelpRecordEditViewTests: XCTestCase {
     private var mockHelpTaskRepository: MockHelpTaskRepository!
     private var viewModel: HelpRecordEditViewModel!
     
+    @MainActor
     override func setUp() {
         super.setUp()
         mockHelpRecordRepository = MockHelpRecordRepository()
@@ -33,6 +34,7 @@ final class HelpRecordEditViewTests: XCTestCase {
         super.tearDown()
     }
     
+    @MainActor
     func testHelpRecordEditViewDisplaysTitle() throws {
         // Given
         let view = HelpRecordEditView(viewModel: viewModel)
@@ -41,6 +43,7 @@ final class HelpRecordEditViewTests: XCTestCase {
         XCTAssertNoThrow(try view.inspect())
     }
     
+    @MainActor
     func testHelpRecordEditViewDisplaysForm() throws {
         // Given
         let view = HelpRecordEditView(viewModel: viewModel)
@@ -49,6 +52,7 @@ final class HelpRecordEditViewTests: XCTestCase {
         XCTAssertNoThrow(try view.inspect())
     }
     
+    @MainActor
     func testHelpRecordEditViewDisplaysDatePicker() throws {
         // Given
         let view = HelpRecordEditView(viewModel: viewModel)
@@ -57,6 +61,7 @@ final class HelpRecordEditViewTests: XCTestCase {
         XCTAssertNoThrow(try view.inspect().find(text: "日時"))
     }
     
+    @MainActor
     func testHelpRecordEditViewDisplaysDeleteButton() throws {
         // Given
         let view = HelpRecordEditView(viewModel: viewModel)
@@ -65,6 +70,7 @@ final class HelpRecordEditViewTests: XCTestCase {
         XCTAssertNoThrow(try view.inspect().find(text: "記録を削除"))
     }
     
+    @MainActor
     func testTaskSelectionRowDisplaysTaskInfo() throws {
         // Given
         let task = HelpTask(id: UUID(), name: "食器洗い", isActive: true)
@@ -75,6 +81,7 @@ final class HelpRecordEditViewTests: XCTestCase {
         XCTAssertNoThrow(try row.inspect().find(text: "お手伝いタスク"))
     }
     
+    @MainActor
     func testTaskSelectionRowDisplaysSelectedState() throws {
         // Given
         let task = HelpTask(id: UUID(), name: "食器洗い", isActive: true)

@@ -12,6 +12,7 @@ final class HomeViewTests: XCTestCase {
     private var mockAllowanceCalculator: MockAllowanceCalculator!
     private var mockAllowancePaymentRepository: MockAllowancePaymentRepository!
     
+    @MainActor
     override func setUp() {
         super.setUp()
         mockChildRepository = MockChildRepository()
@@ -39,6 +40,7 @@ final class HomeViewTests: XCTestCase {
         super.tearDown()
     }
     
+    @MainActor
     func testHomeViewDisplaysChildrenWhenLoaded() throws {
         let children = [
             Child(id: UUID(), name: "太郎", themeColor: "#FF5733"),
@@ -53,6 +55,7 @@ final class HomeViewTests: XCTestCase {
         XCTAssertNoThrow(try view.inspect().find(text: "花子"))
     }
     
+    @MainActor
     func testHomeViewDisplaysChildStatsWhenSelected() throws {
         let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
         viewModel.selectedChild = child
@@ -71,6 +74,7 @@ final class HomeViewTests: XCTestCase {
         XCTAssertNotNil(view)
     }
     
+    @MainActor
     func testHomeViewDisplaysLoadingState() throws {
         // @Observableでは状態を直接変更できないため、テストを簡略化
         let view = HomeView(viewModel: viewModel)
@@ -78,6 +82,7 @@ final class HomeViewTests: XCTestCase {
         XCTAssertNotNil(view)
     }
     
+    @MainActor
     func testHomeViewDisplaysErrorMessage() throws {
         // @Observableでは状態を直接変更できないため、テストを簡略化
         let view = HomeView(viewModel: viewModel)
@@ -85,6 +90,7 @@ final class HomeViewTests: XCTestCase {
         XCTAssertNotNil(view)
     }
     
+    @MainActor
     func testChildSelectionTriggersViewModelMethod() throws {
         let children = [
             Child(id: UUID(), name: "太郎", themeColor: "#FF5733"),
@@ -102,6 +108,7 @@ final class HomeViewTests: XCTestCase {
         XCTAssertEqual(viewModel.selectedChild?.name, "太郎")
     }
     
+    @MainActor
     func testHomeViewDisplaysEmptyStateWhenNoChildren() throws {
         viewModel.children = []
         

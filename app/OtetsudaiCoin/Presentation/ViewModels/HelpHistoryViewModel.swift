@@ -1,6 +1,7 @@
 import Foundation
 import Combine
 
+@MainActor
 @Observable
 class HelpHistoryViewModel {
     var helpRecords: [HelpRecordWithDetails] = []
@@ -37,6 +38,15 @@ class HelpHistoryViewModel {
         // 初期データの読み込み
         Task {
             await loadInitialData()
+        }
+    }
+    
+    deinit {
+        // メモリリーク防止のためタスクをキャンセル
+        // @MainActorコンテキストで実行
+        Task { @MainActor in
+            loadHistoryTask?.cancel()
+            cancellables.removeAll()
         }
     }
     
@@ -128,7 +138,6 @@ class HelpHistoryViewModel {
     // MARK: - 初期データ読み込み
     
     /// 初期データの読み込み（最初の子供を自動選択）
-    @MainActor
     func loadInitialData() async {
         do {
             let children = try await childRepository.findAll()

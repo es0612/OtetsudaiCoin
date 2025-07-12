@@ -9,6 +9,7 @@ final class HomeViewModelTests: XCTestCase {
     private var mockAllowanceCalculator: MockAllowanceCalculator!
     private var mockAllowancePaymentRepository: MockAllowancePaymentRepository!
     
+    @MainActor
     override func setUp() {
         super.setUp()
         mockChildRepository = MockChildRepository()
@@ -36,6 +37,7 @@ final class HomeViewModelTests: XCTestCase {
         super.tearDown()
     }
     
+    @MainActor
     func testInitialState() {
         XCTAssertNil(viewModel.selectedChild)
         XCTAssertEqual(viewModel.monthlyAllowance, 0)
@@ -46,6 +48,7 @@ final class HomeViewModelTests: XCTestCase {
     }
     
     
+    @MainActor
     func testSelectChild() {
         let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
         let records = [
@@ -63,6 +66,7 @@ final class HomeViewModelTests: XCTestCase {
     }
     
     
+    @MainActor
     func testSelectSameChildMultipleTimes() {
         let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
         let records = [
@@ -92,6 +96,7 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.selectedChild?.id, child.id)
     }
     
+    @MainActor
     func testSelectDifferentChildAfterSameChild() {
         let child1 = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
         let child2 = Child(id: UUID(), name: "花子", themeColor: "#33FF57")

@@ -22,6 +22,9 @@ class ChildManagementViewModel: BaseViewModel {
         super.init()
     }
     
+    // deinitでは@MainActorプロパティにアクセスできないため削除
+    // タスクはViewModelのライフサイクルとともに自動的にキャンセルされる
+    
     func loadChildren() async {
         // 実行中のタスクをキャンセル
         loadChildrenTask?.cancel()

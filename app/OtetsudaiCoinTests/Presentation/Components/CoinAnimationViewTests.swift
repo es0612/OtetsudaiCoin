@@ -6,6 +6,7 @@ import ViewInspector
 
 final class CoinAnimationViewTests: XCTestCase {
     
+    @MainActor
     func testCoinAnimationViewDisplaysCoin() throws {
         let animationView = CoinAnimationView(
             isVisible: .constant(true),
@@ -17,6 +18,7 @@ final class CoinAnimationViewTests: XCTestCase {
         XCTAssertNoThrow(try animationView.inspect().find(text: "コイン"))
     }
     
+    @MainActor
     func testCoinAnimationViewHiddenWhenNotVisible() throws {
         let animationView = CoinAnimationView(
             isVisible: .constant(false),
@@ -27,6 +29,7 @@ final class CoinAnimationViewTests: XCTestCase {
         XCTAssertThrowsError(try animationView.inspect().find(text: "100"))
     }
     
+    @MainActor
     func testCoinAnimationViewDisplaysCorrectValue() throws {
         let animationView = CoinAnimationView(
             isVisible: .constant(true),
@@ -37,6 +40,7 @@ final class CoinAnimationViewTests: XCTestCase {
         XCTAssertNoThrow(try animationView.inspect().find(text: "250"))
     }
     
+    @MainActor
     func testCoinAnimationViewUsesThemeColor() throws {
         let animationView = CoinAnimationView(
             isVisible: .constant(true),
@@ -49,6 +53,7 @@ final class CoinAnimationViewTests: XCTestCase {
         XCTAssertNotNil(view)
     }
     
+    @MainActor
     func testCoinAnimationViewHasScaleEffect() throws {
         let animationView = CoinAnimationView(
             isVisible: .constant(true),
@@ -61,6 +66,7 @@ final class CoinAnimationViewTests: XCTestCase {
         XCTAssertNotNil(view)
     }
     
+    @MainActor
     func testCoinAnimationViewHasOpacityAnimation() throws {
         let animationView = CoinAnimationView(
             isVisible: .constant(true),

@@ -8,6 +8,7 @@ final class HelpHistoryViewModelTests: XCTestCase {
     private var mockChildRepository: MockChildRepository!
     private var viewModel: HelpHistoryViewModel!
     
+    @MainActor
     override func setUp() {
         super.setUp()
         mockHelpRecordRepository = MockHelpRecordRepository()
@@ -28,6 +29,7 @@ final class HelpHistoryViewModelTests: XCTestCase {
         super.tearDown()
     }
     
+    @MainActor
     func testSelectChild() {
         // Given
         let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
@@ -39,6 +41,7 @@ final class HelpHistoryViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.selectedChild?.id, child.id)
     }
     
+    @MainActor
     func testSelectPeriod() {
         // When
         viewModel.selectPeriod(.thisWeek)
@@ -47,6 +50,7 @@ final class HelpHistoryViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.selectedPeriod, .thisWeek)
     }
     
+    @MainActor
     func testLoadHelpHistoryWithNoChild() {
         // Given: 子供が選択されていない状態
         
@@ -58,6 +62,7 @@ final class HelpHistoryViewModelTests: XCTestCase {
         XCTAssertTrue(viewModel.helpRecords.isEmpty)
     }
     
+    @MainActor
     func testLoadHelpHistorySuccess() async {
         // Given
         let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
@@ -89,6 +94,7 @@ final class HelpHistoryViewModelTests: XCTestCase {
         XCTAssertNil(viewModel.errorMessage)
     }
     
+    @MainActor
     func testLoadHelpHistoryError() async {
         // Given
         let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
@@ -112,6 +118,7 @@ final class HelpHistoryViewModelTests: XCTestCase {
         XCTAssertNotNil(viewModel.errorMessage)
     }
     
+    @MainActor
     func testDeleteRecord() async {
         // Given
         let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
@@ -139,6 +146,7 @@ final class HelpHistoryViewModelTests: XCTestCase {
         XCTAssertTrue(mockHelpRecordRepository.records.isEmpty)
     }
     
+    @MainActor
     func testClearErrorMessage() {
         // Given
         viewModel.errorMessage = "テストエラー"
@@ -150,6 +158,7 @@ final class HelpHistoryViewModelTests: XCTestCase {
         XCTAssertNil(viewModel.errorMessage)
     }
     
+    @MainActor
     func testHelpRecordWithDetailsEarnedCoins() {
         // Given
         let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
@@ -163,6 +172,7 @@ final class HelpHistoryViewModelTests: XCTestCase {
         XCTAssertEqual(recordWithDetails.earnedCoins, 150)
     }
     
+    @MainActor
     func testHistoryPeriodDateRanges() {
         let calendar = Calendar.current
         let now = Date()

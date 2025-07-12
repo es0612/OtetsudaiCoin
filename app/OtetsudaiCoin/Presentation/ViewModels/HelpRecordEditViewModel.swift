@@ -1,6 +1,7 @@
 import Foundation
 import Combine
 
+@MainActor
 @Observable
 class HelpRecordEditViewModel: BaseViewModel {
     var selectedTask: HelpTask?
@@ -26,12 +27,9 @@ class HelpRecordEditViewModel: BaseViewModel {
         super.init()
         
         // 初期化時にデータを読み込む
-        Task { @MainActor in
-            loadData()
-        }
+        loadData()
     }
     
-    @MainActor
     func loadData() {
         setLoading(true)
         
@@ -39,21 +37,16 @@ class HelpRecordEditViewModel: BaseViewModel {
             do {
                 let tasks = try await helpTaskRepository.findActive()
                 
-                await MainActor.run {
-                    availableTasks = tasks
-                    // 現在のタスクを選択状態にする
-                    selectedTask = tasks.first { $0.id == helpRecord.helpTaskId }
-                    setLoading(false)
-                }
+                availableTasks = tasks
+                // 現在のタスクを選択状態にする
+                selectedTask = tasks.first { $0.id == helpRecord.helpTaskId }
+                setLoading(false)
             } catch {
-                await MainActor.run {
-                    setUserFriendlyError(error)
-                }
+                setUserFriendlyError(error)
             }
         }
     }
     
-    @MainActor
     func saveChanges() {
         guard let task = selectedTask else {
             setError("お手伝いタスクを選択してください")
@@ -73,20 +66,15 @@ class HelpRecordEditViewModel: BaseViewModel {
                 
                 try await helpRecordRepository.update(updatedRecord)
                 
-                await MainActor.run {
-                    // データ更新の通知
-                    NotificationManager.shared.notifyHelpRecordUpdated()
-                    setSuccess("記録を更新しました")
-                }
+                // データ更新の通知
+                NotificationManager.shared.notifyHelpRecordUpdated()
+                setSuccess("記録を更新しました")
             } catch {
-                await MainActor.run {
-                    setUserFriendlyError(error)
-                }
+                setUserFriendlyError(error)
             }
         }
     }
     
-    @MainActor
     func deleteRecord() {
         setLoading(true)
         
@@ -94,15 +82,11 @@ class HelpRecordEditViewModel: BaseViewModel {
             do {
                 try await helpRecordRepository.delete(helpRecord.id)
                 
-                await MainActor.run {
-                    // データ更新の通知
-                    NotificationManager.shared.notifyHelpRecordUpdated()
-                    setSuccess("記録を削除しました")
-                }
+                // データ更新の通知
+                NotificationManager.shared.notifyHelpRecordUpdated()
+                setSuccess("記録を削除しました")
             } catch {
-                await MainActor.run {
-                    setUserFriendlyError(error)
-                }
+                setUserFriendlyError(error)
             }
         }
     }

@@ -9,6 +9,7 @@ final class HelpRecordEditViewModelTests: XCTestCase {
     private var helpRecord: HelpRecord!
     private var child: Child!
     
+    @MainActor
     override func setUp() {
         super.setUp()
         mockHelpRecordRepository = MockHelpRecordRepository()
@@ -32,6 +33,7 @@ final class HelpRecordEditViewModelTests: XCTestCase {
         super.tearDown()
     }
     
+    @MainActor
     func testInitialization() {
         // Then
         XCTAssertEqual(viewModel.recordedDate, helpRecord.recordedAt)
@@ -125,6 +127,7 @@ final class HelpRecordEditViewModelTests: XCTestCase {
         XCTAssertNil(viewModel.viewState.errorMessage)
     }
     
+    @MainActor
     func testHasChanges() {
         // Given
         let originalTask = HelpTask(id: helpRecord.helpTaskId, name: "食器洗い", isActive: true)
@@ -150,6 +153,7 @@ final class HelpRecordEditViewModelTests: XCTestCase {
         XCTAssertTrue(viewModel.hasChanges)
     }
     
+    @MainActor
     func testClearMessages() {
         // Given
         viewModel.setError("テストエラー")

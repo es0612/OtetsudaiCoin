@@ -8,6 +8,7 @@ final class RecordViewModelTests: XCTestCase {
     private var mockHelpRecordRepository: MockHelpRecordRepository!
     private var mockSoundService: MockSoundService!
     
+    @MainActor
     override func setUp() {
         super.setUp()
         mockChildRepository = MockChildRepository()
@@ -32,6 +33,7 @@ final class RecordViewModelTests: XCTestCase {
         super.tearDown()
     }
     
+    @MainActor
     func testInitialState() {
         XCTAssertTrue(viewModel.availableChildren.isEmpty)
         XCTAssertTrue(viewModel.availableTasks.isEmpty)
@@ -42,6 +44,7 @@ final class RecordViewModelTests: XCTestCase {
         XCTAssertNil(viewModel.viewState.successMessage)
     }
     
+    @MainActor
     func testLoadDataSuccess() async {
         let expectedChildren = [
             Child(id: UUID(), name: "太郎", themeColor: "#FF5733"),
@@ -70,6 +73,7 @@ final class RecordViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.selectedChild?.name, "太郎") // 最初の子供が自動選択される
     }
     
+    @MainActor
     func testLoadDataFailure() async {
         mockHelpTaskRepository.shouldThrowError = true
         
@@ -85,6 +89,7 @@ final class RecordViewModelTests: XCTestCase {
         XCTAssertNotNil(viewModel.viewState.errorMessage)
     }
     
+    @MainActor
     func testSelectChild() {
         let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
         
@@ -94,6 +99,7 @@ final class RecordViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.selectedChild?.name, "太郎")
     }
     
+    @MainActor
     func testSelectTask() {
         let task = HelpTask(id: UUID(), name: "お風呂を入れる", isActive: true)
         
@@ -103,6 +109,7 @@ final class RecordViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.selectedTask?.name, "お風呂を入れる")
     }
     
+    @MainActor
     func testRecordHelpSuccess() async {
         let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
         let task = HelpTask(id: UUID(), name: "お風呂を入れる", isActive: true)
@@ -127,6 +134,7 @@ final class RecordViewModelTests: XCTestCase {
         XCTAssertEqual(mockHelpRecordRepository.records.first?.helpTaskId, task.id)
     }
     
+    @MainActor
     func testRecordHelpWithoutChildSelection() {
         let task = HelpTask(id: UUID(), name: "お風呝を入れる", isActive: true)
         viewModel.selectTask(task)
@@ -136,6 +144,7 @@ final class RecordViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.viewState.errorMessage, "お子様を選択してください")
     }
     
+    @MainActor
     func testRecordHelpWithoutTaskSelection() {
         let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
         viewModel.selectChild(child)
@@ -145,6 +154,7 @@ final class RecordViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.viewState.errorMessage, "お手伝いタスクを選択してください")
     }
     
+    @MainActor
     func testRecordHelpFailure() async {
         let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
         let task = HelpTask(id: UUID(), name: "お風呂を入れる", isActive: true)
@@ -166,6 +176,7 @@ final class RecordViewModelTests: XCTestCase {
         XCTAssertNotNil(viewModel.viewState.errorMessage)
     }
     
+    @MainActor
     func testClearMessages() {
         viewModel.setError("テストエラー")
         viewModel.setSuccess("テスト成功")
