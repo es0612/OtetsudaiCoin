@@ -73,6 +73,9 @@ class HomeViewModel {
             return
         }
         
+        // 実行中のタスクをキャンセル
+        refreshDataTask?.cancel()
+        
         selectedChild = child
         refreshData()
     }
@@ -104,6 +107,14 @@ class HomeViewModel {
                 guard !Task.isCancelled, selectedChild?.id == processChild.id else { 
                     isLoading = false
                     return 
+                }
+                
+                // プロセスが正常に完了したことを確認
+                guard !records.isEmpty || !tasks.isEmpty else {
+                    // データが空の場合でも正常な状態として扱う
+                    updateDisplayValues(records: [], tasks: [], payment: payment)
+                    isLoading = false
+                    return
                 }
                 
                 // 計算処理を分離

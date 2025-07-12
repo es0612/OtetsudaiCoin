@@ -277,7 +277,12 @@ struct HomeView: View {
             if let historyViewModel = helpHistoryViewModel {
                 HelpHistoryView(viewModel: historyViewModel)
             } else {
-                ProgressView("読み込み中...")
+                VStack {
+                    ProgressView()
+                    Text("読み込み中...")
+                        .foregroundColor(.secondary)
+                        .padding(.top, 8)
+                }
             }
         }
     }

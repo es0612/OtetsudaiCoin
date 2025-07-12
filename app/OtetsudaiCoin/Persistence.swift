@@ -56,7 +56,12 @@ struct PersistenceController {
     init(inMemory: Bool = false) {
         container = NSPersistentContainer(name: "OtetsudaiCoin")
         if inMemory {
-            container.persistentStoreDescriptions.first!.url = URL(fileURLWithPath: "/dev/null")
+            guard let storeDescription = container.persistentStoreDescriptions.first else {
+                Self.logger.error("永続ストア記述子が見つかりません")
+                Self.errorPublisher.send(.storeLoadingFailed(NSError(domain: "PersistenceController", code: -1, userInfo: [NSLocalizedDescriptionKey: "永続ストア記述子が見つかりません"])))
+                return
+            }
+            storeDescription.url = URL(fileURLWithPath: "/dev/null")
         }
         container.loadPersistentStores(completionHandler: { (storeDescription, error) in
             if let error = error {

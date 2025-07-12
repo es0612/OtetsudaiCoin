@@ -60,8 +60,10 @@ class SampleDataService {
             let recordsPerDay = Int.random(in: 0...4)
             
             for _ in 0..<recordsPerDay {
-                let randomChild = children.randomElement()!
-                let randomTask = helpTasks.randomElement()!
+                guard let randomChild = children.randomElement(),
+                      let randomTask = helpTasks.randomElement() else {
+                    continue // 配列が空の場合は次の反復へ
+                }
                 
                 // その日の中でランダムな時間に設定
                 let randomHour = Int.random(in: 7...20)
