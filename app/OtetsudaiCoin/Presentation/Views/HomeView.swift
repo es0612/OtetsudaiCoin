@@ -6,7 +6,6 @@ struct HomeView: View {
     @State private var showingPaymentConfirmation = false
     
     // ViewModelのキャッシュ化
-    @State private var helpHistoryViewModel: HelpHistoryViewModel?
     @State private var monthlyHistoryViewModel: MonthlyHistoryViewModel?
     
     var body: some View {
@@ -124,8 +123,11 @@ struct HomeView: View {
                     }
                     
                     Button(action: {
-                        prepareMonthlyHistoryViewModel(for: child)
-                        showingMonthlyHistory = true
+                        // 非同期でViewModel準備を実行
+                        DispatchQueue.main.async {
+                            prepareMonthlyHistoryViewModel(for: child)
+                            showingMonthlyHistory = true
+                        }
                     }) {
                         Image(systemName: "calendar.badge.clock")
                             .font(.title3)
@@ -257,34 +259,24 @@ struct HomeView: View {
     }
     
     private func getHelpHistoryView(for child: Child) -> some View {
-        // ViewModelをキャッシュして再利用
-        if helpHistoryViewModel == nil {
-            let context = PersistenceController.shared.container.viewContext
-            let helpRecordRepository = CoreDataHelpRecordRepository(context: context)
-            let helpTaskRepository = CoreDataHelpTaskRepository(context: context)
-            let childRepository = CoreDataChildRepository(context: context)
-            
-            helpHistoryViewModel = HelpHistoryViewModel(
-                helpRecordRepository: helpRecordRepository,
-                helpTaskRepository: helpTaskRepository,
-                childRepository: childRepository
-            )
+        // 新しいViewModelを毎回作成してメモリリークを防ぐ
+        let context = PersistenceController.shared.container.viewContext
+        let helpRecordRepository = CoreDataHelpRecordRepository(context: context)
+        let helpTaskRepository = CoreDataHelpTaskRepository(context: context)
+        let childRepository = CoreDataChildRepository(context: context)
+        
+        let historyViewModel = HelpHistoryViewModel(
+            helpRecordRepository: helpRecordRepository,
+            helpTaskRepository: helpTaskRepository,
+            childRepository: childRepository
+        )
+        
+        // 非同期で子供を選択（状態変更を遅延実行）
+        DispatchQueue.main.async {
+            historyViewModel.selectChild(child)
         }
         
-        helpHistoryViewModel?.selectChild(child)
-        
-        return Group {
-            if let historyViewModel = helpHistoryViewModel {
-                HelpHistoryView(viewModel: historyViewModel)
-            } else {
-                VStack {
-                    ProgressView()
-                    Text("読み込み中...")
-                        .foregroundColor(.secondary)
-                        .padding(.top, 8)
-                }
-            }
-        }
+        return HelpHistoryView(viewModel: historyViewModel)
     }
     
     private func prepareMonthlyHistoryViewModel(for child: Child) {
