@@ -88,17 +88,20 @@ class HomeViewModel {
         
         refreshDataTask = Task {
             do {
+                // 処理開始時の選択された子供を保持
+                let processChild = child
+                
                 // データ取得を並行処理で高速化
-                async let recordsTask = helpRecordRepository.findByChildIdInCurrentMonth(child.id)
+                async let recordsTask = helpRecordRepository.findByChildIdInCurrentMonth(processChild.id)
                 async let tasksTask = helpTaskRepository.findAll()
-                async let paymentTask = getCurrentMonthPayment(for: child.id)
+                async let paymentTask = getCurrentMonthPayment(for: processChild.id)
                 
                 let records = try await recordsTask
                 let tasks = try await tasksTask
                 let payment = try await paymentTask
                 
-                // タスクがキャンセルされていないか確認
-                guard !Task.isCancelled else { 
+                // タスクがキャンセルされていないか、選択された子供が変更されていないか確認
+                guard !Task.isCancelled, selectedChild?.id == processChild.id else { 
                     isLoading = false
                     return 
                 }
@@ -166,12 +169,10 @@ class HomeViewModel {
     }
     
     func recordAllowancePayment(amount: Int) {
-        guard selectedChild != nil else {
+        guard let child = selectedChild else {
             errorMessage = "子供が選択されていません"
             return
         }
-        
-        let child = selectedChild!
         
         isLoading = true
         errorMessage = nil
@@ -179,6 +180,9 @@ class HomeViewModel {
         
         Task {
             do {
+                // 処理開始時の選択された子供を保持
+                let processChild = child
+                
                 if isCurrentMonthPaid {
                     // 追加支払いの場合は既存の支払い記録を更新
                     let calendar = Calendar.current
@@ -186,10 +190,10 @@ class HomeViewModel {
                     let currentMonth = calendar.component(.month, from: now)
                     let currentYear = calendar.component(.year, from: now)
                     
-                    if let existingPayment = try await allowancePaymentRepository.findByChildIdAndMonth(child.id, month: currentMonth, year: currentYear) {
+                    if let existingPayment = try await allowancePaymentRepository.findByChildIdAndMonth(processChild.id, month: currentMonth, year: currentYear) {
                         let updatedPayment = AllowancePayment(
                             id: existingPayment.id,
-                            childId: child.id,
+                            childId: processChild.id,
                             amount: existingPayment.amount + amount,
                             month: existingPayment.month,
                             year: existingPayment.year,
@@ -197,19 +201,33 @@ class HomeViewModel {
                             note: (existingPayment.note ?? "今月のお小遣い支払い") + "（追加支払い）"
                         )
                         try await allowancePaymentRepository.save(updatedPayment)
-                        successMessage = "\(child.name)に追加で\(amount)コインのお小遣いを渡しました"
+                        
+                        // UI更新前に選択された子供が変更されていないか確認
+                        guard selectedChild?.id == processChild.id else {
+                            isLoading = false
+                            return
+                        }
+                        
+                        successMessage = "\(processChild.name)に追加で\(amount)コインのお小遣いを渡しました"
                     }
                 } else {
                     // 新規支払いの場合
                     let payment = AllowancePayment.fromCurrentMonth(
-                        childId: child.id,
+                        childId: processChild.id,
                         amount: amount,
                         note: "今月のお小遣い支払い"
                     )
                     
                     try await allowancePaymentRepository.save(payment)
+                    
+                    // UI更新前に選択された子供が変更されていないか確認
+                    guard selectedChild?.id == processChild.id else {
+                        isLoading = false
+                        return
+                    }
+                    
                     isCurrentMonthPaid = true
-                    successMessage = "\(child.name)に\(amount)コインのお小遣いを渡しました"
+                    successMessage = "\(processChild.name)に\(amount)コインのお小遣いを渡しました"
                 }
                 isLoading = false
                 
@@ -220,6 +238,10 @@ class HomeViewModel {
                 NotificationManager.shared.notifyHelpRecordUpdated()
                 
             } catch {
+                guard !Task.isCancelled else {
+                    isLoading = false
+                    return
+                }
                 errorMessage = ErrorMessageConverter.convertToUserFriendlyMessage(error)
                 isLoading = false
             }
