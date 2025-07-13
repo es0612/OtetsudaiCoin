@@ -1,10 +1,6 @@
 import SwiftUI
 import StoreKit
 
-#if canImport(AppStore)
-import AppStore
-#endif
-
 struct SettingsView: View {
     @Bindable var viewModel: ChildManagementViewModel
     @State private var showingAddChildForm = false

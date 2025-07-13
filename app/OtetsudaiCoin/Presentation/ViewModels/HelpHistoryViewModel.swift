@@ -91,7 +91,7 @@ class HelpHistoryViewModel {
                 isLoading = false
             } catch {
                 guard !Task.isCancelled else { return }
-                errorMessage = "履歴の読み込みに失敗しました: \(error.localizedDescription)"
+                errorMessage = ErrorMessageConverter.convertToUserFriendlyMessage(error)
                 isLoading = false
             }
         }
@@ -123,7 +123,7 @@ class HelpHistoryViewModel {
                 // データ更新通知
                 NotificationCenter.default.post(name: .helpRecordUpdated, object: nil)
             } catch {
-                errorMessage = "記録の削除に失敗しました: \(error.localizedDescription)"
+                errorMessage = ErrorMessageConverter.convertToUserFriendlyMessage(error)
             }
         }
     }
@@ -148,7 +148,7 @@ class HelpHistoryViewModel {
                 loadHelpHistory()
             }
         } catch {
-            errorMessage = "子供の情報を読み込めませんでした: \(error.localizedDescription)"
+            errorMessage = ErrorMessageConverter.convertToUserFriendlyMessage(error)
         }
     }
 }

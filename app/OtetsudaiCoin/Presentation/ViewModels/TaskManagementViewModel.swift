@@ -1,5 +1,4 @@
 import Foundation
-import Combine
 
 @Observable
 class TaskManagementViewModel {
@@ -9,7 +8,6 @@ class TaskManagementViewModel {
     var successMessage: String?
     
     private let helpTaskRepository: HelpTaskRepository
-    private var cancellables = Set<AnyCancellable>()
     private var loadTasksTask: Task<Void, Never>?
     
     init(helpTaskRepository: HelpTaskRepository) {
@@ -34,7 +32,7 @@ class TaskManagementViewModel {
                 isLoading = false
             } catch {
                 guard !Task.isCancelled else { return }
-                errorMessage = "タスクの読み込みに失敗しました: \(error.localizedDescription)"
+                errorMessage = ErrorMessageConverter.convertToUserFriendlyMessage(error)
                 isLoading = false
             }
         }
@@ -74,7 +72,7 @@ class TaskManagementViewModel {
             successMessage = "タスクを追加しました"
             await loadTasks()
         } catch {
-            errorMessage = "タスクの追加に失敗しました: \(error.localizedDescription)"
+            errorMessage = ErrorMessageConverter.convertToUserFriendlyMessage(error)
         }
     }
     
@@ -84,7 +82,7 @@ class TaskManagementViewModel {
             successMessage = "タスクを更新しました"
             await loadTasks()
         } catch {
-            errorMessage = "タスクの更新に失敗しました: \(error.localizedDescription)"
+            errorMessage = ErrorMessageConverter.convertToUserFriendlyMessage(error)
         }
     }
     
@@ -94,7 +92,7 @@ class TaskManagementViewModel {
             successMessage = "タスクを削除しました"
             await loadTasks()
         } catch {
-            errorMessage = "タスクの削除に失敗しました: \(error.localizedDescription)"
+            errorMessage = ErrorMessageConverter.convertToUserFriendlyMessage(error)
         }
     }
     

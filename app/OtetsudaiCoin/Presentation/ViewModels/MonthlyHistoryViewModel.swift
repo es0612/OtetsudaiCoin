@@ -133,7 +133,7 @@ class MonthlyHistoryViewModel {
                     isLoading = false
                     return 
                 }
-                errorMessage = "履歴の読み込みに失敗しました: \(error.localizedDescription)"
+                errorMessage = ErrorMessageConverter.convertToUserFriendlyMessage(error)
                 isLoading = false
             }
         }
@@ -170,7 +170,7 @@ class MonthlyHistoryViewModel {
             loadMonthlyHistory()
             
         } catch {
-            errorMessage = "支払いの記録に失敗しました: \(error.localizedDescription)"
+            errorMessage = ErrorMessageConverter.convertToUserFriendlyMessage(error)
             isLoading = false
         }
     }

@@ -90,28 +90,31 @@ struct HelpHistoryView: View {
     
     private var statisticsSummary: some View {
         HStack(spacing: 20) {
-            StatisticCard(
+            StatisticsCard(
                 icon: "checkmark.circle.fill",
                 title: "実績",
                 value: "\(viewModel.helpRecords.count)",
                 subtitle: "回",
-                color: .blue
+                color: .blue,
+                style: .compact
             )
             
-            StatisticCard(
+            StatisticsCard(
                 icon: "star.fill",
                 title: "獲得コイン",
                 value: "\(totalEarnedCoins)",
                 subtitle: "コイン",
-                color: .orange
+                color: .orange,
+                style: .compact
             )
             
-            StatisticCard(
+            StatisticsCard(
                 icon: "trophy.fill",
                 title: "平均コイン",
                 value: "\(averageCoinsPerRecord)",
                 subtitle: "コイン/回",
-                color: .purple
+                color: .purple,
+                style: .compact
             )
         }
     }
@@ -213,14 +216,11 @@ struct HelpHistoryView: View {
     
     private func createEditView(for record: HelpRecordWithDetails) -> some View {
         let context = PersistenceController.shared.container.viewContext
-        let helpRecordRepository = CoreDataHelpRecordRepository(context: context)
-        let helpTaskRepository = CoreDataHelpTaskRepository(context: context)
-        
-        let editViewModel = HelpRecordEditViewModel(
+        let repositoryFactory = RepositoryFactory(context: context)
+        let viewModelFactory = ViewModelFactory(repositoryFactory: repositoryFactory)
+        let editViewModel = viewModelFactory.createHelpRecordEditViewModel(
             helpRecord: record.helpRecord,
-            child: record.child,
-            helpRecordRepository: helpRecordRepository,
-            helpTaskRepository: helpTaskRepository
+            child: record.child
         )
         
         return HelpRecordEditView(viewModel: editViewModel)
@@ -345,40 +345,6 @@ struct HelpRecordRow: View {
     }
 }
 
-struct StatisticCard: View {
-    let icon: String
-    let title: String
-    let value: String
-    let subtitle: String
-    let color: Color
-    
-    var body: some View {
-        VStack(spacing: 6) {
-            Image(systemName: icon)
-                .font(.title3)
-                .foregroundColor(color)
-            
-            Text(title)
-                .font(.caption2)
-                .foregroundColor(.secondary)
-            
-            Text(value)
-                .font(.headline)
-                .fontWeight(.bold)
-                .foregroundColor(color)
-            
-            Text(subtitle)
-                .font(.caption2)
-                .foregroundColor(.secondary)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 8)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(color.opacity(0.1))
-        )
-    }
-}
 
 #Preview {
     @Previewable @State var previewViewModel: HelpHistoryViewModel?

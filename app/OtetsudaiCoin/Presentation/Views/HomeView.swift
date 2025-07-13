@@ -138,36 +138,40 @@ struct HomeView: View {
             
             // 統計カード
             LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 16) {
-                StatsCard(
+                StatisticsCard(
                     icon: "star.fill",
                     title: "今月の実績",
                     value: "\(viewModel.totalRecordsThisMonth)",
                     subtitle: "回がんばった！",
-                    color: Color(hex: child.themeColor) ?? .blue
+                    color: Color(hex: child.themeColor) ?? .blue,
+                    style: .large
                 )
                 
-                StatsCard(
+                StatisticsCard(
                     icon: "flame.fill",
                     title: "連続記録",
                     value: "\(viewModel.consecutiveDays)",
                     subtitle: "日連続！",
-                    color: .orange
+                    color: .orange,
+                    style: .large
                 )
                 
-                StatsCard(
+                StatisticsCard(
                     icon: "dollarsign.circle.fill",
                     title: "今月のコイン",
                     value: "\(viewModel.monthlyAllowance)",
                     subtitle: "コイン獲得！",
-                    color: .green
+                    color: .green,
+                    style: .large
                 )
                 
-                StatsCard(
+                StatisticsCard(
                     icon: "calendar",
                     title: "今月のお手伝い",
                     value: "\(viewModel.totalRecordsThisMonth)",
                     subtitle: "回",
-                    color: .purple
+                    color: .purple,
+                    style: .large
                 )
             }
             
@@ -259,46 +263,23 @@ struct HomeView: View {
     }
     
     private func getHelpHistoryView(for child: Child) -> some View {
-        // ViewModel作成をファクトリーパターンで統一
-        let historyViewModel = createHelpHistoryViewModel()
+        let context = PersistenceController.shared.container.viewContext
+        let repositoryFactory = RepositoryFactory(context: context)
+        let viewModelFactory = ViewModelFactory(repositoryFactory: repositoryFactory)
+        let historyViewModel = viewModelFactory.createHelpHistoryViewModel()
         
         return HelpHistoryView(viewModel: historyViewModel)
             .onAppear {
-                // onAppearで子供を選択することで、ビュー表示時に適切に初期化
                 historyViewModel.selectChild(child)
             }
     }
     
-    private func createHelpHistoryViewModel() -> HelpHistoryViewModel {
-        let context = PersistenceController.shared.container.viewContext
-        let helpRecordRepository = CoreDataHelpRecordRepository(context: context)
-        let helpTaskRepository = CoreDataHelpTaskRepository(context: context)
-        let childRepository = CoreDataChildRepository(context: context)
-        
-        return HelpHistoryViewModel(
-            helpRecordRepository: helpRecordRepository,
-            helpTaskRepository: helpTaskRepository,
-            childRepository: childRepository
-        )
-    }
-    
     private func prepareMonthlyHistoryViewModel(for child: Child) {
-        // 毎回新しいViewModelを作成してメモリ効率を向上
-        monthlyHistoryViewModel = createMonthlyHistoryViewModel()
-        monthlyHistoryViewModel?.selectChild(child)
-    }
-    
-    private func createMonthlyHistoryViewModel() -> MonthlyHistoryViewModel {
         let context = PersistenceController.shared.container.viewContext
-        let helpRecordRepository = CoreDataHelpRecordRepository(context: context)
-        let allowancePaymentRepository = InMemoryAllowancePaymentRepository.shared
-        
-        return MonthlyHistoryViewModel(
-            helpRecordRepository: helpRecordRepository,
-            allowancePaymentRepository: allowancePaymentRepository,
-            helpTaskRepository: CoreDataHelpTaskRepository(context: context),
-            allowanceCalculator: AllowanceCalculator()
-        )
+        let repositoryFactory = RepositoryFactory(context: context)
+        let viewModelFactory = ViewModelFactory(repositoryFactory: repositoryFactory)
+        monthlyHistoryViewModel = viewModelFactory.createMonthlyHistoryViewModel()
+        monthlyHistoryViewModel?.selectChild(child)
     }
     
     private var childrenListView: some View {
@@ -350,37 +331,4 @@ struct HomeView: View {
     }
 }
 
-struct StatsCard: View {
-    let icon: String
-    let title: String
-    let value: String
-    let subtitle: String
-    let color: Color
-    
-    var body: some View {
-        VStack(spacing: 8) {
-            Image(systemName: icon)
-                .font(.title2)
-                .foregroundColor(color)
-            
-            Text(title)
-                .appFont(.captionText)
-                .foregroundColor(.secondary)
-            
-            Text(value)
-                .appFont(.primaryInfo)
-                .foregroundColor(color)
-            
-            Text(subtitle)
-                .appFont(.captionText)
-                .foregroundColor(.secondary)
-        }
-        .frame(maxWidth: .infinity)
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(color.opacity(0.1))
-        )
-    }
-}
 
