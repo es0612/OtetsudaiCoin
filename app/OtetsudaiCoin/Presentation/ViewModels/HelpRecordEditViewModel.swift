@@ -43,6 +43,7 @@ class HelpRecordEditViewModel: BaseViewModel {
                 setLoading(false)
             } catch {
                 setUserFriendlyError(error)
+                setLoading(false)
             }
         }
     }

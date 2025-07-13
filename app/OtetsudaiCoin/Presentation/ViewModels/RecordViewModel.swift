@@ -82,6 +82,7 @@ class RecordViewModel: BaseViewModel {
             } catch {
                 guard !Task.isCancelled else { return }
                 setUserFriendlyError(error)
+                setLoading(false)
             }
         }
     }

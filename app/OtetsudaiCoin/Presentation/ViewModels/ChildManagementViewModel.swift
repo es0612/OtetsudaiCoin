@@ -43,6 +43,7 @@ class ChildManagementViewModel: BaseViewModel {
             } catch {
                 guard !Task.isCancelled else { return }
                 setUserFriendlyError(error)
+                setLoading(false)
             }
         }
         
