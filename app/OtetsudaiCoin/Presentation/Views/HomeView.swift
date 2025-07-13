@@ -259,44 +259,46 @@ struct HomeView: View {
     }
     
     private func getHelpHistoryView(for child: Child) -> some View {
-        // 新しいViewModelを毎回作成してメモリリークを防ぐ
+        // ViewModel作成をファクトリーパターンで統一
+        let historyViewModel = createHelpHistoryViewModel()
+        
+        return HelpHistoryView(viewModel: historyViewModel)
+            .onAppear {
+                // onAppearで子供を選択することで、ビュー表示時に適切に初期化
+                historyViewModel.selectChild(child)
+            }
+    }
+    
+    private func createHelpHistoryViewModel() -> HelpHistoryViewModel {
         let context = PersistenceController.shared.container.viewContext
         let helpRecordRepository = CoreDataHelpRecordRepository(context: context)
         let helpTaskRepository = CoreDataHelpTaskRepository(context: context)
         let childRepository = CoreDataChildRepository(context: context)
         
-        let historyViewModel = HelpHistoryViewModel(
+        return HelpHistoryViewModel(
             helpRecordRepository: helpRecordRepository,
             helpTaskRepository: helpTaskRepository,
             childRepository: childRepository
         )
-        
-        // 非同期で子供を選択（状態変更を遅延実行）
-        DispatchQueue.main.async {
-            historyViewModel.selectChild(child)
-        }
-        
-        return HelpHistoryView(viewModel: historyViewModel)
     }
     
     private func prepareMonthlyHistoryViewModel(for child: Child) {
-        // ViewModelをキャッシュして再利用
-        if monthlyHistoryViewModel == nil {
-            let context = PersistenceController.shared.container.viewContext
-            let helpRecordRepository = CoreDataHelpRecordRepository(context: context)
-            let allowancePaymentRepository = InMemoryAllowancePaymentRepository.shared
-            
-            monthlyHistoryViewModel = MonthlyHistoryViewModel(
-                helpRecordRepository: helpRecordRepository,
-                allowancePaymentRepository: allowancePaymentRepository,
-                helpTaskRepository: CoreDataHelpTaskRepository(context: context),
-                allowanceCalculator: AllowanceCalculator()
-            )
-            
-            monthlyHistoryViewModel?.selectChild(child)
-        } else {
-            monthlyHistoryViewModel?.selectChild(child)
-        }
+        // 毎回新しいViewModelを作成してメモリ効率を向上
+        monthlyHistoryViewModel = createMonthlyHistoryViewModel()
+        monthlyHistoryViewModel?.selectChild(child)
+    }
+    
+    private func createMonthlyHistoryViewModel() -> MonthlyHistoryViewModel {
+        let context = PersistenceController.shared.container.viewContext
+        let helpRecordRepository = CoreDataHelpRecordRepository(context: context)
+        let allowancePaymentRepository = InMemoryAllowancePaymentRepository.shared
+        
+        return MonthlyHistoryViewModel(
+            helpRecordRepository: helpRecordRepository,
+            allowancePaymentRepository: allowancePaymentRepository,
+            helpTaskRepository: CoreDataHelpTaskRepository(context: context),
+            allowanceCalculator: AllowanceCalculator()
+        )
     }
     
     private var childrenListView: some View {

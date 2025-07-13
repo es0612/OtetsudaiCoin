@@ -97,7 +97,7 @@ final class HomeViewModelTests: XCTestCase {
     }
     
     @MainActor
-    func testSelectDifferentChildAfterSameChild() {
+    func testSelectDifferentChildAfterSameChild() async {
         let child1 = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
         let child2 = Child(id: UUID(), name: "花子", themeColor: "#33FF57")
         
@@ -108,6 +108,9 @@ final class HomeViewModelTests: XCTestCase {
         viewModel.selectChild(child1)
         XCTAssertEqual(viewModel.selectedChild?.id, child1.id)
         
+        // 非同期処理完了を待つ
+        try? await Task.sleep(nanoseconds: 100_000_000) // 0.1秒待機
+        
         // 同じ子供を再選択（refreshDataは呼ばれない）
         mockHelpRecordRepository.resetCallCount()
         viewModel.selectChild(child1)
@@ -116,6 +119,10 @@ final class HomeViewModelTests: XCTestCase {
         // 異なる子供を選択（refreshDataが呼ばれる）
         viewModel.selectChild(child2)
         XCTAssertEqual(viewModel.selectedChild?.id, child2.id)
+        
+        // 非同期処理完了を待つ
+        try? await Task.sleep(nanoseconds: 100_000_000) // 0.1秒待機
+        
         XCTAssertEqual(mockHelpRecordRepository.findCallCount, 1)
     }
 }

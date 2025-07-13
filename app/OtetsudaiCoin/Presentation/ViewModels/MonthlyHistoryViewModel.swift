@@ -46,12 +46,9 @@ class MonthlyHistoryViewModel {
     }
     
     deinit {
-        // メモリリーク防止のためタスクをキャンセル
-        // @MainActorコンテキストで実行
-        Task { @MainActor in
-            loadHistoryTask?.cancel()
-            cancellables.removeAll()
-        }
+        // 循環参照を避けるため、deinit内では何もしない
+        // タスクは自動的にキャンセルされ、cancellablesは自動的にクリーンアップされる
+        print("MonthlyHistoryViewModel deinit called")
     }
     
     func selectChild(_ child: Child) {

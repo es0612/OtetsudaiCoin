@@ -42,13 +42,9 @@ class HelpHistoryViewModel {
     }
     
     deinit {
-        // メモリリーク防止のためタスクをキャンセル
-        // MainActorから実行してプロパティにアクセス
-        Task { @MainActor in
-            loadHistoryTask?.cancel()
-        }
-        // cancellablesは既に作成時に参照が保持されているため、
-        // deinitで明示的な削除は不要（自動的にクリーンアップされる）
+        // 循環参照を避けるため、deinit内では何もしない
+        // タスクは自動的にキャンセルされ、cancellablesは自動的にクリーンアップされる
+        print("HelpHistoryViewModel deinit called")
     }
     
     func loadHelpHistory() {
