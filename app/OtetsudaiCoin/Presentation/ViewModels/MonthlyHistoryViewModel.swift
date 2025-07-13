@@ -53,17 +53,27 @@ class MonthlyHistoryViewModel {
     
     func selectChild(_ child: Child) {
         selectedChild = child
-        loadMonthlyHistory()
+        // 即座にデータロードを実行
+        Task {
+            await MainActor.run {
+                loadMonthlyHistory()
+            }
+        }
     }
     
     func loadMonthlyHistory() {
-        guard let child = selectedChild else { return }
+        guard let child = selectedChild else { 
+            print("Warning: loadMonthlyHistory called but selectedChild is nil")
+            return 
+        }
         
         // 実行中のタスクをキャンセル
         loadHistoryTask?.cancel()
         
         isLoading = true
         errorMessage = nil
+        
+        print("Loading monthly history for child: \(child.name)")
         
         loadHistoryTask = Task {
             do {

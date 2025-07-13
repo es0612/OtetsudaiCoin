@@ -60,8 +60,12 @@ struct MonthlyHistoryView: View {
             }
         }
         .onAppear {
-            if viewModel.monthlyRecords.isEmpty {
+            // selectedChildがセットされているか確認してからデータロード
+            if viewModel.selectedChild != nil && viewModel.monthlyRecords.isEmpty {
                 viewModel.refreshData()
+            } else if viewModel.selectedChild == nil {
+                // 子供が選択されていない場合のログ
+                print("Warning: MonthlyHistoryView appeared but selectedChild is nil")
             }
         }
         .alert("エラー", isPresented: .constant(viewModel.errorMessage != nil)) {

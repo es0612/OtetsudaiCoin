@@ -37,13 +37,25 @@ class HelpRecordEditViewModel: BaseViewModel {
             do {
                 let tasks = try await helpTaskRepository.findActive()
                 
-                availableTasks = tasks
-                // 現在のタスクを選択状態にする
-                selectedTask = tasks.first { $0.id == helpRecord.helpTaskId }
-                setLoading(false)
+                await MainActor.run {
+                    availableTasks = tasks
+                    // 現在のタスクを選択状態にする
+                    selectedTask = tasks.first { $0.id == helpRecord.helpTaskId }
+                    
+                    // タスクが見つからない場合のログ出力
+                    if selectedTask == nil && !tasks.isEmpty {
+                        print("Warning: 既存のタスクID \(helpRecord.helpTaskId) がアクティブなタスクリストに見つかりません")
+                        // 最初のタスクをデフォルトで選択
+                        selectedTask = tasks.first
+                    }
+                    
+                    setLoading(false)
+                }
             } catch {
-                setUserFriendlyError(error)
-                setLoading(false)
+                await MainActor.run {
+                    setUserFriendlyError(error)
+                    setLoading(false)
+                }
             }
         }
     }

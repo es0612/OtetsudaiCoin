@@ -63,6 +63,21 @@ struct HelpRecordEditView: View {
                         .foregroundColor(.secondary)
                 }
                 .padding(.vertical, 8)
+            } else if viewModel.availableTasks.isEmpty {
+                VStack {
+                    Image(systemName: "exclamationmark.triangle")
+                        .foregroundColor(.orange)
+                        .font(.title2)
+                    Text("利用可能なタスクがありません")
+                        .foregroundColor(.secondary)
+                        .font(.caption)
+                    Button("再読み込み") {
+                        viewModel.loadData()
+                    }
+                    .buttonStyle(.bordered)
+                    .font(.caption)
+                }
+                .padding(.vertical, 8)
             } else {
                 ForEach(viewModel.availableTasks, id: \.id) { task in
                     TaskSelectionRow(
