@@ -63,7 +63,7 @@ class MonthlyHistoryViewModel {
     
     func loadMonthlyHistory() {
         guard let child = selectedChild else { 
-            print("Warning: loadMonthlyHistory called but selectedChild is nil")
+            DebugLogger.warning("loadMonthlyHistory called but selectedChild is nil")
             return 
         }
         
@@ -73,7 +73,7 @@ class MonthlyHistoryViewModel {
         isLoading = true
         errorMessage = nil
         
-        print("Loading monthly history for child: \(child.name)")
+        DebugLogger.info("Loading monthly history for child: \(child.name)")
         
         loadHistoryTask = Task {
             do {

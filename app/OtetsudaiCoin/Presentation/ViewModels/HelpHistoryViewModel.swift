@@ -68,20 +68,17 @@ class HelpHistoryViewModel {
                 // タスクがキャンセルされていないか確認
                 guard !Task.isCancelled else { return }
                 
-                // 詳細情報を取得
-                var recordsWithDetails: [HelpRecordWithDetails] = []
-                for record in records {
-                    if let task = try await helpTaskRepository.findById(record.helpTaskId) {
-                        let recordWithDetails = HelpRecordWithDetails(
-                            helpRecord: record,
-                            child: child,
-                            task: task
-                        )
-                        recordsWithDetails.append(recordWithDetails)
-                    }
-                    
-                    // 各ループでキャンセル確認
-                    guard !Task.isCancelled else { return }
+                // 詳細情報を取得（バッチ処理で最適化）
+                let allTasks = try await helpTaskRepository.findAll()
+                let taskMap = Dictionary(uniqueKeysWithValues: allTasks.map { ($0.id, $0) })
+                
+                let recordsWithDetails: [HelpRecordWithDetails] = records.compactMap { record in
+                    guard let task = taskMap[record.helpTaskId] else { return nil }
+                    return HelpRecordWithDetails(
+                        helpRecord: record,
+                        child: child,
+                        task: task
+                    )
                 }
                 
                 // 最終的なキャンセル確認

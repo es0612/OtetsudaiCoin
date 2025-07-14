@@ -32,19 +32,41 @@ class BaseViewModel {
     }
     
     func setLoading(_ loading: Bool) {
+        DebugLogger.logViewModelState(
+            viewModel: String(describing: type(of: self)),
+            state: "setLoading",
+            details: "Loading: \(loading)"
+        )
         viewState.setLoading(loading)
     }
     
     func setError(_ message: String) {
+        DebugLogger.logViewModelState(
+            viewModel: String(describing: type(of: self)),
+            state: "setError",
+            details: "Error: \(message)"
+        )
         viewState.setError(message)
     }
     
     func setSuccess(_ message: String) {
+        DebugLogger.logViewModelState(
+            viewModel: String(describing: type(of: self)),
+            state: "setSuccess",
+            details: "Success: \(message)"
+        )
         viewState.setSuccess(message)
     }
     
     func cancelLoadDataTask() {
-        loadDataTask?.cancel()
-        loadDataTask = nil
+        if loadDataTask != nil {
+            DebugLogger.logViewModelState(
+                viewModel: String(describing: type(of: self)),
+                state: "cancelLoadDataTask",
+                details: "Cancelling existing task"
+            )
+            loadDataTask?.cancel()
+            loadDataTask = nil
+        }
     }
 }

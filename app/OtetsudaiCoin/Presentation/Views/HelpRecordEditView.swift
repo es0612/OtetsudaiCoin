@@ -32,8 +32,16 @@ struct HelpRecordEditView: View {
         }
         .onChange(of: viewModel.viewState.successMessage) { _, successMessage in
             if successMessage != nil {
+                DebugLogger.info("Success message received, dismissing view: \(successMessage ?? "unknown")")
                 dismiss()
             }
+        }
+        .onAppear {
+            DebugLogger.info("HelpRecordEditView appeared")
+            viewModel.loadData()
+        }
+        .onDisappear {
+            DebugLogger.info("HelpRecordEditView disappeared")
         }
         .alert("削除確認", isPresented: $showingDeleteAlert) {
             Button("削除", role: .destructive) {
@@ -59,6 +67,9 @@ struct HelpRecordEditView: View {
                 HStack {
                     ProgressView()
                         .scaleEffect(0.8)
+                        .onAppear {
+                            DebugLogger.debug("ProgressView appeared - showing loading state")
+                        }
                     Text("読み込み中...")
                         .foregroundColor(.secondary)
                 }
@@ -71,7 +82,11 @@ struct HelpRecordEditView: View {
                     Text("利用可能なタスクがありません")
                         .foregroundColor(.secondary)
                         .font(.caption)
+                        .onAppear {
+                            DebugLogger.warning("No available tasks message displayed to user")
+                        }
                     Button("再読み込み") {
+                        DebugLogger.info("Manual refresh button tapped by user")
                         viewModel.loadData()
                     }
                     .buttonStyle(.bordered)

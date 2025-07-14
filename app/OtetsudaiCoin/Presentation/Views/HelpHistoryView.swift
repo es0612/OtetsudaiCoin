@@ -7,6 +7,17 @@ struct HelpHistoryView: View {
     @State private var recordToEdit: HelpRecordWithDetails?
     @State private var availableChildren: [Child] = []
     
+    // 共有ファクトリー（Repository重複作成を防ぐ）
+    private let sharedRepositoryFactory: RepositoryFactory
+    private let sharedViewModelFactory: ViewModelFactory
+    
+    init(viewModel: HelpHistoryViewModel) {
+        self.viewModel = viewModel
+        let context = PersistenceController.shared.container.viewContext
+        self.sharedRepositoryFactory = RepositoryFactory(context: context)
+        self.sharedViewModelFactory = ViewModelFactory(repositoryFactory: sharedRepositoryFactory)
+    }
+    
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
@@ -215,10 +226,7 @@ struct HelpHistoryView: View {
     }
     
     private func createEditView(for record: HelpRecordWithDetails) -> some View {
-        let context = PersistenceController.shared.container.viewContext
-        let repositoryFactory = RepositoryFactory(context: context)
-        let viewModelFactory = ViewModelFactory(repositoryFactory: repositoryFactory)
-        let editViewModel = viewModelFactory.createHelpRecordEditViewModel(
+        let editViewModel = sharedViewModelFactory.createHelpRecordEditViewModel(
             helpRecord: record.helpRecord,
             child: record.child
         )
@@ -252,15 +260,14 @@ struct HelpHistoryView: View {
     private func loadAvailableChildren() {
         Task {
             do {
-                let context = PersistenceController.shared.container.viewContext
-                let childRepository = CoreDataChildRepository(context: context)
+                let childRepository = sharedRepositoryFactory.createChildRepository()
                 let children = try await childRepository.findAll()
                 
                 await MainActor.run {
                     self.availableChildren = children
                 }
             } catch {
-                print("Failed to load children: \(error)")
+                DebugLogger.error("Failed to load children: \(error.localizedDescription)")
             }
         }
     }
