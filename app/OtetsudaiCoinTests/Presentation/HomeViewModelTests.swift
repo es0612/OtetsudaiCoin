@@ -125,6 +125,107 @@ final class HomeViewModelTests: XCTestCase {
         
         XCTAssertEqual(mockHelpRecordRepository.findCallCount, 1)
     }
+
+    @MainActor
+    func testCheckUnpaidAllowancesWithNoUnpaid() {
+        let mockUnpaidDetector = MockUnpaidAllowanceDetectorService()
+        mockUnpaidDetector.unpaidPeriods = []
+        
+        viewModel = createViewModelWithUnpaidDetector(unpaidDetector: mockUnpaidDetector)
+        
+        viewModel.checkUnpaidAllowances()
+        
+        XCTAssertFalse(viewModel.hasUnpaidAllowances)
+        XCTAssertTrue(viewModel.unpaidPeriods.isEmpty)
+        XCTAssertNil(viewModel.unpaidWarningMessage)
+    }
+    
+    @MainActor
+    func testCheckUnpaidAllowancesWithUnpaidPeriods() {
+        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+        let unpaidPeriod = UnpaidPeriod(
+            childId: child.id,
+            month: 6,
+            year: 2024,
+            expectedAmount: 150
+        )
+        
+        let mockUnpaidDetector = MockUnpaidAllowanceDetectorService()
+        mockUnpaidDetector.unpaidPeriods = [unpaidPeriod]
+        
+        viewModel = createViewModelWithUnpaidDetector(unpaidDetector: mockUnpaidDetector)
+        viewModel.children = [child]
+        
+        viewModel.checkUnpaidAllowances()
+        
+        XCTAssertTrue(viewModel.hasUnpaidAllowances)
+        XCTAssertEqual(viewModel.unpaidPeriods.count, 1)
+        XCTAssertEqual(viewModel.unpaidPeriods.first?.childId, child.id)
+        XCTAssertNotNil(viewModel.unpaidWarningMessage)
+        XCTAssertTrue(viewModel.unpaidWarningMessage!.contains("太郎"))
+        XCTAssertTrue(viewModel.unpaidWarningMessage!.contains("150"))
+    }
+    
+    @MainActor
+    func testCheckUnpaidAllowancesWithMultipleChildren() {
+        let child1 = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+        let child2 = Child(id: UUID(), name: "花子", themeColor: "#33FF57")
+        
+        let unpaidPeriods = [
+            UnpaidPeriod(childId: child1.id, month: 6, year: 2024, expectedAmount: 150),
+            UnpaidPeriod(childId: child2.id, month: 5, year: 2024, expectedAmount: 200)
+        ]
+        
+        let mockUnpaidDetector = MockUnpaidAllowanceDetectorService()
+        mockUnpaidDetector.unpaidPeriods = unpaidPeriods
+        
+        viewModel = createViewModelWithUnpaidDetector(unpaidDetector: mockUnpaidDetector)
+        viewModel.children = [child1, child2]
+        
+        viewModel.checkUnpaidAllowances()
+        
+        XCTAssertTrue(viewModel.hasUnpaidAllowances)
+        XCTAssertEqual(viewModel.unpaidPeriods.count, 2)
+        XCTAssertEqual(viewModel.totalUnpaidAmount, 350)
+        XCTAssertNotNil(viewModel.unpaidWarningMessage)
+        XCTAssertTrue(viewModel.unpaidWarningMessage!.contains("2人"))
+        XCTAssertTrue(viewModel.unpaidWarningMessage!.contains("350"))
+    }
+    
+    @MainActor
+    func testDismissUnpaidWarning() {
+        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+        let unpaidPeriod = UnpaidPeriod(
+            childId: child.id,
+            month: 6,
+            year: 2024,
+            expectedAmount: 150
+        )
+        
+        let mockUnpaidDetector = MockUnpaidAllowanceDetectorService()
+        mockUnpaidDetector.unpaidPeriods = [unpaidPeriod]
+        
+        viewModel = createViewModelWithUnpaidDetector(unpaidDetector: mockUnpaidDetector)
+        viewModel.children = [child]
+        
+        viewModel.checkUnpaidAllowances()
+        XCTAssertTrue(viewModel.hasUnpaidAllowances)
+        
+        viewModel.dismissUnpaidWarning()
+        XCTAssertFalse(viewModel.showUnpaidWarning)
+    }
+    
+    @MainActor
+    private func createViewModelWithUnpaidDetector(unpaidDetector: UnpaidAllowanceDetectorService) -> HomeViewModel {
+        return HomeViewModel(
+            childRepository: mockChildRepository,
+            helpRecordRepository: mockHelpRecordRepository,
+            helpTaskRepository: mockHelpTaskRepository,
+            allowanceCalculator: mockAllowanceCalculator,
+            allowancePaymentRepository: mockAllowancePaymentRepository,
+            unpaidDetector: unpaidDetector
+        )
+    }
 }
 
 // MARK: - Mock Classes
@@ -143,5 +244,18 @@ class MockAllowanceCalculator: AllowanceCalculator {
     
     override func calculateConsecutiveDays(records: [HelpRecord]) -> Int {
         return consecutiveDays
+    }
+}
+
+class MockUnpaidAllowanceDetectorService: UnpaidAllowanceDetectorService {
+    var unpaidPeriods: [UnpaidPeriod] = []
+    
+    override func detectUnpaidPeriods(
+        childId: UUID,
+        helpRecords: [HelpRecord],
+        payments: [AllowancePayment],
+        tasks: [HelpTask]
+    ) -> [UnpaidPeriod] {
+        return unpaidPeriods.filter { $0.childId == childId }
     }
 }
