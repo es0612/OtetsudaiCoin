@@ -43,6 +43,11 @@ struct HomeView: View {
                 } else {
                     ScrollView {
                         VStack(spacing: 20) {
+                            // 未支払い警告バナー
+                            if viewModel.showUnpaidWarning {
+                                unpaidWarningBanner
+                            }
+                            
                             if let selectedChild = viewModel.selectedChild {
                                 childStatsView(for: selectedChild)
                             }
@@ -328,6 +333,89 @@ struct HomeView: View {
             }
             .padding(.horizontal)
         }
+    }
+    
+    private var unpaidWarningBanner: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundColor(.white)
+                    .font(.title2)
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("未支払いのお小遣いがあります")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .fontWeight(.bold)
+                    
+                    if let message = viewModel.unpaidWarningMessage {
+                        Text(message)
+                            .font(.subheadline)
+                            .foregroundColor(.white.opacity(0.9))
+                    }
+                }
+                
+                Spacer()
+                
+                Text("\(viewModel.totalUnpaidAmount)コイン")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+            }
+            
+            if !viewModel.unpaidPeriods.isEmpty {
+                HStack {
+                    Text("未支払い期間: ")
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.8))
+                    
+                    Text(viewModel.unpaidPeriods.map { $0.monthYearString }.joined(separator: ", "))
+                        .font(.caption)
+                        .foregroundColor(.white)
+                        .fontWeight(.medium)
+                    
+                    Spacer()
+                }
+            }
+            
+            HStack {
+                Spacer()
+                
+                Button(action: {
+                    if let selectedChild = viewModel.selectedChild {
+                        prepareMonthlyHistoryViewModel(for: selectedChild)
+                        showingMonthlyHistory = true
+                    }
+                }) {
+                    HStack(spacing: 6) {
+                        Text("支払い履歴を確認")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                        Image(systemName: "arrow.right")
+                            .font(.caption)
+                    }
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.white.opacity(0.2))
+                    )
+                }
+                .buttonStyle(PlainButtonStyle())
+            }
+        }
+        .padding(16)
+        .background(
+            LinearGradient(
+                colors: [Color.red, Color.red.opacity(0.8)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        )
+        .cornerRadius(16)
+        .shadow(color: Color.red.opacity(0.3), radius: 8, x: 0, y: 4)
+        .padding(.horizontal)
     }
 }
 

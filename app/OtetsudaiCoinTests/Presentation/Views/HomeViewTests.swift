@@ -116,4 +116,43 @@ final class HomeViewTests: XCTestCase {
         
         XCTAssertNoThrow(try view.inspect().find(text: "お子様を登録してください"))
     }
+    
+    @MainActor
+    func testHomeViewDisplaysUnpaidWarningBanner() throws {
+        // 未支払い警告が表示される状態を設定
+        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+        viewModel.selectedChild = child
+        viewModel.children = [child]
+        
+        let unpaidPeriod = UnpaidPeriod(childId: child.id, month: 12, year: 2023, expectedAmount: 500)
+        viewModel.unpaidPeriods = [unpaidPeriod]
+        viewModel.hasUnpaidAllowances = true
+        viewModel.showUnpaidWarning = true
+        viewModel.unpaidWarningMessage = "12月分のお小遣いが未払いです"
+        viewModel.totalUnpaidAmount = 500
+        
+        let view = HomeView(viewModel: viewModel)
+        
+        // 未支払い警告バナーの表示をテスト
+        XCTAssertNoThrow(try view.inspect().find(text: "未支払いのお小遣いがあります"))
+        XCTAssertNoThrow(try view.inspect().find(text: "500コイン"))
+        XCTAssertNoThrow(try view.inspect().find(text: "支払い履歴を確認"))
+    }
+    
+    @MainActor
+    func testHomeViewHidesUnpaidWarningBannerWhenNoUnpaidAllowances() throws {
+        // 未支払いがない状態を設定
+        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+        viewModel.selectedChild = child
+        viewModel.children = [child]
+        viewModel.unpaidPeriods = []
+        viewModel.hasUnpaidAllowances = false
+        viewModel.showUnpaidWarning = false
+        viewModel.totalUnpaidAmount = 0
+        
+        let view = HomeView(viewModel: viewModel)
+        
+        // 未支払い警告バナーが表示されないことをテスト
+        XCTAssertThrowsError(try view.inspect().find(text: "未支払いのお小遣いがあります"))
+    }
 }
