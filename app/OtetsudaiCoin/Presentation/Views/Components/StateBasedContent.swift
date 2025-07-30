@@ -1,38 +1,43 @@
 import SwiftUI
 
 struct StateBasedContent<Content: View, LoadingContent: View>: View {
-    let viewState: ViewState
+    let isLoading: Bool
+    let errorMessage: String?
     let onRetry: (() -> Void)?
     @ViewBuilder let content: () -> Content
     @ViewBuilder let loadingContent: () -> LoadingContent
     
     init(
-        viewState: ViewState,
+        isLoading: Bool,
+        errorMessage: String? = nil,
         onRetry: (() -> Void)? = nil,
         @ViewBuilder content: @escaping () -> Content
     ) where LoadingContent == LoadingView {
-        self.viewState = viewState
+        self.isLoading = isLoading
+        self.errorMessage = errorMessage
         self.onRetry = onRetry
         self.loadingContent = { LoadingView() }
         self.content = content
     }
     
     init(
-        viewState: ViewState,
+        isLoading: Bool,
+        errorMessage: String? = nil,
         onRetry: (() -> Void)? = nil,
         @ViewBuilder loadingContent: @escaping () -> LoadingContent,
         @ViewBuilder content: @escaping () -> Content
     ) {
-        self.viewState = viewState
+        self.isLoading = isLoading
+        self.errorMessage = errorMessage
         self.onRetry = onRetry
         self.loadingContent = loadingContent
         self.content = content
     }
     
     var body: some View {
-        if viewState.isLoading {
+        if isLoading {
             loadingContent()
-        } else if let errorMessage = viewState.errorMessage {
+        } else if let errorMessage = errorMessage {
             ErrorView(message: errorMessage, onRetry: onRetry)
         } else {
             content()

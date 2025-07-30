@@ -30,7 +30,7 @@ struct HelpRecordEditView: View {
                 }
             })
         }
-        .onChange(of: viewModel.viewState.successMessage) { _, successMessage in
+        .onChange(of: viewModel.successMessage) { _, successMessage in
             if successMessage != nil {
                 DebugLogger.info("Success message received, dismissing view: \(successMessage ?? "unknown")")
                 dismiss()
@@ -52,7 +52,8 @@ struct HelpRecordEditView: View {
             Text("この記録を削除しますか？この操作は取り消せません。")
         }
         .commonAlerts(
-            viewState: viewModel.viewState,
+            errorMessage: viewModel.errorMessage,
+            successMessage: viewModel.successMessage,
             onErrorDismiss: { viewModel.clearMessages() },
             onSuccessDismiss: { 
                 viewModel.clearMessages()

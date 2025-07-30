@@ -43,11 +43,16 @@ class RecordViewModel: BaseViewModel {
         )
         
         NotificationManager.shared.observeHelpRecordUpdates(
-            action: { [weak self] in self?.loadData() },
+            action: { [weak self] in 
+                Task { @MainActor in
+                    self?.loadData()
+                }
+            },
             cancellables: &cancellables
         )
     }
     
+    @MainActor
     func loadData() {
         // 実行中のタスクをキャンセル
         cancelLoadDataTask()
@@ -87,6 +92,7 @@ class RecordViewModel: BaseViewModel {
         }
     }
     
+    @MainActor
     func loadTasks() {
         loadData()
     }
@@ -117,7 +123,9 @@ class RecordViewModel: BaseViewModel {
                 }
             } catch {
                 guard !Task.isCancelled else { return }
-                setUserFriendlyError(error)
+                await MainActor.run {
+                    setUserFriendlyError(error)
+                }
             }
         }
     }
@@ -138,6 +146,7 @@ class RecordViewModel: BaseViewModel {
         clearErrorMessage()
     }
     
+    @MainActor
     func recordHelp() {
         clearErrorMessage()
         

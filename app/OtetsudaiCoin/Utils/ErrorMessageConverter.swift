@@ -142,6 +142,7 @@ struct ErrorMessageConverter {
 extension BaseViewModel {
     /// エラーメッセージをユーザーフレンドリーな形で設定
     /// - Parameter error: 発生したエラー
+    @MainActor
     func setUserFriendlyError(_ error: Error) {
         let friendlyMessage = ErrorMessageConverter.convertToUserFriendlyMessage(error)
         setError(friendlyMessage)

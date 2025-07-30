@@ -12,11 +12,12 @@ struct RecordView: View {
                     ScrollView {
                         VStack(spacing: 16) {
                             StateBasedContent(
-                                viewState: viewModel.viewState,
-                                onRetry: { viewModel.loadTasks() },
+                                isLoading: viewModel.isLoading,
+                                errorMessage: viewModel.errorMessage,
+                                onRetry: { viewModel.loadTasks() }
                             ) {
                                 VStack(spacing: 16) {
-                                    if let successMessage = viewModel.viewState.successMessage {
+                                    if let successMessage = viewModel.successMessage {
                                         HStack {
                                             Image(systemName: "checkmark.circle.fill")
                                                 .foregroundColor(AccessibilityColors.successGreen)
@@ -71,7 +72,7 @@ struct RecordView: View {
                 )
             }
         }
-        .onChange(of: viewModel.viewState.successMessage) { _, successMessage in
+        .onChange(of: viewModel.successMessage) { _, successMessage in
             if successMessage != nil && !showCoinAnimation {
                 showCoinAnimation = true
             }

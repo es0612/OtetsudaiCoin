@@ -1,33 +1,36 @@
 import SwiftUI
 
 struct CommonAlertModifier: ViewModifier {
-    let viewState: ViewState
+    let errorMessage: String?
+    let successMessage: String?
     let onErrorDismiss: () -> Void
     let onSuccessDismiss: () -> Void
     
     func body(content: Content) -> some View {
         content
-            .alert("エラー", isPresented: .constant(viewState.errorMessage != nil)) {
+            .alert("エラー", isPresented: .constant(errorMessage != nil)) {
                 Button("OK") { onErrorDismiss() }
             } message: {
-                Text(viewState.errorMessage ?? "")
+                Text(errorMessage ?? "")
             }
-            .alert("成功", isPresented: .constant(viewState.successMessage != nil)) {
+            .alert("成功", isPresented: .constant(successMessage != nil)) {
                 Button("OK") { onSuccessDismiss() }
             } message: {
-                Text(viewState.successMessage ?? "")
+                Text(successMessage ?? "")
             }
     }
 }
 
 extension View {
     func commonAlerts(
-        viewState: ViewState,
+        errorMessage: String?,
+        successMessage: String?,
         onErrorDismiss: @escaping () -> Void = {},
         onSuccessDismiss: @escaping () -> Void = {}
     ) -> some View {
         modifier(CommonAlertModifier(
-            viewState: viewState,
+            errorMessage: errorMessage,
+            successMessage: successMessage,
             onErrorDismiss: onErrorDismiss,
             onSuccessDismiss: onSuccessDismiss
         ))

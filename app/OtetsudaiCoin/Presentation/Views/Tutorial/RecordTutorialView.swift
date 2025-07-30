@@ -79,7 +79,7 @@ struct RecordTutorialView: View {
                 )
             }
         }
-        .onChange(of: recordViewModel.viewState.isLoading) { oldValue, newValue in
+        .onChange(of: recordViewModel.isLoading) { oldValue, newValue in
             // データロード完了時に自動的に子供を選択（onChange重複実行を防ぐため条件を厳密化）
             if oldValue == true && newValue == false && !recordViewModel.availableChildren.isEmpty && recordViewModel.selectedChild == nil {
                 DispatchQueue.main.async {
@@ -87,7 +87,7 @@ struct RecordTutorialView: View {
                 }
             }
         }
-        .onChange(of: recordViewModel.viewState.successMessage) { oldValue, newValue in
+        .onChange(of: recordViewModel.successMessage) { oldValue, newValue in
             // 記録成功時にhasRecordedInSessionを確実に更新
             if oldValue == nil && newValue != nil {
                 DispatchQueue.main.async {

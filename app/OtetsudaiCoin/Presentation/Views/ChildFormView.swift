@@ -128,22 +128,22 @@ struct ChildFormView: View {
                     .accessibilityIdentifier("save_button")
                 }
             }
-            .alert("エラー", isPresented: .constant(viewModel.viewState.errorMessage != nil)) {
+            .alert("エラー", isPresented: .constant(viewModel.errorMessage != nil)) {
                 Button("OK") {
                     viewModel.clearErrorMessage()
                 }
             } message: {
-                Text(viewModel.viewState.errorMessage ?? "")
+                Text(viewModel.errorMessage ?? "")
             }
-            .alert("成功", isPresented: .constant(viewModel.viewState.successMessage != nil)) {
+            .alert("成功", isPresented: .constant(viewModel.successMessage != nil)) {
                 Button("OK") {
                     viewModel.clearMessages()
                     dismiss()
                 }
             } message: {
-                Text(viewModel.viewState.successMessage ?? "")
+                Text(viewModel.successMessage ?? "")
             }
-            .onChange(of: viewModel.viewState.successMessage) { oldValue, newValue in
+            .onChange(of: viewModel.successMessage) { oldValue, newValue in
                 if newValue != nil && oldValue == nil {
                     // 成功メッセージが新しく設定された場合、少し遅延してからdismiss
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {

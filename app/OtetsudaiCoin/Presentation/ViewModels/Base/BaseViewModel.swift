@@ -3,13 +3,13 @@ import Combine
 
 @Observable
 class BaseViewModel {
-    var viewState = ViewState()
+    // 直接的な状態プロパティ（@Observableで適切に追跡される）
+    var isLoading: Bool = false
+    var errorMessage: String?
+    var successMessage: String?
+    
     var cancellables = Set<AnyCancellable>()
     var loadDataTask: Task<Void, Never>?
-    
-    var isLoading: Bool { viewState.isLoading }
-    var errorMessage: String? { viewState.errorMessage }
-    var successMessage: String? { viewState.successMessage }
     
     init() {
         setupNotificationListeners()
@@ -20,43 +20,59 @@ class BaseViewModel {
     }
     
     func clearMessages() {
-        viewState.clear()
+        DebugLogger.debug("BaseViewModel.clearMessages: Clearing all messages")
+        errorMessage = nil
+        successMessage = nil
     }
     
     func clearErrorMessage() {
-        viewState.clearOnlyError()
+        DebugLogger.debug("BaseViewModel.clearErrorMessage: Clearing error message")
+        errorMessage = nil
     }
     
     func clearSuccessMessage() {
-        viewState.clearOnlySuccess()
+        DebugLogger.debug("BaseViewModel.clearSuccessMessage: Clearing success message")
+        successMessage = nil
     }
     
+    @MainActor
     func setLoading(_ loading: Bool) {
         DebugLogger.logViewModelState(
             viewModel: String(describing: type(of: self)),
             state: "setLoading",
-            details: "Loading: \(loading)"
+            details: "Loading: \(loading) (previous: \(isLoading))"
         )
-        viewState.setLoading(loading)
+        isLoading = loading
+        if loading {
+            errorMessage = nil
+            DebugLogger.debug("BaseViewModel: Cleared error message due to loading start")
+        }
     }
     
+    @MainActor
     func setError(_ message: String) {
         DebugLogger.logViewModelState(
             viewModel: String(describing: type(of: self)),
             state: "setError",
             details: "Error: \(message)"
         )
-        viewState.setError(message)
+        isLoading = false
+        errorMessage = message
+        successMessage = nil
     }
     
+    @MainActor
     func setSuccess(_ message: String) {
         DebugLogger.logViewModelState(
             viewModel: String(describing: type(of: self)),
             state: "setSuccess",
             details: "Success: \(message)"
         )
-        viewState.setSuccess(message)
+        isLoading = false
+        successMessage = message
+        errorMessage = nil
     }
+    
     
     func cancelLoadDataTask() {
         if loadDataTask != nil {
