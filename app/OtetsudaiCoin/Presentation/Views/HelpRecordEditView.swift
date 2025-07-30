@@ -6,7 +6,7 @@ struct HelpRecordEditView: View {
     @State private var showingDeleteAlert = false
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Form {
                 taskSelectionSection
                 dateTimeSection

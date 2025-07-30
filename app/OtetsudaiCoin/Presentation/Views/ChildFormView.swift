@@ -15,7 +15,7 @@ struct ChildFormView: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Form {
                 Section("基本情報") {
                     HStack {

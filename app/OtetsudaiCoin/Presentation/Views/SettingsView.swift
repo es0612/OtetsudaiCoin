@@ -27,7 +27,7 @@ struct SettingsView: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 Section("お子様管理") {
                     ForEach(viewModel.children, id: \.id) { child in

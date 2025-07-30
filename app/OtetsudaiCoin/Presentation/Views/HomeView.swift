@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct HomeView: View {
     @Bindable var viewModel: HomeViewModel
@@ -8,8 +9,11 @@ struct HomeView: View {
     // ViewModelのキャッシュ化
     @State private var monthlyHistoryViewModel: MonthlyHistoryViewModel?
     
+    // レスポンシブレイアウト用
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack {
                 if viewModel.isLoading {
                     SkeletonViews.HomeViewSkeleton()
@@ -42,7 +46,7 @@ struct HomeView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     ScrollView {
-                        VStack(spacing: 20) {
+                        VStack(spacing: DeviceInfo.contentPadding) {
                             // 未支払い警告バナー
                             if viewModel.showUnpaidWarning {
                                 unpaidWarningBanner
@@ -54,8 +58,9 @@ struct HomeView: View {
                             
                             childrenListView
                         }
-                        .padding()
+                        .adaptivePadding()
                     }
+                    .adaptiveContentWidth()
                 }
             }
             .navigationTitle("おてつだいコイン")
@@ -142,7 +147,13 @@ struct HomeView: View {
             }
             
             // 統計カード
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 16) {
+            LazyVGrid(
+                columns: Array(
+                    repeating: GridItem(.flexible()), 
+                    count: DeviceInfo.statisticsCardColumns(for: horizontalSizeClass)
+                ), 
+                spacing: DeviceInfo.statisticsCardSpacing
+            ) {
                 StatisticsCard(
                     icon: "star.fill",
                     title: "今月の実績",
@@ -258,13 +269,13 @@ struct HomeView: View {
                 }
             }
         }
-        .padding()
+        .adaptivePadding()
         .background(
             RoundedRectangle(cornerRadius: 20)
                 .fill(Color(.systemBackground))
                 .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
         )
-        .padding(.horizontal)
+        .padding(.horizontal, DeviceInfo.contentPadding)
     }
     
     private func getHelpHistoryView(for child: Child) -> some View {
@@ -291,7 +302,7 @@ struct HomeView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("お子様を選択")
                 .appFont(.sectionHeader)
-                .padding(.horizontal)
+                .padding(.horizontal, DeviceInfo.contentPadding)
             
             LazyVStack(spacing: 8) {
                 ForEach(viewModel.children, id: \.id) { child in
@@ -331,7 +342,7 @@ struct HomeView: View {
                     .accessibilityIdentifier("child_button")
                 }
             }
-            .padding(.horizontal)
+            .padding(.horizontal, DeviceInfo.contentPadding)
         }
     }
     
@@ -415,7 +426,7 @@ struct HomeView: View {
         )
         .cornerRadius(16)
         .shadow(color: Color.red.opacity(0.3), radius: 8, x: 0, y: 4)
-        .padding(.horizontal)
+        .padding(.horizontal, DeviceInfo.contentPadding)
     }
 }
 

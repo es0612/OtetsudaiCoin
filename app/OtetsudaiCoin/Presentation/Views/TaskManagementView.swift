@@ -9,7 +9,7 @@ struct TaskManagementView: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack {
                 if viewModel.isLoading {
                     ProgressView("読み込み中...")
@@ -163,7 +163,7 @@ struct TaskFormView: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Form {
                 Section("タスク情報") {
                     TextField("タスク名", text: $taskName)

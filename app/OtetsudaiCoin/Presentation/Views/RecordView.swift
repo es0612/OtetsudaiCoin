@@ -6,7 +6,7 @@ struct RecordView: View {
     
     var body: some View {
         ZStack {
-            NavigationView {
+            NavigationStack {
                 VStack(spacing: 0) {
                     // メインコンテンツ
                     ScrollView {

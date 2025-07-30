@@ -5,7 +5,7 @@ struct MonthlyHistoryView: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack {
                 if viewModel.isLoading {
                     ProgressView("読み込み中...")
