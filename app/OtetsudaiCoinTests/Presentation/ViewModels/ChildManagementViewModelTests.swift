@@ -33,8 +33,8 @@ final class ChildManagementViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.children.count, 2)
         XCTAssertEqual(viewModel.children[0].name, "太郎")
         XCTAssertEqual(viewModel.children[1].name, "花子")
-        XCTAssertFalse(viewModel.viewState.isLoading)
-        XCTAssertNil(viewModel.viewState.errorMessage)
+        XCTAssertFalse(viewModel.isLoading)
+        XCTAssertNil(viewModel.errorMessage)
     }
     
     @MainActor
@@ -47,8 +47,8 @@ final class ChildManagementViewModelTests: XCTestCase {
         
         // Then
         XCTAssertTrue(viewModel.children.isEmpty)
-        XCTAssertFalse(viewModel.viewState.isLoading)
-        XCTAssertNotNil(viewModel.viewState.errorMessage)
+        XCTAssertFalse(viewModel.isLoading)
+        XCTAssertNotNil(viewModel.errorMessage)
     }
     
     @MainActor
@@ -65,7 +65,7 @@ final class ChildManagementViewModelTests: XCTestCase {
         XCTAssertEqual(childRepository.savedChildren[0].name, name)
         XCTAssertEqual(childRepository.savedChildren[0].themeColor, themeColor)
         // coinRateはChildエンティティから削除されました
-        XCTAssertNotNil(viewModel.viewState.successMessage)
+        XCTAssertNotNil(viewModel.successMessage)
     }
     
     @MainActor
@@ -79,7 +79,7 @@ final class ChildManagementViewModelTests: XCTestCase {
         
         // Then
         XCTAssertTrue(childRepository.savedChildren.isEmpty)
-        XCTAssertNotNil(viewModel.viewState.errorMessage)
+        XCTAssertNotNil(viewModel.errorMessage)
     }
     
     @MainActor
@@ -100,7 +100,7 @@ final class ChildManagementViewModelTests: XCTestCase {
         XCTAssertEqual(childRepository.updatedChildren[0].name, updatedName)
         XCTAssertEqual(childRepository.updatedChildren[0].themeColor, updatedColor)
         // coinRateはChildエンティティから削除されました
-        XCTAssertNotNil(viewModel.viewState.successMessage)
+        XCTAssertNotNil(viewModel.successMessage)
     }
     
     @MainActor
@@ -116,7 +116,7 @@ final class ChildManagementViewModelTests: XCTestCase {
         // Then
         XCTAssertEqual(childRepository.deletedChildIds.count, 1)
         XCTAssertEqual(childRepository.deletedChildIds[0], child.id)
-        XCTAssertNotNil(viewModel.viewState.successMessage)
+        XCTAssertNotNil(viewModel.successMessage)
     }
     
     @MainActor
@@ -144,8 +144,8 @@ final class ChildManagementViewModelTests: XCTestCase {
         viewModel.clearMessages()
         
         // Then
-        XCTAssertNil(viewModel.viewState.errorMessage)
-        XCTAssertNil(viewModel.viewState.successMessage)
+        XCTAssertNil(viewModel.errorMessage)
+        XCTAssertNil(viewModel.successMessage)
     }
     
     @MainActor
@@ -176,4 +176,3 @@ final class ChildManagementViewModelTests: XCTestCase {
         print("利用可能なカラー: \(availableColors)")
     }
 }
-

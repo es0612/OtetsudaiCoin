@@ -2,6 +2,8 @@ import Foundation
 import Combine
 
 
+@MainActor
+@Observable
 class RecordViewModel: BaseViewModel {
     var availableChildren: [Child] = []
     var availableTasks: [HelpTask] = []

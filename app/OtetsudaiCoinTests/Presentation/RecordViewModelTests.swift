@@ -39,9 +39,9 @@ final class RecordViewModelTests: XCTestCase {
         XCTAssertTrue(viewModel.availableTasks.isEmpty)
         XCTAssertNil(viewModel.selectedChild)
         XCTAssertNil(viewModel.selectedTask)
-        XCTAssertFalse(viewModel.viewState.isLoading)
-        XCTAssertNil(viewModel.viewState.errorMessage)
-        XCTAssertNil(viewModel.viewState.successMessage)
+        XCTAssertFalse(viewModel.isLoading)
+        XCTAssertNil(viewModel.errorMessage)
+        XCTAssertNil(viewModel.successMessage)
     }
     
     @MainActor
@@ -86,7 +86,7 @@ final class RecordViewModelTests: XCTestCase {
         }
         await fulfillment(of: [expectation], timeout: 1.0)
         
-        XCTAssertNotNil(viewModel.viewState.errorMessage)
+        XCTAssertNotNil(viewModel.errorMessage)
     }
     
     @MainActor
@@ -127,7 +127,7 @@ final class RecordViewModelTests: XCTestCase {
         await fulfillment(of: [expectation], timeout: 1.0)
         
         // 記録後の状態確認
-        XCTAssertEqual(viewModel.viewState.successMessage, "お手伝いを記録しました！")
+        XCTAssertEqual(viewModel.successMessage, "お手伝いを記録しました！")
         XCTAssertNil(viewModel.selectedTask)
         XCTAssertEqual(mockHelpRecordRepository.records.count, 1)
         XCTAssertEqual(mockHelpRecordRepository.records.first?.childId, child.id)
@@ -141,7 +141,7 @@ final class RecordViewModelTests: XCTestCase {
         
         viewModel.recordHelp()
         
-        XCTAssertEqual(viewModel.viewState.errorMessage, "お子様を選択してください")
+        XCTAssertEqual(viewModel.errorMessage, "お子様を選択してください")
     }
     
     @MainActor
@@ -151,7 +151,7 @@ final class RecordViewModelTests: XCTestCase {
         
         viewModel.recordHelp()
         
-        XCTAssertEqual(viewModel.viewState.errorMessage, "お手伝いタスクを選択してください")
+        XCTAssertEqual(viewModel.errorMessage, "お手伝いタスクを選択してください")
     }
     
     @MainActor
@@ -173,7 +173,7 @@ final class RecordViewModelTests: XCTestCase {
         }
         await fulfillment(of: [expectation], timeout: 1.0)
         
-        XCTAssertNotNil(viewModel.viewState.errorMessage)
+        XCTAssertNotNil(viewModel.errorMessage)
     }
     
     @MainActor
@@ -183,8 +183,8 @@ final class RecordViewModelTests: XCTestCase {
         
         viewModel.clearMessages()
         
-        XCTAssertNil(viewModel.viewState.errorMessage)
-        XCTAssertNil(viewModel.viewState.successMessage)
+        XCTAssertNil(viewModel.errorMessage)
+        XCTAssertNil(viewModel.successMessage)
     }
     
     // TODO: 効果音テストは後で修正する
@@ -237,4 +237,3 @@ final class RecordViewModelTests: XCTestCase {
     }
     */
 }
-

@@ -55,10 +55,10 @@ final class HelpRecordEditViewModelTests: XCTestCase {
         try? await Task.sleep(nanoseconds: 100_000_000) // 0.1秒待機
         
         // Then
-        XCTAssertFalse(viewModel.viewState.isLoading)
+        XCTAssertFalse(viewModel.isLoading)
         XCTAssertEqual(viewModel.availableTasks.count, 2)
         XCTAssertEqual(viewModel.selectedTask?.id, task1.id)
-        XCTAssertNil(viewModel.viewState.errorMessage)
+        XCTAssertNil(viewModel.errorMessage)
     }
     
     @MainActor
@@ -73,9 +73,9 @@ final class HelpRecordEditViewModelTests: XCTestCase {
         try? await Task.sleep(nanoseconds: 100_000_000) // 0.1秒待機
         
         // Then
-        XCTAssertFalse(viewModel.viewState.isLoading)
+        XCTAssertFalse(viewModel.isLoading)
         XCTAssertTrue(viewModel.availableTasks.isEmpty)
-        XCTAssertNotNil(viewModel.viewState.errorMessage)
+        XCTAssertNotNil(viewModel.errorMessage)
     }
     
     @MainActor
@@ -96,9 +96,9 @@ final class HelpRecordEditViewModelTests: XCTestCase {
         try? await Task.sleep(nanoseconds: 300_000_000) // 0.3秒待機
         
         // Then
-        XCTAssertFalse(viewModel.viewState.isLoading)
-        XCTAssertNotNil(viewModel.viewState.successMessage)
-        XCTAssertNil(viewModel.viewState.errorMessage)
+        XCTAssertFalse(viewModel.isLoading)
+        XCTAssertNotNil(viewModel.successMessage)
+        XCTAssertNil(viewModel.errorMessage)
     }
     
     @MainActor
@@ -109,8 +109,8 @@ final class HelpRecordEditViewModelTests: XCTestCase {
         viewModel.saveChanges()
         
         // Then
-        XCTAssertNotNil(viewModel.viewState.errorMessage)
-        XCTAssertEqual(viewModel.viewState.errorMessage, "お手伝いタスクを選択してください")
+        XCTAssertNotNil(viewModel.errorMessage)
+        XCTAssertEqual(viewModel.errorMessage, "お手伝いタスクを選択してください")
     }
     
     @MainActor
@@ -122,9 +122,9 @@ final class HelpRecordEditViewModelTests: XCTestCase {
         try? await Task.sleep(nanoseconds: 100_000_000) // 0.1秒待機
         
         // Then
-        XCTAssertFalse(viewModel.viewState.isLoading)
-        XCTAssertNotNil(viewModel.viewState.successMessage)
-        XCTAssertNil(viewModel.viewState.errorMessage)
+        XCTAssertFalse(viewModel.isLoading)
+        XCTAssertNotNil(viewModel.successMessage)
+        XCTAssertNil(viewModel.errorMessage)
     }
     
     @MainActor
@@ -163,7 +163,7 @@ final class HelpRecordEditViewModelTests: XCTestCase {
         viewModel.clearMessages()
         
         // Then
-        XCTAssertNil(viewModel.viewState.errorMessage)
-        XCTAssertNil(viewModel.viewState.successMessage)
+        XCTAssertNil(viewModel.errorMessage)
+        XCTAssertNil(viewModel.successMessage)
     }
 }
