@@ -1,61 +1,72 @@
-# CLAUDE.md
+# Claude Code Spec-Driven Development
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Kiro-style Spec Driven Development implementation using claude code slash commands, hooks and agents.
 
-## プロジェクト概要
+## Project Context
 
-OtetsudaiCoinは、SwiftUIとCore Dataを使用したiOSアプリです。MVVM + クリーンアーキテクチャパターンを採用し、TDD開発プロセスに従って開発されています。
+### Paths
+- Steering: `.kiro/steering/`
+- Specs: `.kiro/specs/`
+- Commands: `.claude/commands/`
 
-## 開発コマンド
+### Steering vs Specification
 
-### ビルドと実行
-```bash
-# Xcodeでプロジェクトを開く
-open app/OtetsudaiCoin.xcodeproj
+**Steering** (`.kiro/steering/`) - Guide AI with project-wide rules and context
+**Specs** (`.kiro/specs/`) - Formalize development process for individual features
 
-# コマンドラインでビルド
-xcodebuild -project app/OtetsudaiCoin.xcodeproj -scheme OtetsudaiCoin -destination 'platform=iOS Simulator,name=iPhone 15' build
-```
+### Active Specifications
+- Check `.kiro/specs/` for active specifications
+- Use `/kiro:spec-status [feature-name]` to check progress
 
-### テスト実行
-```bash
-# シミュレータ事前起動（テスト実行時間短縮のため）
-./scripts/prepare-simulator.sh -s "iPhone 16" -v
+## Development Guidelines
+- Think in English, but generate responses in Japanese (思考は英語、回答の生成は日本語で行うように)
 
-# 全テスト実行
-xcodebuild test -project app/OtetsudaiCoin.xcodeproj -scheme OtetsudaiCoin -destination 'platform=iOS Simulator,name=iPhone 16'
+## Workflow
 
-# 特定のテストクラス実行
-xcodebuild test -project app/OtetsudaiCoin.xcodeproj -scheme OtetsudaiCoin -destination 'platform=iOS Simulator,name=iPhone 16' -only-testing:OtetsudaiCoinTests/AllowanceCalculatorTests
+### Phase 0: Steering (Optional)
+`/kiro:steering` - Create/update steering documents
+`/kiro:steering-custom` - Create custom steering for specialized contexts
 
-# 特定のテストメソッド実行  
-xcodebuild test -project app/OtetsudaiCoin.xcodeproj -scheme OtetsudaiCoin -destination 'platform=iOS Simulator,name=iPhone 16' -only-testing:OtetsudaiCoinTests/CoinAnimationViewTests/testCoinAnimationViewDisplaysCoin
+Note: Optional for new features or small additions. You can proceed directly to spec-init.
 
-# テスト実行時間ベンチマーク
-./scripts/benchmark-tests.sh
-```
+### Phase 1: Specification Creation
+1. `/kiro:spec-init [detailed description]` - Initialize spec with detailed project description
+2. `/kiro:spec-requirements [feature]` - Generate requirements document
+3. `/kiro:spec-design [feature]` - Interactive: "Have you reviewed requirements.md? [y/N]"
+4. `/kiro:spec-tasks [feature]` - Interactive: Confirms both requirements and design review
 
-## アーキテクチャ
+### Phase 2: Progress Tracking
+`/kiro:spec-status [feature]` - Check current progress and phases
 
-### Core Dataスタック
-- **PersistenceController**: NSPersistentContainerを管理するシングルトン
-- **データモデル**: `OtetsudaiCoin.xcdatamodeld`でItemエンティティを定義
-- **コンテキスト注入**: SwiftUI環境でviewContextを管理
+## Development Rules
+1. **Consider steering**: Run `/kiro:steering` before major development (optional for new features)
+2. **Follow 3-phase approval workflow**: Requirements → Design → Tasks → Implementation
+3. **Approval required**: Each phase requires human review (interactive prompt or manual)
+4. **No skipping phases**: Design requires approved requirements; Tasks require approved design
+5. **Update task status**: Mark tasks as completed when working on them
+6. **Keep steering current**: Run `/kiro:steering` after significant changes
+7. **Check spec compliance**: Use `/kiro:spec-status` to verify alignment
 
-### レイヤー構成
-- **Presentation Layer**: SwiftUIビュー（MVVM パターン）
-- **Domain Layer**: ビジネスロジックとエンティティ
-- **Data Layer**: Core Data永続化層
+## Steering Configuration
 
-## 一般ルール
-- 回答は全て日本語で作成してください。
-- ユーザから今回限りでなく、常に対応が必要と思われる指示を受けた場合、ユーザにこれを標準ルールにするか質問してください。YESの場合、CLAUDE.mdに追加ルールを記載してください。このプロセスにより、プロジェクトルールを継続的に改善してください。
+### Current Steering Files
+Managed by `/kiro:steering` command. Updates here reflect command changes.
 
-## 開発ルール
-- SwiftUI,MVVM,クリーンアーキテクチャを採用し、TDDのプロセスに従ってイテレーティブに開発を進めてください。
-- できる限り、TDDのプロセスに厳格に従い、テストを一つずつ書きながら開発を進めてください。
-- 適宜、リファクタリングを実施し、コードをクリーンに保ってください。
-- テストがグリーンになったタイミングで、適宜コミットをしてください。
-- SwiftUIのView追加時もユニットテストを書いてください。ViewInspectorを使う想定です。
-- ViewInspectorなど、ライブラリはSPMで管理してください(https://github.com/nalexn/ViewInspector)
-- UIテストは開発効率を下げるので、ある程度まとまった機能が実装できたタイミングごとに、ハッピーパスだけのテストを実施してください。
+### Active Steering Files
+- `product.md`: Always included - Product context and business objectives
+- `tech.md`: Always included - Technology stack and architectural decisions
+- `structure.md`: Always included - File organization and code patterns
+
+### Custom Steering Files
+<!-- Added by /kiro:steering-custom command -->
+<!-- Format:
+- `filename.md`: Mode - Pattern(s) - Description
+  Mode: Always|Conditional|Manual
+  Pattern: File patterns for Conditional mode
+-->
+
+### Inclusion Modes
+- **Always**: Loaded in every interaction (default)
+- **Conditional**: Loaded for specific file patterns (e.g., "*.test.js")
+- **Manual**: Reference with `@filename.md` syntax
+
