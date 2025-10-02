@@ -48,12 +48,20 @@ class HomeViewModel {
         
         // NotificationManagerを使用してデータ更新を自動監視
         NotificationManager.shared.observeHelpRecordUpdates(
-            action: { [weak self] in self?.refreshData() },
+            action: { [weak self] in
+                Task { @MainActor in
+                    self?.refreshData()
+                }
+            },
             cancellables: &cancellables
         )
         
         NotificationManager.shared.observeChildrenUpdates(
-            action: { [weak self] in self?.loadChildren() },
+            action: { [weak self] in
+                Task { @MainActor in
+                    self?.loadChildren()
+                }
+            },
             cancellables: &cancellables
         )
     }

@@ -40,7 +40,11 @@ class RecordViewModel: BaseViewModel {
     override func setupNotificationListeners() {
         // NotificationManagerを使用して通知を監視
         NotificationManager.shared.observeChildrenUpdates(
-            action: { [weak self] in self?.loadChildren() },
+            action: { [weak self] in
+                Task { @MainActor in
+                    self?.loadChildren()
+                }
+            },
             cancellables: &cancellables
         )
         
