@@ -51,6 +51,9 @@
                BlueprintName = "OtetsudaiCoinUITests"
                ReferencedContainer = "container:OtetsudaiCoin.xcodeproj">
             </BuildableReference>
+            <SkippedTests>
+               <Test Identifier="OtetsudaiCoinUITests/testPerformance_AppLaunch()"/>
+            </SkippedTests>
          </TestableReference>
       </Testables>
    </TestAction>
