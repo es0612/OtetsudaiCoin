@@ -141,6 +141,28 @@ final class HomeViewTests: XCTestCase {
     }
     
     @MainActor
+    func testHomeViewDisplaysUnpaidWarningBannerWithoutSelectedChild() throws {
+        // selectedChildがnilでも未支払い警告バナーが表示される
+        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+        viewModel.selectedChild = nil
+        viewModel.children = [child]
+
+        let unpaidPeriod = UnpaidPeriod(childId: child.id, month: 12, year: 2023, expectedAmount: 500)
+        viewModel.unpaidPeriods = [unpaidPeriod]
+        viewModel.hasUnpaidAllowances = true
+        viewModel.showUnpaidWarning = true
+        viewModel.unpaidWarningMessage = "太郎の未支払いのお小遣いが500コインあります。"
+        viewModel.totalUnpaidAmount = 500
+
+        let view = HomeView(viewModel: viewModel)
+
+        // バナーが表示されること
+        XCTAssertNoThrow(try view.inspect().find(text: "未支払いのお小遣いがあります"))
+        XCTAssertNoThrow(try view.inspect().find(text: "500コイン"))
+        XCTAssertNoThrow(try view.inspect().find(text: "支払い履歴を確認"))
+    }
+
+    @MainActor
     func testHomeViewHidesUnpaidWarningBannerWhenNoUnpaidAllowances() throws {
         // 未支払いがない状態を設定
         let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
