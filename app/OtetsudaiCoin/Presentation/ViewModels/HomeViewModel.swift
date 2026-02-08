@@ -29,7 +29,7 @@ class HomeViewModel {
     private let allowancePaymentRepository: AllowancePaymentRepository
     private let unpaidDetector: UnpaidAllowanceDetectorService
     private var cancellables: Set<AnyCancellable> = []
-    private var refreshDataTask: Task<Void, Never>?
+    private(set) var refreshDataTask: Task<Void, Never>?
     
     init(
         childRepository: ChildRepository,
@@ -78,9 +78,9 @@ class HomeViewModel {
                 let loadedChildren = try await childRepository.findAll()
                 children = loadedChildren
                 
-                // 月初チェック：未支払いのお小遣いがあるかチェック
-                if isNewMonth() && !children.isEmpty {
-                    checkUnpaidAllowances()
+                // 未支払いのお小遣いがあるかチェック
+                if !children.isEmpty {
+                    await checkUnpaidAllowances()
                 }
                 
                 isLoading = false
@@ -290,43 +290,41 @@ class HomeViewModel {
     
     // MARK: - 未支払い警告機能
     
-    func checkUnpaidAllowances() {
-        Task {
-            do {
-                var allUnpaidPeriods: [UnpaidPeriod] = []
-                
-                for child in children {
-                    // 子供別のお手伝い記録とタスクを取得
-                    let helpRecords = try await helpRecordRepository.findByChildId(child.id)
-                    let tasks = try await helpTaskRepository.findAll()
-                    let payments = try await allowancePaymentRepository.findByChildId(child.id)
-                    
-                    // 未支払い期間を検出
-                    let childUnpaidPeriods = unpaidDetector.detectUnpaidPeriods(
-                        childId: child.id,
-                        helpRecords: helpRecords,
-                        payments: payments,
-                        tasks: tasks
-                    )
-                    
-                    allUnpaidPeriods.append(contentsOf: childUnpaidPeriods)
-                }
-                
-                // UI更新
-                unpaidPeriods = allUnpaidPeriods
-                hasUnpaidAllowances = !allUnpaidPeriods.isEmpty
-                showUnpaidWarning = hasUnpaidAllowances
-                totalUnpaidAmount = allUnpaidPeriods.reduce(0) { $0 + $1.expectedAmount }
-                
-                if hasUnpaidAllowances {
-                    generateUnpaidWarningMessage()
-                } else {
-                    unpaidWarningMessage = nil
-                }
-                
-            } catch {
-                errorMessage = ErrorMessageConverter.convertToUserFriendlyMessage(error)
+    func checkUnpaidAllowances() async {
+        do {
+            var allUnpaidPeriods: [UnpaidPeriod] = []
+
+            for child in children {
+                // 子供別のお手伝い記録とタスクを取得
+                let helpRecords = try await helpRecordRepository.findByChildId(child.id)
+                let tasks = try await helpTaskRepository.findAll()
+                let payments = try await allowancePaymentRepository.findByChildId(child.id)
+
+                // 未支払い期間を検出
+                let childUnpaidPeriods = unpaidDetector.detectUnpaidPeriods(
+                    childId: child.id,
+                    helpRecords: helpRecords,
+                    payments: payments,
+                    tasks: tasks
+                )
+
+                allUnpaidPeriods.append(contentsOf: childUnpaidPeriods)
             }
+
+            // UI更新
+            unpaidPeriods = allUnpaidPeriods
+            hasUnpaidAllowances = !allUnpaidPeriods.isEmpty
+            showUnpaidWarning = hasUnpaidAllowances
+            totalUnpaidAmount = allUnpaidPeriods.reduce(0) { $0 + $1.expectedAmount }
+
+            if hasUnpaidAllowances {
+                generateUnpaidWarningMessage()
+            } else {
+                unpaidWarningMessage = nil
+            }
+
+        } catch {
+            errorMessage = ErrorMessageConverter.convertToUserFriendlyMessage(error)
         }
     }
     
@@ -355,14 +353,5 @@ class HomeViewModel {
             // 複数の子供の場合
             unpaidWarningMessage = "\(affectedChildrenCount)人の子供に未支払いのお小遣いが合計\(totalUnpaidAmount)コインあります。履歴画面から支払いを行ってください。"
         }
-    }
-    
-    private func isNewMonth() -> Bool {
-        let calendar = Calendar.current
-        let now = Date()
-        let currentDay = calendar.component(.day, from: now)
-        
-        // 月の最初の3日間を「月初」とみなす
-        return currentDay <= 3
     }
 }
