@@ -109,39 +109,39 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.selectedChild?.id, child1.id)
         
         // 非同期処理完了を待つ
-        try? await Task.sleep(nanoseconds: 100_000_000) // 0.1秒待機
-        
+        await viewModel.refreshDataTask?.value
+
         // 同じ子供を再選択（refreshDataは呼ばれない）
         mockHelpRecordRepository.resetCallCount()
         viewModel.selectChild(child1)
         XCTAssertEqual(mockHelpRecordRepository.findCallCount, 0)
-        
+
         // 異なる子供を選択（refreshDataが呼ばれる）
         viewModel.selectChild(child2)
         XCTAssertEqual(viewModel.selectedChild?.id, child2.id)
-        
+
         // 非同期処理完了を待つ
-        try? await Task.sleep(nanoseconds: 100_000_000) // 0.1秒待機
-        
+        await viewModel.refreshDataTask?.value
+
         XCTAssertEqual(mockHelpRecordRepository.findCallCount, 1)
     }
 
     @MainActor
-    func testCheckUnpaidAllowancesWithNoUnpaid() {
+    func testCheckUnpaidAllowancesWithNoUnpaid() async {
         let mockUnpaidDetector = MockUnpaidAllowanceDetectorService()
         mockUnpaidDetector.unpaidPeriods = []
-        
+
         viewModel = createViewModelWithUnpaidDetector(unpaidDetector: mockUnpaidDetector)
-        
-        viewModel.checkUnpaidAllowances()
-        
+
+        await viewModel.checkUnpaidAllowances()
+
         XCTAssertFalse(viewModel.hasUnpaidAllowances)
         XCTAssertTrue(viewModel.unpaidPeriods.isEmpty)
         XCTAssertNil(viewModel.unpaidWarningMessage)
     }
     
     @MainActor
-    func testCheckUnpaidAllowancesWithUnpaidPeriods() {
+    func testCheckUnpaidAllowancesWithUnpaidPeriods() async {
         let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
         let unpaidPeriod = UnpaidPeriod(
             childId: child.id,
@@ -149,15 +149,15 @@ final class HomeViewModelTests: XCTestCase {
             year: 2024,
             expectedAmount: 150
         )
-        
+
         let mockUnpaidDetector = MockUnpaidAllowanceDetectorService()
         mockUnpaidDetector.unpaidPeriods = [unpaidPeriod]
-        
+
         viewModel = createViewModelWithUnpaidDetector(unpaidDetector: mockUnpaidDetector)
         viewModel.children = [child]
-        
-        viewModel.checkUnpaidAllowances()
-        
+
+        await viewModel.checkUnpaidAllowances()
+
         XCTAssertTrue(viewModel.hasUnpaidAllowances)
         XCTAssertEqual(viewModel.unpaidPeriods.count, 1)
         XCTAssertEqual(viewModel.unpaidPeriods.first?.childId, child.id)
@@ -167,23 +167,23 @@ final class HomeViewModelTests: XCTestCase {
     }
     
     @MainActor
-    func testCheckUnpaidAllowancesWithMultipleChildren() {
+    func testCheckUnpaidAllowancesWithMultipleChildren() async {
         let child1 = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
         let child2 = Child(id: UUID(), name: "花子", themeColor: "#33FF57")
-        
+
         let unpaidPeriods = [
             UnpaidPeriod(childId: child1.id, month: 6, year: 2024, expectedAmount: 150),
             UnpaidPeriod(childId: child2.id, month: 5, year: 2024, expectedAmount: 200)
         ]
-        
+
         let mockUnpaidDetector = MockUnpaidAllowanceDetectorService()
         mockUnpaidDetector.unpaidPeriods = unpaidPeriods
-        
+
         viewModel = createViewModelWithUnpaidDetector(unpaidDetector: mockUnpaidDetector)
         viewModel.children = [child1, child2]
-        
-        viewModel.checkUnpaidAllowances()
-        
+
+        await viewModel.checkUnpaidAllowances()
+
         XCTAssertTrue(viewModel.hasUnpaidAllowances)
         XCTAssertEqual(viewModel.unpaidPeriods.count, 2)
         XCTAssertEqual(viewModel.totalUnpaidAmount, 350)
@@ -193,7 +193,7 @@ final class HomeViewModelTests: XCTestCase {
     }
     
     @MainActor
-    func testDismissUnpaidWarning() {
+    func testDismissUnpaidWarning() async {
         let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
         let unpaidPeriod = UnpaidPeriod(
             childId: child.id,
@@ -201,16 +201,16 @@ final class HomeViewModelTests: XCTestCase {
             year: 2024,
             expectedAmount: 150
         )
-        
+
         let mockUnpaidDetector = MockUnpaidAllowanceDetectorService()
         mockUnpaidDetector.unpaidPeriods = [unpaidPeriod]
-        
+
         viewModel = createViewModelWithUnpaidDetector(unpaidDetector: mockUnpaidDetector)
         viewModel.children = [child]
-        
-        viewModel.checkUnpaidAllowances()
+
+        await viewModel.checkUnpaidAllowances()
         XCTAssertTrue(viewModel.hasUnpaidAllowances)
-        
+
         viewModel.dismissUnpaidWarning()
         XCTAssertFalse(viewModel.showUnpaidWarning)
     }

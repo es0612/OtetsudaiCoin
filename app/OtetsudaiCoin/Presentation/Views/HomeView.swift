@@ -347,44 +347,44 @@ struct HomeView: View {
     }
     
     private var unpaidWarningBanner: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Image(systemName: "exclamationmark.triangle.fill")
-                    .foregroundColor(.white)
-                    .font(.title2)
-                
-                VStack(alignment: .leading, spacing: 4) {
+                Image(systemName: "bell.badge.fill")
+                    .foregroundColor(AccessibilityColors.warningOrange)
+                    .font(.title3)
+
+                VStack(alignment: .leading, spacing: 2) {
                     Text("未支払いのお小遣いがあります")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .fontWeight(.bold)
-                    
+                        .font(.subheadline)
+                        .foregroundColor(AccessibilityColors.textPrimary)
+                        .fontWeight(.semibold)
+
                     if let message = viewModel.unpaidWarningMessage {
                         Text(message)
-                            .font(.subheadline)
-                            .foregroundColor(.white.opacity(0.9))
+                            .font(.caption)
+                            .foregroundColor(AccessibilityColors.textSecondary)
                     }
                 }
-                
+
                 Spacer()
-                
+
                 Text("\(viewModel.totalUnpaidAmount)コイン")
-                    .font(.title2)
+                    .font(.headline)
                     .fontWeight(.bold)
-                    .foregroundColor(.white)
+                    .foregroundColor(AccessibilityColors.warningOrange)
             }
-            
+
             if !viewModel.unpaidPeriods.isEmpty {
                 HStack {
                     Text("未支払い期間: ")
                         .font(.caption)
-                        .foregroundColor(.white.opacity(0.8))
-                    
+                        .foregroundColor(AccessibilityColors.textSecondary)
+
                     Text(viewModel.unpaidPeriods.map { $0.monthYearString }.joined(separator: ", "))
                         .font(.caption)
-                        .foregroundColor(.white)
+                        .foregroundColor(AccessibilityColors.textPrimary)
                         .fontWeight(.medium)
-                    
+
                     Spacer()
                 }
             }
@@ -393,9 +393,16 @@ struct HomeView: View {
                 Spacer()
                 
                 Button(action: {
-                    if let selectedChild = viewModel.selectedChild {
-                        prepareMonthlyHistoryViewModel(for: selectedChild)
-                        showingMonthlyHistory = true
+                    // 未支払い対象の子供を特定して遷移
+                    let targetChild = viewModel.selectedChild
+                        ?? viewModel.unpaidPeriods.first.flatMap { period in
+                            viewModel.children.first { $0.id == period.childId }
+                        }
+                    if let child = targetChild {
+                        DispatchQueue.main.async {
+                            prepareMonthlyHistoryViewModel(for: child)
+                            showingMonthlyHistory = true
+                        }
                     }
                 }) {
                     HStack(spacing: 6) {
@@ -405,27 +412,27 @@ struct HomeView: View {
                         Image(systemName: "arrow.right")
                             .font(.caption)
                     }
-                    .foregroundColor(.white)
+                    .foregroundColor(AccessibilityColors.warningOrange)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 8)
                     .background(
                         RoundedRectangle(cornerRadius: 8)
-                            .fill(Color.white.opacity(0.2))
+                            .fill(AccessibilityColors.warningOrange.opacity(0.15))
                     )
                 }
                 .buttonStyle(PlainButtonStyle())
             }
         }
-        .padding(16)
+        .padding(14)
         .background(
-            LinearGradient(
-                colors: [Color.red, Color.red.opacity(0.8)],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color(.systemBackground))
+                .shadow(color: .black.opacity(0.08), radius: 4, x: 0, y: 2)
         )
-        .cornerRadius(16)
-        .shadow(color: Color.red.opacity(0.3), radius: 8, x: 0, y: 4)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(AccessibilityColors.warningOrange.opacity(0.3), lineWidth: 1)
+        )
         .padding(.horizontal, DeviceInfo.contentPadding)
     }
 }
