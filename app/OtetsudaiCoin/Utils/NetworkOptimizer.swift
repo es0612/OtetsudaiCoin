@@ -170,16 +170,16 @@ struct NetworkStatusIndicator: View {
     
     private var statusText: String {
         if !optimizer.isConnected {
-            return "オフライン"
+            return String(localized: "オフライン")
         }
-        
+
         switch optimizer.connectionType {
         case .wifi:
             return "Wi-Fi"
         case .cellular:
-            return "モバイル"
+            return String(localized: "モバイル")
         case .unknown:
-            return "接続中"
+            return String(localized: "接続中")
         }
     }
 }

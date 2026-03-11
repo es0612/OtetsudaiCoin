@@ -44,12 +44,12 @@ class TaskManagementViewModel {
     
     func addTask(name: String, coinRate: Int = 10) async {
         guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            errorMessage = "タスク名を入力してください"
+            errorMessage = String(localized: "タスク名を入力してください")
             return
         }
-        
+
         guard coinRate > 0 else {
-            errorMessage = "コイン単価は1以上で入力してください"
+            errorMessage = String(localized: "コイン単価は1以上で入力してください")
             return
         }
         
@@ -57,7 +57,7 @@ class TaskManagementViewModel {
         
         // 重複チェック
         if tasks.contains(where: { $0.name == trimmedName }) {
-            errorMessage = "同じ名前のタスクが既に存在します"
+            errorMessage = String(localized: "同じ名前のタスクが既に存在します")
             return
         }
         
@@ -70,7 +70,7 @@ class TaskManagementViewModel {
         
         do {
             try await helpTaskRepository.save(newTask)
-            successMessage = "タスクを追加しました"
+            successMessage = String(localized: "タスクを追加しました")
             await loadTasks()
         } catch {
             errorMessage = ErrorMessageConverter.convertToUserFriendlyMessage(error)
@@ -80,7 +80,7 @@ class TaskManagementViewModel {
     func updateTask(_ task: HelpTask) async {
         do {
             try await helpTaskRepository.update(task)
-            successMessage = "タスクを更新しました"
+            successMessage = String(localized: "タスクを更新しました")
             await loadTasks()
         } catch {
             errorMessage = ErrorMessageConverter.convertToUserFriendlyMessage(error)
@@ -90,7 +90,7 @@ class TaskManagementViewModel {
     func deleteTask(id: UUID) async {
         do {
             try await helpTaskRepository.delete(id)
-            successMessage = "タスクを削除しました"
+            successMessage = String(localized: "タスクを削除しました")
             await loadTasks()
         } catch {
             errorMessage = ErrorMessageConverter.convertToUserFriendlyMessage(error)

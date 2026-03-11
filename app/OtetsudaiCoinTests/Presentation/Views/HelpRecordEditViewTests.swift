@@ -58,7 +58,7 @@ final class HelpRecordEditViewTests: XCTestCase {
         let view = HelpRecordEditView(viewModel: viewModel)
         
         // When & Then
-        XCTAssertNoThrow(try view.inspect().find(text: "日時"))
+        XCTAssertNoThrow(try view.inspect().find(text: "日時", locale: Locale(identifier: "ja")))
     }
     
     @MainActor
@@ -67,7 +67,7 @@ final class HelpRecordEditViewTests: XCTestCase {
         let view = HelpRecordEditView(viewModel: viewModel)
         
         // When & Then
-        XCTAssertNoThrow(try view.inspect().find(text: "記録を削除"))
+        XCTAssertNoThrow(try view.inspect().find(text: "記録を削除", locale: Locale(identifier: "ja")))
     }
     
     @MainActor
@@ -78,7 +78,7 @@ final class HelpRecordEditViewTests: XCTestCase {
         
         // When & Then
         XCTAssertNoThrow(try row.inspect().find(text: "食器洗い"))
-        XCTAssertNoThrow(try row.inspect().find(text: "お手伝いタスク"))
+        XCTAssertNoThrow(try row.inspect().find(text: "お手伝いタスク", locale: Locale(identifier: "ja")))
     }
     
     @MainActor

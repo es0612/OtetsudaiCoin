@@ -193,7 +193,7 @@ class HomeViewModel {
     
     func payMonthlyAllowance() {
         guard selectedChild != nil else {
-            errorMessage = "子供が選択されていません"
+            errorMessage = String(localized: "子供が選択されていません")
             return
         }
         
@@ -205,7 +205,7 @@ class HomeViewModel {
     
     func recordAllowancePayment(amount: Int) {
         guard let child = selectedChild else {
-            errorMessage = "子供が選択されていません"
+            errorMessage = String(localized: "子供が選択されていません")
             return
         }
         

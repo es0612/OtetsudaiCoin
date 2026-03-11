@@ -201,11 +201,12 @@
 				};
 			};
 			buildConfigurationList = D5F61D672DFE693C00C8C1E9 /* Build configuration list for PBXProject "OtetsudaiCoin" */;
-			developmentRegion = en;
+			developmentRegion = ja;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 				Base,
+				ja,
 			);
 			mainGroup = D5F61D632DFE693C00C8C1E9;
 			minimizedProjectReferenceProxies = 1;

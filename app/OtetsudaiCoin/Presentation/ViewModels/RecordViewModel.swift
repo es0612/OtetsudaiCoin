@@ -157,12 +157,12 @@ class RecordViewModel: BaseViewModel {
         clearErrorMessage()
         
         guard let child = selectedChild else {
-            setError("お子様を選択してください")
+            setError(String(localized: "お子様を選択してください"))
             return
         }
-        
+
         guard let task = selectedTask else {
-            setError("お手伝いタスクを選択してください")
+            setError(String(localized: "お手伝いタスクを選択してください"))
             return
         }
         
@@ -195,7 +195,7 @@ class RecordViewModel: BaseViewModel {
                 NotificationManager.shared.notifyHelpRecordUpdated()
                 
                 hasRecordedInSession = true
-                setSuccess("お手伝いを記録しました！")
+                setSuccess(String(localized: "お手伝いを記録しました！"))
                 selectedTask = nil
             } catch {
                 setUserFriendlyError(error)

@@ -127,7 +127,7 @@ final class RecordViewModelTests: XCTestCase {
         await fulfillment(of: [expectation], timeout: 1.0)
         
         // 記録後の状態確認
-        XCTAssertEqual(viewModel.successMessage, "お手伝いを記録しました！")
+        XCTAssertEqual(viewModel.successMessage, String(localized: "お手伝いを記録しました！"))
         XCTAssertNil(viewModel.selectedTask)
         XCTAssertEqual(mockHelpRecordRepository.records.count, 1)
         XCTAssertEqual(mockHelpRecordRepository.records.first?.childId, child.id)
@@ -141,17 +141,17 @@ final class RecordViewModelTests: XCTestCase {
         
         viewModel.recordHelp()
         
-        XCTAssertEqual(viewModel.errorMessage, "お子様を選択してください")
+        XCTAssertEqual(viewModel.errorMessage, String(localized: "お子様を選択してください"))
     }
-    
+
     @MainActor
     func testRecordHelpWithoutTaskSelection() {
         let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
         viewModel.selectChild(child)
-        
+
         viewModel.recordHelp()
-        
-        XCTAssertEqual(viewModel.errorMessage, "お手伝いタスクを選択してください")
+
+        XCTAssertEqual(viewModel.errorMessage, String(localized: "お手伝いタスクを選択してください"))
     }
     
     @MainActor

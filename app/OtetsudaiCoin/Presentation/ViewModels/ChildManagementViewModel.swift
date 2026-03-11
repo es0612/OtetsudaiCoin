@@ -53,14 +53,14 @@ class ChildManagementViewModel: BaseViewModel {
     
     func addChild(name: String, themeColor: String) async {
         guard validateChildData(name: name, themeColor: themeColor) else {
-            setError("入力データが無効です")
+            setError(String(localized: "入力データが無効です"))
             return
         }
-        
+
         // 名前の重複チェック
         let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
         if children.contains(where: { $0.name.lowercased() == trimmedName.lowercased() }) {
-            setError("同じ名前の子供が既に登録されています")
+            setError(String(localized: "同じ名前の子供が既に登録されています"))
             return
         }
         
@@ -88,7 +88,7 @@ class ChildManagementViewModel: BaseViewModel {
     
     func updateChild(id: UUID, name: String, themeColor: String) async {
         guard validateChildData(name: name, themeColor: themeColor) else {
-            setError("入力データが無効です")
+            setError(String(localized: "入力データが無効です"))
             return
         }
         
@@ -111,7 +111,7 @@ class ChildManagementViewModel: BaseViewModel {
     
     func deleteChild(id: UUID) async {
         guard let child = children.first(where: { $0.id == id }) else {
-            setError("削除対象の子供が見つかりません")
+            setError(String(localized: "削除対象の子供が見つかりません"))
             return
         }
         

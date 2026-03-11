@@ -110,7 +110,7 @@ final class HelpRecordEditViewModelTests: XCTestCase {
         
         // Then
         XCTAssertNotNil(viewModel.errorMessage)
-        XCTAssertEqual(viewModel.errorMessage, "お手伝いタスクを選択してください")
+        XCTAssertEqual(viewModel.errorMessage, String(localized: "お手伝いタスクを選択してください"))
     }
     
     @MainActor

@@ -25,11 +25,11 @@ struct MonthlyRecord {
     
     var paymentStatusText: String {
         if isUnpaid {
-            return "未支払い"
+            return String(localized: "未支払い")
         } else if isPartiallyPaid {
-            return "一部支払い済み"
+            return String(localized: "一部支払い済み")
         } else {
-            return "支払い済み"
+            return String(localized: "支払い済み")
         }
     }
     

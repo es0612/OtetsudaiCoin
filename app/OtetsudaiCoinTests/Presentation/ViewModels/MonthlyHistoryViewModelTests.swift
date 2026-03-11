@@ -95,7 +95,7 @@ final class MonthlyHistoryViewModelTests: XCTestCase {
         let unpaidRecord = viewModel.unpaidRecords.first!
         XCTAssertTrue(unpaidRecord.isUnpaid)
         XCTAssertEqual(unpaidRecord.unpaidAmount, 100)
-        XCTAssertEqual(unpaidRecord.paymentStatusText, "未支払い")
+        XCTAssertEqual(unpaidRecord.paymentStatusText, String(localized: "未支払い"))
         XCTAssertEqual(unpaidRecord.highlightColor, "#FF6B6B")
     }
     
@@ -149,7 +149,7 @@ final class MonthlyHistoryViewModelTests: XCTestCase {
         XCTAssertTrue(monthlyRecord.isUnpaid)
         XCTAssertTrue(monthlyRecord.isPartiallyPaid)
         XCTAssertEqual(monthlyRecord.unpaidAmount, 50)
-        XCTAssertEqual(monthlyRecord.paymentStatusText, "一部支払い済み")
+        XCTAssertEqual(monthlyRecord.paymentStatusText, String(localized: "一部支払い済み"))
         XCTAssertEqual(monthlyRecord.highlightColor, "#FFB84D") // 一部支払い済みなので橙
     }
     
@@ -197,7 +197,7 @@ final class MonthlyHistoryViewModelTests: XCTestCase {
         XCTAssertFalse(paidRecord.isUnpaid)
         XCTAssertFalse(paidRecord.isPartiallyPaid)
         XCTAssertEqual(paidRecord.unpaidAmount, 0)
-        XCTAssertEqual(paidRecord.paymentStatusText, "支払い済み")
+        XCTAssertEqual(paidRecord.paymentStatusText, String(localized: "支払い済み"))
         XCTAssertEqual(paidRecord.highlightColor, "#51CF66") // 緑色
     }
 }

@@ -18,9 +18,9 @@ enum PersistenceError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .storeLoadingFailed(let error):
-            return "データベースの読み込みに失敗しました: \(error.localizedDescription)"
+            return String(localized: "データベースの読み込みに失敗しました") + ": " + error.localizedDescription
         case .contextSaveFailed(let error):
-            return "データの保存に失敗しました: \(error.localizedDescription)"
+            return String(localized: "データの保存に失敗しました") + ": " + error.localizedDescription
         }
     }
 }

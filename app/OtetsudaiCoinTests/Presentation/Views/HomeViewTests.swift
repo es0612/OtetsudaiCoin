@@ -115,7 +115,7 @@ final class HomeViewTests: XCTestCase {
         
         let view = HomeView(viewModel: viewModel)
         
-        XCTAssertNoThrow(try view.inspect().find(text: "お子様を登録してください"))
+        XCTAssertNoThrow(try view.inspect().find(text: "お子様を登録してください", locale: Locale(identifier: "ja")))
     }
     
     @MainActor
@@ -135,9 +135,9 @@ final class HomeViewTests: XCTestCase {
         let view = HomeView(viewModel: viewModel)
         
         // 未支払い警告バナーの表示をテスト
-        XCTAssertNoThrow(try view.inspect().find(text: "未支払いのお小遣いがあります"))
-        XCTAssertNoThrow(try view.inspect().find(text: "500コイン"))
-        XCTAssertNoThrow(try view.inspect().find(text: "支払い履歴を確認"))
+        XCTAssertNoThrow(try view.inspect().find(text: "未支払いのお小遣いがあります", locale: Locale(identifier: "ja")))
+        XCTAssertNoThrow(try view.inspect().find(text: "500コイン", locale: Locale(identifier: "ja")))
+        XCTAssertNoThrow(try view.inspect().find(text: "支払い履歴を確認", locale: Locale(identifier: "ja")))
     }
     
     @MainActor
@@ -176,7 +176,7 @@ final class HomeViewTests: XCTestCase {
         let view = HomeView(viewModel: viewModel)
         
         // 未支払い警告バナーが表示されないことをテスト
-        XCTAssertThrowsError(try view.inspect().find(text: "未支払いのお小遣いがあります"))
+        XCTAssertThrowsError(try view.inspect().find(text: "未支払いのお小遣いがあります", locale: Locale(identifier: "ja")))
     }
     
     // MARK: - iPad対応テスト

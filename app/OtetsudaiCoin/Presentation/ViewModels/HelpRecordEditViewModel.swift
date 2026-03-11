@@ -136,7 +136,7 @@ class HelpRecordEditViewModel: BaseViewModel {
         
         guard let task = selectedTask else {
             DebugLogger.warning("saveChanges failed: No task selected")
-            setError("お手伝いタスクを選択してください")
+            setError(String(localized: "お手伝いタスクを選択してください"))
             return
         }
         
@@ -162,7 +162,7 @@ class HelpRecordEditViewModel: BaseViewModel {
                     DebugLogger.info("Record updated successfully")
                     // データ更新の通知
                     NotificationManager.shared.notifyHelpRecordUpdated()
-                    setSuccess("記録を更新しました")
+                    setSuccess(String(localized: "記録を更新しました"))
                     
                     DebugLogger.logTaskEnd(
                         taskName: "HelpRecordEditViewModel.saveChanges",
@@ -206,7 +206,7 @@ class HelpRecordEditViewModel: BaseViewModel {
                     DebugLogger.info("Record deleted successfully")
                     // データ更新の通知
                     NotificationManager.shared.notifyHelpRecordUpdated()
-                    setSuccess("記録を削除しました")
+                    setSuccess(String(localized: "記録を削除しました"))
                     
                     DebugLogger.logTaskEnd(
                         taskName: "HelpRecordEditViewModel.deleteRecord",

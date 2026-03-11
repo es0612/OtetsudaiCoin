@@ -15,7 +15,7 @@ final class CoinAnimationViewTests: XCTestCase {
         )
         
         XCTAssertNoThrow(try animationView.inspect().find(text: "100"))
-        XCTAssertNoThrow(try animationView.inspect().find(text: "コイン"))
+        XCTAssertNoThrow(try animationView.inspect().find(text: "コイン", locale: Locale(identifier: "ja")))
     }
     
     @MainActor
