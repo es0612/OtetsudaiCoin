@@ -87,8 +87,10 @@ struct ContentView: View {
             )
         }
         .onAppear {
-            // スプラッシュスクリーン終了後にチュートリアルチェック
             tutorialService.checkFirstLaunch()
+        }
+        .onReceive(Foundation.NotificationCenter.default.publisher(for: .navigateToRecord)) { _ in
+            selectedTab = 1
         }
     }
     

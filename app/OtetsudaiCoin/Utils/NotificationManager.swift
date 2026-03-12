@@ -6,6 +6,7 @@ extension Notification.Name {
     static let helpRecordUpdated = Notification.Name("helpRecordUpdated")
     static let childrenUpdated = Notification.Name("childrenUpdated")
     static let tasksUpdated = Notification.Name("tasksUpdated")
+    static let navigateToRecord = Notification.Name("navigateToRecord")
 }
 
 /// アプリ内通知を一元管理するクラス

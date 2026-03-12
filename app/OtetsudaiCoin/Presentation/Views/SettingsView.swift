@@ -1,5 +1,6 @@
 import SwiftUI
 import StoreKit
+import UserNotifications
 
 struct SettingsView: View {
     @Bindable var viewModel: ChildManagementViewModel
@@ -10,6 +11,7 @@ struct SettingsView: View {
     @State private var showingTaskManagement = false
     @State private var tutorialService = TutorialService()
     @State private var taskManagementViewModel: TaskManagementViewModel
+    @State private var notificationSettingsViewModel: NotificationSettingsViewModel
     
     #if DEBUG
     @State private var isGeneratingData = false
@@ -24,6 +26,11 @@ struct SettingsView: View {
         let context = PersistenceController.shared.container.viewContext
         let taskRepository = CoreDataHelpTaskRepository(context: context)
         self._taskManagementViewModel = State(wrappedValue: TaskManagementViewModel(helpTaskRepository: taskRepository))
+        let notificationService = ReminderNotificationService(
+            notificationCenter: UNUserNotificationCenter.current(),
+            userDefaults: .standard
+        )
+        self._notificationSettingsViewModel = State(wrappedValue: NotificationSettingsViewModel(service: notificationService))
     }
     
     var body: some View {
@@ -67,8 +74,20 @@ struct SettingsView: View {
                     }
                     .foregroundColor(.primary)
                 }
-                
-                
+
+                Section("通知") {
+                    NavigationLink {
+                        NotificationSettingsView(viewModel: notificationSettingsViewModel)
+                    } label: {
+                        HStack {
+                            Image(systemName: "bell.badge")
+                                .foregroundColor(.orange)
+                            Text("通知設定")
+                            Spacer()
+                        }
+                    }
+                }
+
                 #if DEBUG
                 Section("開発者向け") {
                     Button(action: {

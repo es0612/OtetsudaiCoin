@@ -1,1122 +1,78 @@
 {
   "sourceLanguage" : "ja",
   "strings" : {
-    "お子様を選択してください" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Please select a child"
-          }
-        }
-      }
-    },
-    "お手伝いタスクを選択してください" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Please select a help task"
-          }
-        }
-      }
-    },
-    "入力データが無効です" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Invalid input data"
-          }
-        }
-      }
-    },
-    "同じ名前の子供が既に登録されています" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "A child with the same name is already registered"
-          }
-        }
-      }
-    },
-    "削除対象の子供が見つかりません" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Child to delete was not found"
-          }
-        }
-      }
-    },
-    "子供が選択されていません" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No child selected"
-          }
-        }
-      }
-    },
-    "タスク名を入力してください" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Please enter a task name"
-          }
-        }
-      }
-    },
-    "コイン単価は1以上で入力してください" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Coin rate must be 1 or more"
-          }
-        }
-      }
-    },
-    "同じ名前のタスクが既に存在します" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "A task with the same name already exists"
-          }
-        }
-      }
-    },
-    "お手伝いを記録しました！" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Help recorded!"
-          }
-        }
-      }
-    },
-    "記録を更新しました" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Record updated"
-          }
-        }
-      }
-    },
-    "記録を削除しました" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Record deleted"
-          }
-        }
-      }
-    },
-    "タスクを追加しました" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Task added"
-          }
-        }
-      }
-    },
-    "タスクを更新しました" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Task updated"
-          }
-        }
-      }
-    },
-    "タスクを削除しました" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Task deleted"
-          }
-        }
-      }
-    },
-    "ストレージ容量が不足しています。デバイスの空き容量を確保してください。" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Storage is full. Please free up space on your device."
-          }
-        }
-      }
-    },
-    "データベースへのアクセスが拒否されました。アプリを再起動してください。" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Database access denied. Please restart the app."
-          }
-        }
-      }
-    },
-    "データベースに問題が発生しました。アプリを再起動してください。" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "A database issue occurred. Please restart the app."
-          }
-        }
-      }
-    },
-    "処理に時間がかかりすぎています。しばらく待ってから再度お試しください。" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Processing is taking too long. Please wait and try again."
-          }
-        }
-      }
-    },
-    "データベースエラーが発生しました。アプリを再起動してください。" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "A database error occurred. Please restart the app."
-          }
-        }
-      }
-    },
-    "インターネット接続を確認してください。" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Please check your internet connection."
-          }
-        }
-      }
-    },
-    "接続がタイムアウトしました。しばらく待ってから再度お試しください。" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Connection timed out. Please wait and try again."
-          }
-        }
-      }
-    },
-    "サーバーに接続できません。しばらく待ってから再度お試しください。" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cannot connect to the server. Please wait and try again."
-          }
-        }
-      }
-    },
-    "ネットワークエラーが発生しました。接続を確認してください。" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "A network error occurred. Please check your connection."
-          }
-        }
-      }
-    },
-    "ファイルへのアクセスが拒否されました。アプリを再起動してください。" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "File access denied. Please restart the app."
-          }
-        }
-      }
-    },
-    "必要なファイルが見つかりません。アプリを再インストールしてください。" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Required file not found. Please reinstall the app."
-          }
-        }
-      }
-    },
-    "ファイルシステムエラーが発生しました。アプリを再起動してください。" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "A file system error occurred. Please restart the app."
-          }
-        }
-      }
-    },
-    "入力データに問題があります。もう一度お試しください。" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "There is an issue with the input data. Please try again."
-          }
-        }
-      }
-    },
-    "処理がキャンセルされました。" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The operation was cancelled."
-          }
-        }
-      }
-    },
-    "メモリが不足しています。他のアプリを終了してから再度お試しください。" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Out of memory. Please close other apps and try again."
-          }
-        }
-      }
-    },
-    "同じデータが既に存在します。" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The same data already exists."
-          }
-        }
-      }
-    },
-    "予期しないエラーが発生しました。アプリを再起動してください。" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "An unexpected error occurred. Please restart the app."
-          }
-        }
-      }
-    },
-    "データベースの読み込みに失敗しました" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Failed to load database"
-          }
-        }
-      }
-    },
-    "データの保存に失敗しました" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Failed to save data"
-          }
-        }
-      }
-    },
-    "オフライン" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Offline"
-          }
-        }
-      }
-    },
-    "モバイル" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cellular"
-          }
-        }
-      }
-    },
-    "接続中" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Connecting"
-          }
-        }
-      }
-    },
-    "未支払い" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unpaid"
-          }
-        }
-      }
-    },
-    "一部支払い済み" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Partially paid"
-          }
-        }
-      }
-    },
-    "支払い済み" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Paid"
-          }
-        }
-      }
-    },
-    "おてつだいコイン" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "OtetsudaiCoin"
-          }
-        }
-      }
-    },
-    "お手伝い管理" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Task Management"
-          }
-        }
-      }
-    },
-    "月別履歴" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Monthly History"
-          }
-        }
-      }
-    },
-    "記録を編集" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Edit Record"
-          }
-        }
-      }
-    },
-    "お手伝い履歴" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Help History"
-          }
-        }
-      }
-    },
-    "お手伝い記録" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Help Record"
-          }
-        }
-      }
-    },
-    "設定" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Settings"
-          }
-        }
-      }
-    },
-    "新しいタスクを追加" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Add New Task"
-          }
-        }
-      }
-    },
-    "完了" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Done"
-          }
-        }
-      }
-    },
-    "キャンセル" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cancel"
-          }
-        }
-      }
-    },
-    "再試行" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Retry"
-          }
-        }
-      }
-    },
-    "閉じる" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Close"
-          }
-        }
-      }
-    },
-    "支払う" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pay"
-          }
-        }
-      }
-    },
-    "保存" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Save"
-          }
-        }
-      }
-    },
-    "再読み込み" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Reload"
-          }
-        }
-      }
-    },
-    "戻る" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Back"
-          }
-        }
-      }
-    },
-    "削除" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Delete"
-          }
-        }
-      }
-    },
-    "編集" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Edit"
-          }
-        }
-      }
-    },
-    "コイン単価" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Coin Rate"
-          }
-        }
-      }
-    },
-    "コイン" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Coins"
-          }
-        }
-      }
-    },
-    "有効" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Active"
-          }
-        }
-      }
-    },
-    "無効" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Inactive"
-          }
-        }
-      }
-    },
-    "お子様を選択" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Select Child"
-          }
-        }
-      }
-    },
-    "お手伝いする人を選んでください" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Please select a helper"
-          }
-        }
-      }
-    },
-    "お子様が登録されていません" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No children registered"
-          }
-        }
-      }
-    },
-    "今日のお手伝い" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Today's Help"
-          }
-        }
-      }
-    },
-    "利用可能なお手伝いタスクがありません" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No help tasks available"
-          }
-        }
-      }
-    },
-    "選択中" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Selected"
-          }
-        }
-      }
-    },
-    "タップして選択" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tap to select"
-          }
-        }
-      }
-    },
-    "お手伝いする人とタスクを選んでください" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Select a helper and a task"
-          }
-        }
-      }
-    },
-    "記録する" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Record"
-          }
-        }
-      }
-    },
-    "削除確認" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Delete Confirmation"
-          }
-        }
-      }
-    },
-    "成功" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Success"
-          }
-        }
-      }
-    },
-    "エラー" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Error"
-          }
-        }
-      }
-    },
-    "読み込み中..." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Loading..."
-          }
-        }
-      }
+    "「%@」の記録を削除しますか？この操作は取り消せません。" : {
+
     },
-    "お手伝い内容" : {
+    "%@さんの「%@」" : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Help Details"
-          }
-        }
-      }
-    },
-    "利用可能なタスクがありません" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No tasks available"
-          }
-        }
-      }
-    },
-    "記録日時" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Record Date"
-          }
-        }
-      }
-    },
-    "変更を保存" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Save Changes"
-          }
-        }
-      }
-    },
-    "記録を削除" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Delete Record"
-          }
-        }
-      }
-    },
-    "お子様を登録してください" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Please register a child"
-          }
-        }
-      }
-    },
-    "今月のお小遣いは支払い済みです" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "This month's allowance has been paid"
-          }
-        }
-      }
-    },
-    "支払い後の追加獲得分" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Additional earnings after payment"
-          }
-        }
-      }
-    },
-    "追加分を支払う" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pay additional"
-          }
-        }
-      }
-    },
-    "今月のお小遣い" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "This month's allowance"
-          }
-        }
-      }
-    },
-    "今月のお小遣いを支払う" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pay monthly allowance"
-          }
-        }
-      }
-    },
-    "今月のお手伝い記録がありません" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No help records this month"
-          }
-        }
-      }
-    },
-    "未支払いのお小遣いがあります" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "There are unpaid allowances"
-          }
-        }
-      }
-    },
-    "未支払い期間: " : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unpaid period: "
-          }
-        }
-      }
-    },
-    "支払い履歴を確認" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Check payment history"
-          }
-        }
-      }
-    },
-    "この月のお手伝い記録はありません" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No help records for this month"
-          }
-        }
-      }
-    },
-    "お手伝い" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Help"
-          }
-        }
-      }
-    },
-    "支払い記録" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Payment Record"
-          }
-        }
-      }
-    },
-    "まだ履歴がありません" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No history yet"
-          }
-        }
-      }
-    },
-    "未払い" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unpaid"
-          }
-        }
-      }
-    },
-    "お小遣い支払い確認" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Allowance Payment Confirmation"
-          }
-        }
-      }
-    },
-    "支払い確認" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Payment Confirmation"
-          }
-        }
-      }
-    },
-    "この記録を削除しますか？この操作は取り消せません。" : {
-      "localizations" : {
-        "en" : {
+        "ja" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Are you sure you want to delete this record? This action cannot be undone."
+            "state" : "new",
+            "value" : "%1$@さんの「%2$@」"
           }
         }
       }
     },
-    "期間" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Period"
-          }
-        }
-      }
+    "%@ちゃんの記録" : {
+
     },
-    "今週" : {
+    "%@のお小遣い%lldコインを支払いますか？" : {
       "localizations" : {
-        "en" : {
+        "ja" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "This Week"
+            "state" : "new",
+            "value" : "%1$@のお小遣い%2$lldコインを支払いますか？"
           }
         }
       }
     },
-    "今月" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "This Month"
-          }
-        }
-      }
+    "%@のお小遣いを支払う" : {
+
     },
-    "過去3か月" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Last 3 Months"
-          }
-        }
-      }
+    "%@を削除しますか？この操作は取り消せません。" : {
+
     },
-    "全期間" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "All Time"
-          }
-        }
-      }
+    "%lld" : {
+
     },
-    "履歴を読み込み中..." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Loading history..."
-          }
-        }
-      }
+    "%lldコイン" : {
+
     },
-    "お手伝い記録がありません" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No help records"
-          }
-        }
-      }
+    "%lldコイン支払い" : {
+
     },
-    "お手伝いした人" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Helper"
-          }
-        }
-      }
+    "%lld回" : {
+
     },
-    "お手伝いタスク" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Help Task"
-          }
-        }
-      }
+    "+%lld" : {
+
     },
-    "お子様管理" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Child Management"
-          }
-        }
-      }
+    "1.0.0" : {
+
     },
-    "新しい子供を追加" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Add New Child"
-          }
-        }
-      }
+    "3ヶ月分サンプルデータ生成" : {
+
     },
-    "お手伝いリストを編集" : {
+    "OK" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Edit Help Task List"
+            "value" : "OK"
           }
         }
       }
     },
-    "ヘルプ" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Help"
-          }
-        }
-      }
+    "OtetsudaiCoin" : {
+
     },
-    "チュートリアルを再表示" : {
+    "アプリを評価" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Show Tutorial Again"
+            "value" : "Rate App"
           }
         }
       }
@@ -1131,32 +87,123 @@
         }
       }
     },
-    "バージョン" : {
+    "インターネット接続を確認してください。" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Version"
+            "value" : "Please check your internet connection."
           }
         }
       }
     },
-    "アプリを評価" : {
+    "エラー" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Rate App"
+            "value" : "Error"
           }
         }
       }
     },
-    "基本情報" : {
+    "おてつだいコイン" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Basic Info"
+            "value" : "OtetsudaiCoin"
+          }
+        }
+      }
+    },
+    "おてつだいコインへようこそ！" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Welcome to OtetsudaiCoin!"
+          }
+        }
+      }
+    },
+    "オフライン" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Offline"
+          }
+        }
+      }
+    },
+    "おめでとう！" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Congratulations!"
+          }
+        }
+      }
+    },
+    "おめでとうございます！" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Congratulations!"
+          }
+        }
+      }
+    },
+    "お名前未入力" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Name not entered"
+          }
+        }
+      }
+    },
+    "お子様ががんばったお手伝いを記録して、\nコインを獲得しましょう" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Record the chores your child did\nand earn coins"
+          }
+        }
+      }
+    },
+    "お子様が登録されていません" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No children registered"
+          }
+        }
+      }
+    },
+    "お子様が登録されました！" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Child registered!"
+          }
+        }
+      }
+    },
+    "お子様が選択されました！" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Child selected!"
           }
         }
       }
@@ -1171,42 +218,282 @@
         }
       }
     },
-    "テーマカラー" : {
+    "お子様のお手伝いを楽しく記録して、\nコインを貯めていきましょう！" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Theme Color"
+            "value" : "Record your child's chores in a fun way\nand collect coins!"
           }
         }
       }
     },
-    "カラーを選択" : {
+    "お子様の名前と好きな色を設定して、\n専用のプロフィールを作成します" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Select Color"
+            "value" : "Set your child's name and favorite color\nto create their profile"
           }
         }
       }
     },
-    "プレビュー" : {
+    "お子様の成績を確認" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Preview"
+            "value" : "Check your child's progress"
           }
         }
       }
     },
-    "お名前未入力" : {
+    "お子様の追加・編集" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Name not entered"
+            "value" : "Add or edit children"
+          }
+        }
+      }
+    },
+    "お子様を登録" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Register Child"
+          }
+        }
+      }
+    },
+    "お子様を登録してください" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Please register a child"
+          }
+        }
+      }
+    },
+    "お子様を追加" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add Child"
+          }
+        }
+      }
+    },
+    "お子様を選択" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select Child"
+          }
+        }
+      }
+    },
+    "お子様を選択してください" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Please select a child"
+          }
+        }
+      }
+    },
+    "お子様管理" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Child Management"
+          }
+        }
+      }
+    },
+    "お小遣い支払い確認" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allowance Payment Confirmation"
+          }
+        }
+      }
+    },
+    "お手伝い" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Help"
+          }
+        }
+      }
+    },
+    "お手伝いした人" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Helper"
+          }
+        }
+      }
+    },
+    "お手伝いする人とタスクを選んでください" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select a helper and a task"
+          }
+        }
+      }
+    },
+    "お手伝いする人を選んでください" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Please select a helper"
+          }
+        }
+      }
+    },
+    "お手伝いタスク" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Help Task"
+          }
+        }
+      }
+    },
+    "お手伝いタスクを選択してください" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Please select a help task"
+          }
+        }
+      }
+    },
+    "お手伝いタスク一覧" : {
+
+    },
+    "お手伝いでコインを貯めよう！" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Earn coins by helping!"
+          }
+        }
+      }
+    },
+    "お手伝いの記録" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Help Recording"
+          }
+        }
+      }
+    },
+    "お手伝いリストを編集" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit Help Task List"
+          }
+        }
+      }
+    },
+    "お手伝いを記録" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Record chores"
+          }
+        }
+      }
+    },
+    "お手伝いを記録してコイン獲得" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Record help and earn coins"
+          }
+        }
+      }
+    },
+    "お手伝いを記録しました！" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Help recorded!"
+          }
+        }
+      }
+    },
+    "お手伝いを記録しよう！" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Let's record chores!"
+          }
+        }
+      }
+    },
+    "お手伝いを選んで記録" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select and record chores"
+          }
+        }
+      }
+    },
+    "お手伝いを選択" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select Help"
+          }
+        }
+      }
+    },
+    "お手伝い内容" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Help Details"
           }
         }
       }
@@ -1221,32 +508,207 @@
         }
       }
     },
-    "子供情報編集" : {
+    "お手伝い履歴" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Edit Child Info"
+            "value" : "Help History"
           }
         }
       }
     },
-    "新しい子供追加" : {
+    "お手伝い管理" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Add New Child"
+            "value" : "Task Management"
           }
         }
       }
     },
-    "お手伝いでコインを貯めよう！" : {
+    "お手伝い記録" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Earn coins by helping!"
+            "value" : "Help Record"
+          }
+        }
+      }
+    },
+    "お手伝い記録がありません" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No help records"
+          }
+        }
+      }
+    },
+    "お手伝い頑張り中" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep up the great work!"
+          }
+        }
+      }
+    },
+    "カラーを選択" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select Color"
+          }
+        }
+      }
+    },
+    "がんばったお手伝いを記録" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Record completed chores"
+          }
+        }
+      }
+    },
+    "がんばったお手伝いを選んでください" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose the chore completed"
+          }
+        }
+      }
+    },
+    "がんばった成果をコインに" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn efforts into coins"
+          }
+        }
+      }
+    },
+    "キャンセル" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
+          }
+        }
+      }
+    },
+    "コイン" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coins"
+          }
+        }
+      }
+    },
+    "コイン単価" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coin Rate"
+          }
+        }
+      }
+    },
+    "コイン単価は1以上で入力してください" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coin rate must be 1 or more"
+          }
+        }
+      }
+    },
+    "この月のお手伝い記録はありません" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No help records for this month"
+          }
+        }
+      }
+    },
+    "この記録を削除しますか？この操作は取り消せません。" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Are you sure you want to delete this record? This action cannot be undone."
+          }
+        }
+      }
+    },
+    "サーバーに接続できません。しばらく待ってから再度お試しください。" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cannot connect to the server. Please wait and try again."
+          }
+        }
+      }
+    },
+    "サンプルデータ" : {
+
+    },
+    "ストレージ容量が不足しています。デバイスの空き容量を確保してください。" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Storage is full. Please free up space on your device."
+          }
+        }
+      }
+    },
+    "タスクを削除しました" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Task deleted"
+          }
+        }
+      }
+    },
+    "タスクを更新しました" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Task updated"
+          }
+        }
+      }
+    },
+    "タスクを追加しました" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Task added"
           }
         }
       }
@@ -1257,6 +719,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Task Name"
+          }
+        }
+      }
+    },
+    "タスク名を入力してください" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Please enter a task name"
           }
         }
       }
@@ -1291,282 +763,12 @@
         }
       }
     },
-    "無効にする" : {
+    "タップして選択" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Disable"
-          }
-        }
-      }
-    },
-    "有効にする" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enable"
-          }
-        }
-      }
-    },
-    "日時" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Date/Time"
-          }
-        }
-      }
-    },
-    "実績" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Stats"
-          }
-        }
-      }
-    },
-    "回" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "times"
-          }
-        }
-      }
-    },
-    "獲得コイン" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Earned Coins"
-          }
-        }
-      }
-    },
-    "平均コイン" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Average Coins"
-          }
-        }
-      }
-    },
-    "お手伝い頑張り中" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Keep up the great work!"
-          }
-        }
-      }
-    },
-    "おめでとう！" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Congratulations!"
-          }
-        }
-      }
-    },
-    "おてつだいコインへようこそ！" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Welcome to OtetsudaiCoin!"
-          }
-        }
-      }
-    },
-    "お子様のお手伝いを楽しく記録して、\nコインを貯めていきましょう！" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Record your child's chores in a fun way\nand collect coins!"
-          }
-        }
-      }
-    },
-    "最初のお子様を登録しましょう" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Let's register your first child"
-          }
-        }
-      }
-    },
-    "お子様の名前と好きな色を設定して、\n専用のプロフィールを作成します" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Set your child's name and favorite color\nto create their profile"
-          }
-        }
-      }
-    },
-    "お子様が登録されました！" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Child registered!"
-          }
-        }
-      }
-    },
-    "お子様を追加" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Add Child"
-          }
-        }
-      }
-    },
-    "準備完了です！" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "All set!"
-          }
-        }
-      }
-    },
-    "次はお手伝いの記録方法を\n学んでみましょう" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Next, let's learn how to\nrecord chores"
-          }
-        }
-      }
-    },
-    "お手伝いを記録しよう！" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Let's record chores!"
-          }
-        }
-      }
-    },
-    "お子様ががんばったお手伝いを記録して、\nコインを獲得しましょう" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Record the chores your child did\nand earn coins"
-          }
-        }
-      }
-    },
-    "記録するお子様を選んでください" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choose a child to record for"
-          }
-        }
-      }
-    },
-    "記録するお子様：" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Recording for:"
-          }
-        }
-      }
-    },
-    "お子様が選択されました！" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Child selected!"
-          }
-        }
-      }
-    },
-    "お手伝いを選択" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Select Help"
-          }
-        }
-      }
-    },
-    "がんばったお手伝いを選んでください" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choose the chore completed"
-          }
-        }
-      }
-    },
-    "今日のお手伝い：" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Today's help:"
-          }
-        }
-      }
-    },
-    "記録準備完了！" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ready to record!"
-          }
-        }
-      }
-    },
-    "記録完了！アニメーションを確認してください" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Recording complete! Check the animation"
-          }
-        }
-      }
-    },
-    "おめでとうございます！" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Congratulations!"
+            "value" : "Tap to select"
           }
         }
       }
@@ -1581,87 +783,155 @@
         }
       }
     },
-    "次へ" : {
+    "チュートリアルを再表示" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Next"
+            "value" : "Show Tutorial Again"
           }
         }
       }
     },
-    "開始" : {
+    "チュートリアル完了です\nこれでおてつだいコインを\n始められます！" : {
+
+    },
+    "チュートリアル完了です。\nこれでおてつだいコインを\n始められます！" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Start"
+            "value" : "Tutorial complete!\nYou're ready to start\nusing OtetsudaiCoin!"
           }
         }
       }
     },
-    "お子様を登録" : {
+    "データの保存に失敗しました" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Register Child"
+            "value" : "Failed to save data"
           }
         }
       }
     },
-    "名前や好きな色を設定" : {
+    "データベースエラーが発生しました。アプリを再起動してください。" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Set name and favorite color"
+            "value" : "A database error occurred. Please restart the app."
           }
         }
       }
     },
-    "お手伝いを記録" : {
+    "データベースに問題が発生しました。アプリを再起動してください。" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Record chores"
+            "value" : "A database issue occurred. Please restart the app."
           }
         }
       }
     },
-    "がんばった成果をコインに" : {
+    "データベースの読み込みに失敗しました" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Turn efforts into coins"
+            "value" : "Failed to load database"
           }
         }
       }
     },
-    "成長を確認" : {
+    "データベースへのアクセスが拒否されました。アプリを再起動してください。" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Check progress"
+            "value" : "Database access denied. Please restart the app."
           }
         }
       }
     },
-    "統計で進捗をチェック" : {
+    "テーマカラー" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Track progress with stats"
+            "value" : "Theme Color"
           }
         }
       }
+    },
+    "ネットワークエラーが発生しました。接続を確認してください。" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A network error occurred. Please check your connection."
+          }
+        }
+      }
+    },
+    "バージョン" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Version"
+          }
+        }
+      }
+    },
+    "ファイルシステムエラーが発生しました。アプリを再起動してください。" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A file system error occurred. Please restart the app."
+          }
+        }
+      }
+    },
+    "ファイルへのアクセスが拒否されました。アプリを再起動してください。" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "File access denied. Please restart the app."
+          }
+        }
+      }
+    },
+    "プレビュー" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preview"
+          }
+        }
+      }
+    },
+    "ヘルプ" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Help"
+          }
+        }
+      }
+    },
+    "ホーム" : {
+
     },
     "ホーム画面" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1671,67 +941,62 @@
         }
       }
     },
-    "お子様の成績を確認" : {
+    "まだ履歴がありません" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Check your child's progress"
+            "value" : "No history yet"
           }
         }
       }
     },
-    "記録画面" : {
+    "メッセージ" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Record Screen"
+            "value" : "Message"
           }
         }
       }
     },
-    "お手伝いを記録してコイン獲得" : {
+    "メモリが不足しています。他のアプリを終了してから再度お試しください。" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Record help and earn coins"
+            "value" : "Out of memory. Please close other apps and try again."
           }
         }
       }
     },
-    "設定画面" : {
+    "モバイル" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Settings Screen"
+            "value" : "Cellular"
           }
         }
       }
     },
-    "お子様の追加・編集" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Add or edit children"
-          }
-        }
-      }
+    "リマインド通知" : {
+
     },
-    "記録タブを開く" : {
+    "一部支払い済み" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Open Record tab"
+            "value" : "Partially paid"
           }
         }
       }
     },
     "下部の「記録」ボタンをタップ" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1741,62 +1006,267 @@
         }
       }
     },
-    "登録したお子様を選ぶ" : {
+    "予期しないエラーが発生しました。アプリを再起動してください。" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Choose your registered child"
+            "value" : "An unexpected error occurred. Please restart the app."
           }
         }
       }
     },
-    "お手伝いを選んで記録" : {
+    "今日のお手伝い" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Select and record chores"
+            "value" : "Today's Help"
           }
         }
       }
     },
-    "がんばったお手伝いを記録" : {
+    "今日のお手伝い：" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Record completed chores"
+            "value" : "Today's help:"
           }
         }
       }
     },
-    "記録ボタンをタップ" : {
+    "今月" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tap the Record button"
+            "value" : "This Month"
           }
         }
       }
     },
-    "お手伝いの記録" : {
+    "今月のお小遣い" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Help Recording"
+            "value" : "This month's allowance"
           }
         }
       }
     },
-    "子供選択" : {
+    "今月のお小遣いは支払い済みです" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Select Child"
+            "value" : "This month's allowance has been paid"
+          }
+        }
+      }
+    },
+    "今月のお小遣いを支払いますか？\n金額: %lldコイン" : {
+
+    },
+    "今月のお小遣いを支払う" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pay monthly allowance"
+          }
+        }
+      }
+    },
+    "今月のお手伝い" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This Month's Help"
+          }
+        }
+      }
+    },
+    "今月のお手伝い記録がありません" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No help records this month"
+          }
+        }
+      }
+    },
+    "今月のコイン" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This Month's Coins"
+          }
+        }
+      }
+    },
+    "今週" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This Week"
+          }
+        }
+      }
+    },
+    "保存" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save"
+          }
+        }
+      }
+    },
+    "入力データが無効です" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invalid input data"
+          }
+        }
+      }
+    },
+    "入力データに問題があります。もう一度お試しください。" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "There is an issue with the input data. Please try again."
+          }
+        }
+      }
+    },
+    "全データ削除" : {
+
+    },
+    "全期間" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All Time"
+          }
+        }
+      }
+    },
+    "再試行" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retry"
+          }
+        }
+      }
+    },
+    "再読み込み" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reload"
+          }
+        }
+      }
+    },
+    "最初のお子様を\n登録しましょう" : {
+
+    },
+    "最初のお子様を登録しましょう" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Let's register your first child"
+          }
+        }
+      }
+    },
+    "処理がキャンセルされました。" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The operation was cancelled."
+          }
+        }
+      }
+    },
+    "処理に時間がかかりすぎています。しばらく待ってから再度お試しください。" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Processing is taking too long. Please wait and try again."
+          }
+        }
+      }
+    },
+    "利用可能なお手伝いタスクがありません" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No help tasks available"
+          }
+        }
+      }
+    },
+    "利用可能なタスクがありません" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No tasks available"
+          }
+        }
+      }
+    },
+    "削除" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete"
+          }
+        }
+      }
+    },
+    "削除対象の子供が見つかりません" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Child to delete was not found"
+          }
+        }
+      }
+    },
+    "削除確認" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete Confirmation"
           }
         }
       }
@@ -1811,37 +1281,446 @@
         }
       }
     },
-    "OK" : {
+    "同じデータが既に存在します。" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "OK"
+            "value" : "The same data already exists."
           }
         }
       }
     },
-    "メッセージ" : {
+    "同じ名前のタスクが既に存在します" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Message"
+            "value" : "A task with the same name already exists"
           }
         }
       }
     },
-    "連続記録" : {
+    "同じ名前の子供が既に登録されています" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Consecutive Days"
+            "value" : "A child with the same name is already registered"
+          }
+        }
+      }
+    },
+    "名前や好きな色を設定" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set name and favorite color"
+          }
+        }
+      }
+    },
+    "回" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "times"
+          }
+        }
+      }
+    },
+    "基本情報" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Basic Info"
+          }
+        }
+      }
+    },
+    "変更を保存" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save Changes"
+          }
+        }
+      }
+    },
+    "子供が選択されていません" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No child selected"
+          }
+        }
+      }
+    },
+    "子供情報編集" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit Child Info"
+          }
+        }
+      }
+    },
+    "子供選択" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select Child"
+          }
+        }
+      }
+    },
+    "完了" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Done"
+          }
+        }
+      }
+    },
+    "実績" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stats"
+          }
+        }
+      }
+    },
+    "履歴を読み込み中..." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Loading history..."
+          }
+        }
+      }
+    },
+    "平均コイン" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Average Coins"
+          }
+        }
+      }
+    },
+    "必要なファイルが見つかりません。アプリを再インストールしてください。" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Required file not found. Please reinstall the app."
+          }
+        }
+      }
+    },
+    "成功" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Success"
+          }
+        }
+      }
+    },
+    "成長を確認" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check progress"
+          }
+        }
+      }
+    },
+    "戻る" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back"
+          }
+        }
+      }
+    },
+    "接続がタイムアウトしました。しばらく待ってから再度お試しください。" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connection timed out. Please wait and try again."
+          }
+        }
+      }
+    },
+    "接続中" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connecting"
+          }
+        }
+      }
+    },
+    "支払い履歴を確認" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check payment history"
+          }
+        }
+      }
+    },
+    "支払い後の追加獲得分" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Additional earnings after payment"
+          }
+        }
+      }
+    },
+    "支払い済み" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paid"
+          }
+        }
+      }
+    },
+    "支払い確認" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Payment Confirmation"
+          }
+        }
+      }
+    },
+    "支払い記録" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Payment Record"
+          }
+        }
+      }
+    },
+    "支払う" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pay"
+          }
+        }
+      }
+    },
+    "新しいタスクを追加" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add New Task"
+          }
+        }
+      }
+    },
+    "新しい子供を追加" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add New Child"
+          }
+        }
+      }
+    },
+    "新しい子供追加" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add New Child"
+          }
+        }
+      }
+    },
+    "日時" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Date/Time"
+          }
+        }
+      }
+    },
+    "更新" : {
+
+    },
+    "月別履歴" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly History"
+          }
+        }
+      }
+    },
+    "有効" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Active"
+          }
+        }
+      }
+    },
+    "有効にする" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable"
+          }
+        }
+      }
+    },
+    "期間" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Period"
+          }
+        }
+      }
+    },
+    "未払い" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unpaid"
+          }
+        }
+      }
+    },
+    "未支払い" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unpaid"
+          }
+        }
+      }
+    },
+    "未支払いのお小遣いがあります" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "There are unpaid allowances"
+          }
+        }
+      }
+    },
+    "未支払い期間: " : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unpaid period: "
+          }
+        }
+      }
+    },
+    "次はお手伝いの記録方法を\n学んでみましょう" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next, let's learn how to\nrecord chores"
+          }
+        }
+      }
+    },
+    "次へ" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next"
+          }
+        }
+      }
+    },
+    "準備完了です！" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All set!"
+          }
+        }
+      }
+    },
+    "無効" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inactive"
+          }
+        }
+      }
+    },
+    "無効にする" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disable"
           }
         }
       }
     },
     "獲得！" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1851,35 +1730,304 @@
         }
       }
     },
-    "今月のコイン" : {
+    "獲得コイン" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This Month's Coins"
+            "value" : "Earned Coins"
           }
         }
       }
     },
-    "今月のお手伝い" : {
+    "登録したお子様を選ぶ" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This Month's Help"
+            "value" : "Choose your registered child"
           }
         }
       }
     },
-    "チュートリアル完了です。\nこれでおてつだいコインを\n始められます！" : {
+    "統計で進捗をチェック" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tutorial complete!\nYou're ready to start\nusing OtetsudaiCoin!"
+            "value" : "Track progress with stats"
           }
         }
       }
+    },
+    "編集" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit"
+          }
+        }
+      }
+    },
+    "記録" : {
+
+    },
+    "記録する" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Record"
+          }
+        }
+      }
+    },
+    "記録するお子様：" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recording for:"
+          }
+        }
+      }
+    },
+    "記録するお子様を選んでください" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose a child to record for"
+          }
+        }
+      }
+    },
+    "記録タブを開く" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Record tab"
+          }
+        }
+      }
+    },
+    "記録データのみ削除" : {
+
+    },
+    "記録ボタンをタップ" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap the Record button"
+          }
+        }
+      }
+    },
+    "記録を削除" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete Record"
+          }
+        }
+      }
+    },
+    "記録を削除しました" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Record deleted"
+          }
+        }
+      }
+    },
+    "記録を更新しました" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Record updated"
+          }
+        }
+      }
+    },
+    "記録を編集" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit Record"
+          }
+        }
+      }
+    },
+    "記録完了！アニメーションを確認してください" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recording complete! Check the animation"
+          }
+        }
+      }
+    },
+    "記録日時" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Record Date"
+          }
+        }
+      }
+    },
+    "記録準備完了！" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ready to record!"
+          }
+        }
+      }
+    },
+    "記録画面" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Record Screen"
+          }
+        }
+      }
+    },
+    "設定" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings"
+          }
+        }
+      }
+    },
+    "設定画面" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings Screen"
+          }
+        }
+      }
+    },
+    "読み込み中..." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Loading..."
+          }
+        }
+      }
+    },
+    "追加" : {
+
+    },
+    "追加分のお小遣いを支払いますか？\n金額: %lldコイン" : {
+
+    },
+    "追加分を支払う" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pay additional"
+          }
+        }
+      }
+    },
+    "通知" : {
+
+    },
+    "通知を有効にする" : {
+
+    },
+    "通知時間" : {
+
+    },
+    "通知設定" : {
+
+    },
+    "連続記録" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Consecutive Days"
+          }
+        }
+      }
+    },
+    "過去3か月" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Last 3 Months"
+          }
+        }
+      }
+    },
+    "選択した期間にお手伝いの記録がありません。\n記録タブから新しいお手伝いを記録してみましょう！" : {
+
+    },
+    "選択中" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selected"
+          }
+        }
+      }
+    },
+    "閉じる" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close"
+          }
+        }
+      }
+    },
+    "開始" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start"
+          }
+        }
+      }
+    },
+    "開発者向け" : {
+
     }
   },
   "version" : "1.0"

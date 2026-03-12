@@ -52,7 +52,9 @@
                ReferencedContainer = "container:OtetsudaiCoin.xcodeproj">
             </BuildableReference>
             <SkippedTests>
-               <Test Identifier="OtetsudaiCoinUITests/testPerformance_AppLaunch()"/>
+               <Test
+                  Identifier = "OtetsudaiCoinUITests/testPerformance_AppLaunch()">
+               </Test>
             </SkippedTests>
          </TestableReference>
       </Testables>
