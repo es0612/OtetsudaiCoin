@@ -12,3 +12,84 @@ protocol PaymentReminderNotificationServiceProtocol: AnyObject {
     func reschedule() async throws
     func cancelAll()
 }
+
+// MARK: - PaymentReminderNotificationService
+
+class PaymentReminderNotificationService: PaymentReminderNotificationServiceProtocol {
+
+    private enum UserDefaultsKey {
+        static let enabled = "paymentReminderNotificationEnabled"
+        static let hour = "paymentReminderNotificationHour"
+        static let minute = "paymentReminderNotificationMinute"
+    }
+
+    static let notificationIdentifier = "payment-reminder"
+    private static let defaultHour = 9
+    private static let defaultMinute = 0
+
+    private let notificationCenter: NotificationCenterProtocol
+    private let userDefaults: UserDefaults
+    private let unpaidDetector: UnpaidAllowanceDetectorService
+    private let childRepository: ChildRepository
+    private let helpRecordRepository: HelpRecordRepository
+    private let allowancePaymentRepository: AllowancePaymentRepository
+    private let helpTaskRepository: HelpTaskRepository
+
+    var isEnabled: Bool {
+        didSet { userDefaults.set(isEnabled, forKey: UserDefaultsKey.enabled) }
+    }
+
+    var reminderHour: Int {
+        didSet { userDefaults.set(reminderHour, forKey: UserDefaultsKey.hour) }
+    }
+
+    var reminderMinute: Int {
+        didSet { userDefaults.set(reminderMinute, forKey: UserDefaultsKey.minute) }
+    }
+
+    init(
+        notificationCenter: NotificationCenterProtocol,
+        userDefaults: UserDefaults,
+        unpaidDetector: UnpaidAllowanceDetectorService,
+        childRepository: ChildRepository,
+        helpRecordRepository: HelpRecordRepository,
+        allowancePaymentRepository: AllowancePaymentRepository,
+        helpTaskRepository: HelpTaskRepository
+    ) {
+        self.notificationCenter = notificationCenter
+        self.userDefaults = userDefaults
+        self.unpaidDetector = unpaidDetector
+        self.childRepository = childRepository
+        self.helpRecordRepository = helpRecordRepository
+        self.allowancePaymentRepository = allowancePaymentRepository
+        self.helpTaskRepository = helpTaskRepository
+
+        let hasStoredHour = userDefaults.object(forKey: UserDefaultsKey.hour) != nil
+        let hasStoredMinute = userDefaults.object(forKey: UserDefaultsKey.minute) != nil
+        self.isEnabled = userDefaults.bool(forKey: UserDefaultsKey.enabled)
+        self.reminderHour = hasStoredHour
+            ? userDefaults.integer(forKey: UserDefaultsKey.hour)
+            : Self.defaultHour
+        self.reminderMinute = hasStoredMinute
+            ? userDefaults.integer(forKey: UserDefaultsKey.minute)
+            : Self.defaultMinute
+    }
+
+    func requestAuthorization() async -> Bool {
+        do {
+            return try await notificationCenter.requestAuthorization(options: [.alert, .sound, .badge])
+        } catch {
+            return false
+        }
+    }
+
+    func reschedule() async throws {
+        // 次タスクで実装
+    }
+
+    func cancelAll() {
+        notificationCenter.removePendingNotificationRequests(
+            withIdentifiers: [Self.notificationIdentifier]
+        )
+    }
+}
