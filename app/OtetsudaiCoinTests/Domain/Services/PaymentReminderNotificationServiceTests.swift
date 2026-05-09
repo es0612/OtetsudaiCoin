@@ -72,6 +72,29 @@ final class PaymentReminderNotificationServiceTests: XCTestCase {
         XCTAssertEqual(userDefaults.integer(forKey: "paymentReminderNotificationMinute"), 30)
     }
 
+    // MARK: - 権限リクエスト
+
+    func testRequestAuthorizationGranted() async {
+        mockNotificationCenter.grantResult = true
+        let result = await service.requestAuthorization()
+        XCTAssertTrue(result)
+        XCTAssertEqual(mockNotificationCenter.requestAuthorizationCallCount, 1)
+    }
+
+    func testRequestAuthorizationDenied() async {
+        mockNotificationCenter.grantResult = false
+        let result = await service.requestAuthorization()
+        XCTAssertFalse(result)
+    }
+
+    // MARK: - キャンセル
+
+    func testCancelAllRemovesPendingPaymentReminderOnly() {
+        service.cancelAll()
+        XCTAssertEqual(mockNotificationCenter.removeCallCount, 1)
+        XCTAssertEqual(mockNotificationCenter.removedIdentifiers, ["payment-reminder"])
+    }
+
     func testLoadsPersistedValuesOnInit() {
         userDefaults.set(true, forKey: "paymentReminderNotificationEnabled")
         userDefaults.set(8, forKey: "paymentReminderNotificationHour")
