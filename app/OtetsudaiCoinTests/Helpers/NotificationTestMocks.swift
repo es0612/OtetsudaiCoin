@@ -74,3 +74,34 @@ class MockNotificationCenter: NotificationCenterProtocol {
         removedIdentifiers.append(contentsOf: identifiers)
     }
 }
+
+// MARK: - PaymentReminderNotificationServiceProtocol のモック
+
+class MockPaymentReminderNotificationService: PaymentReminderNotificationServiceProtocol {
+    var isEnabled: Bool = false
+    var reminderHour: Int = 9
+    var reminderMinute: Int = 0
+
+    var requestAuthorizationCallCount = 0
+    var rescheduleCallCount = 0
+    var cancelAllCallCount = 0
+
+    var authorizationResult: Bool = true
+    var rescheduleError: Error?
+
+    func requestAuthorization() async -> Bool {
+        requestAuthorizationCallCount += 1
+        return authorizationResult
+    }
+
+    func reschedule() async throws {
+        rescheduleCallCount += 1
+        if let error = rescheduleError {
+            throw error
+        }
+    }
+
+    func cancelAll() {
+        cancelAllCallCount += 1
+    }
+}
