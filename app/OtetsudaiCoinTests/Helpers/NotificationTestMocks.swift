@@ -47,16 +47,23 @@ class MockReminderNotificationService: ReminderNotificationServiceProtocol {
 
 class MockNotificationCenter: NotificationCenterProtocol {
     var grantResult: Bool = true
+    var mockAuthorizationStatus: UNAuthorizationStatus = .authorized
 
     var addCallCount = 0
     var removeCallCount = 0
     var requestAuthorizationCallCount = 0
+    var currentAuthorizationStatusCallCount = 0
     var removedIdentifiers: [String] = []
     var addedRequests: [UNNotificationRequest] = []
 
     func requestAuthorization(options: UNAuthorizationOptions) async throws -> Bool {
         requestAuthorizationCallCount += 1
         return grantResult
+    }
+
+    func currentAuthorizationStatus() async -> UNAuthorizationStatus {
+        currentAuthorizationStatusCallCount += 1
+        return mockAuthorizationStatus
     }
 
     var addError: Error?
@@ -72,5 +79,36 @@ class MockNotificationCenter: NotificationCenterProtocol {
     func removePendingNotificationRequests(withIdentifiers identifiers: [String]) {
         removeCallCount += 1
         removedIdentifiers.append(contentsOf: identifiers)
+    }
+}
+
+// MARK: - PaymentReminderNotificationServiceProtocol のモック
+
+class MockPaymentReminderNotificationService: PaymentReminderNotificationServiceProtocol {
+    var isEnabled: Bool = false
+    var reminderHour: Int = 9
+    var reminderMinute: Int = 0
+
+    var requestAuthorizationCallCount = 0
+    var rescheduleCallCount = 0
+    var cancelAllCallCount = 0
+
+    var authorizationResult: Bool = true
+    var rescheduleError: Error?
+
+    func requestAuthorization() async -> Bool {
+        requestAuthorizationCallCount += 1
+        return authorizationResult
+    }
+
+    func reschedule() async throws {
+        rescheduleCallCount += 1
+        if let error = rescheduleError {
+            throw error
+        }
+    }
+
+    func cancelAll() {
+        cancelAllCallCount += 1
     }
 }

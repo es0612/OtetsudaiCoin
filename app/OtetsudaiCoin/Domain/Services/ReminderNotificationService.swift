@@ -7,11 +7,17 @@ protocol NotificationCenterProtocol {
     func requestAuthorization(options: UNAuthorizationOptions) async throws -> Bool
     func addNotificationRequest(_ request: UNNotificationRequest) async throws
     func removePendingNotificationRequests(withIdentifiers identifiers: [String])
+    func currentAuthorizationStatus() async -> UNAuthorizationStatus
 }
 
 extension UNUserNotificationCenter: NotificationCenterProtocol {
     func addNotificationRequest(_ request: UNNotificationRequest) async throws {
         try await add(request)
+    }
+
+    func currentAuthorizationStatus() async -> UNAuthorizationStatus {
+        let settings = await notificationSettings()
+        return settings.authorizationStatus
     }
 }
 

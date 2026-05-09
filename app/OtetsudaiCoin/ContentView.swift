@@ -7,6 +7,7 @@
 
 import SwiftUI
 import CoreData
+import UserNotifications
 
 struct ContentView: View {
     @Environment(\.managedObjectContext) private var viewContext
@@ -20,15 +21,27 @@ struct ContentView: View {
     
     @State private var childManagementViewModel: ChildManagementViewModel
     @State private var homeViewModel: HomeViewModel
-    
+    @State private var paymentReminderService: PaymentReminderNotificationService
+
     @MainActor
     init() {
         let context = PersistenceController.shared.container.viewContext
         self.repositoryFactory = RepositoryFactory(context: context)
         self.viewModelFactory = ViewModelFactory(repositoryFactory: repositoryFactory)
-        
+
         _childManagementViewModel = State(wrappedValue: viewModelFactory.createChildManagementViewModel())
         _homeViewModel = State(wrappedValue: viewModelFactory.createHomeViewModel())
+
+        let paymentService = PaymentReminderNotificationService(
+            notificationCenter: UNUserNotificationCenter.current(),
+            userDefaults: .standard,
+            unpaidDetector: UnpaidAllowanceDetectorService(),
+            childRepository: repositoryFactory.createChildRepository(),
+            helpRecordRepository: repositoryFactory.createHelpRecordRepository(),
+            allowancePaymentRepository: repositoryFactory.createAllowancePaymentRepository(),
+            helpTaskRepository: repositoryFactory.createHelpTaskRepository()
+        )
+        _paymentReminderService = State(wrappedValue: paymentService)
     }
     
     var body: some View {
@@ -92,6 +105,9 @@ struct ContentView: View {
         .onReceive(Foundation.NotificationCenter.default.publisher(for: .navigateToRecord)) { _ in
             selectedTab = 1
         }
+        .onReceive(Foundation.NotificationCenter.default.publisher(for: .navigateToHome)) { _ in
+            selectedTab = 0
+        }
     }
     
     
@@ -133,6 +149,13 @@ struct ContentView: View {
                     for task in defaultTasks {
                         try await helpTaskRepository.save(task)
                     }
+                }
+
+                // 支払いリマインドの起動時 reschedule
+                do {
+                    try await paymentReminderService.reschedule()
+                } catch {
+                    print("支払いリマインド reschedule エラー: \(error)")
                 }
             } catch {
                 print("初期データセットアップエラー: \(error)")

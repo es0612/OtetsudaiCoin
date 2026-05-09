@@ -12,7 +12,8 @@ struct SettingsView: View {
     @State private var tutorialService = TutorialService()
     @State private var taskManagementViewModel: TaskManagementViewModel
     @State private var notificationSettingsViewModel: NotificationSettingsViewModel
-    
+    @State private var paymentReminderViewModel: PaymentReminderNotificationSettingsViewModel
+
     #if DEBUG
     @State private var isGeneratingData = false
     @State private var isClearingData = false
@@ -31,6 +32,22 @@ struct SettingsView: View {
             userDefaults: .standard
         )
         self._notificationSettingsViewModel = State(wrappedValue: NotificationSettingsViewModel(service: notificationService))
+
+        let childRepository = CoreDataChildRepository(context: context)
+        let helpRecordRepository = CoreDataHelpRecordRepository(context: context)
+        let allowancePaymentRepository = InMemoryAllowancePaymentRepository.shared
+        let paymentService = PaymentReminderNotificationService(
+            notificationCenter: UNUserNotificationCenter.current(),
+            userDefaults: .standard,
+            unpaidDetector: UnpaidAllowanceDetectorService(),
+            childRepository: childRepository,
+            helpRecordRepository: helpRecordRepository,
+            allowancePaymentRepository: allowancePaymentRepository,
+            helpTaskRepository: taskRepository
+        )
+        self._paymentReminderViewModel = State(
+            wrappedValue: PaymentReminderNotificationSettingsViewModel(service: paymentService)
+        )
     }
     
     var body: some View {
@@ -77,7 +94,10 @@ struct SettingsView: View {
 
                 Section("通知") {
                     NavigationLink {
-                        NotificationSettingsView(viewModel: notificationSettingsViewModel)
+                        NotificationSettingsView(
+                            viewModel: notificationSettingsViewModel,
+                            paymentViewModel: paymentReminderViewModel
+                        )
                     } label: {
                         HStack {
                             Image(systemName: "bell.badge")

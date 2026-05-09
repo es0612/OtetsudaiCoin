@@ -62,3 +62,10 @@ fastlane/screenshots/**/*.png
 fastlane/test_output
 
 .DS_Store
+
+# Claude Code plan-mode の自動生成成果物（使い捨て）
+# 正式な設計プランは docs/superpowers/plans/ に置く
+plans/
+
+# PR 作成用に一時生成される本文ファイル
+pr-body.md
