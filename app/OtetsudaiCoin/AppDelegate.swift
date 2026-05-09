@@ -20,7 +20,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         didReceive response: UNNotificationResponse,
         withCompletionHandler completionHandler: @escaping () -> Void
     ) {
-        handleNotificationTap()
+        handleNotificationTap(identifier: response.notification.request.identifier)
         completionHandler()
     }
 
@@ -34,7 +34,12 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
 
     // MARK: - Internal
 
-    func handleNotificationTap() {
-        NotificationCenter.default.post(name: .navigateToRecord, object: nil)
+    func handleNotificationTap(identifier: String) {
+        switch identifier {
+        case PaymentReminderNotificationService.notificationIdentifier:
+            NotificationCenter.default.post(name: .navigateToHome, object: nil)
+        default:
+            NotificationCenter.default.post(name: .navigateToRecord, object: nil)
+        }
     }
 }
