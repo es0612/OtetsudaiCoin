@@ -47,16 +47,23 @@ class MockReminderNotificationService: ReminderNotificationServiceProtocol {
 
 class MockNotificationCenter: NotificationCenterProtocol {
     var grantResult: Bool = true
+    var mockAuthorizationStatus: UNAuthorizationStatus = .authorized
 
     var addCallCount = 0
     var removeCallCount = 0
     var requestAuthorizationCallCount = 0
+    var currentAuthorizationStatusCallCount = 0
     var removedIdentifiers: [String] = []
     var addedRequests: [UNNotificationRequest] = []
 
     func requestAuthorization(options: UNAuthorizationOptions) async throws -> Bool {
         requestAuthorizationCallCount += 1
         return grantResult
+    }
+
+    func currentAuthorizationStatus() async -> UNAuthorizationStatus {
+        currentAuthorizationStatusCallCount += 1
+        return mockAuthorizationStatus
     }
 
     var addError: Error?

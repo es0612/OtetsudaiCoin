@@ -84,7 +84,33 @@ class PaymentReminderNotificationService: PaymentReminderNotificationServiceProt
     }
 
     func reschedule() async throws {
-        // 次タスクで実装
+        cancelAll()
+        guard isEnabled else { return }
+        guard await notificationCenter.currentAuthorizationStatus() == .authorized else { return }
+
+        let unpaidPeriods = try await collectUnpaidPeriods()
+        guard !unpaidPeriods.isEmpty else { return }
+
+        // メッセージ組み立てとスケジュールは次タスク
+    }
+
+    private func collectUnpaidPeriods() async throws -> [(child: Child, period: UnpaidPeriod)] {
+        let children = try await childRepository.findAll()
+        let allTasks = try await helpTaskRepository.findAll()
+        let allPayments = try await allowancePaymentRepository.findAll()
+
+        var result: [(Child, UnpaidPeriod)] = []
+        for child in children {
+            let records = try await helpRecordRepository.findByChildId(child.id)
+            let periods = unpaidDetector.detectUnpaidPeriods(
+                childId: child.id,
+                helpRecords: records,
+                payments: allPayments,
+                tasks: allTasks
+            )
+            result.append(contentsOf: periods.map { (child, $0) })
+        }
+        return result
     }
 
     func cancelAll() {

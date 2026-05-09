@@ -95,6 +95,26 @@ final class PaymentReminderNotificationServiceTests: XCTestCase {
         XCTAssertEqual(mockNotificationCenter.removedIdentifiers, ["payment-reminder"])
     }
 
+    // MARK: - reschedule: 無効時
+
+    func testRescheduleDoesNothingWhenDisabled() async throws {
+        service.isEnabled = false
+        try await service.reschedule()
+        XCTAssertEqual(mockNotificationCenter.addCallCount, 0)
+    }
+
+    // MARK: - reschedule: 未払いなし
+
+    func testRescheduleSkipsAddWhenNoUnpaid() async throws {
+        service.isEnabled = true
+        mockNotificationCenter.mockAuthorizationStatus = .authorized
+
+        try await service.reschedule()
+
+        XCTAssertEqual(mockNotificationCenter.removeCallCount, 1)
+        XCTAssertEqual(mockNotificationCenter.addCallCount, 0)
+    }
+
     func testLoadsPersistedValuesOnInit() {
         userDefaults.set(true, forKey: "paymentReminderNotificationEnabled")
         userDefaults.set(8, forKey: "paymentReminderNotificationHour")
