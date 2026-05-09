@@ -29,7 +29,7 @@ struct TaskManagementView: View {
                                     showingDeleteAlert = true
                                 }
                             }
-                            
+
                             Button(action: {
                                 showingAddTaskForm = true
                             }) {
@@ -42,6 +42,9 @@ struct TaskManagementView: View {
                         }
                     }
                 }
+
+                BannerAdView()
+                    .frame(height: 50)
             }
             .navigationTitle("お手伝い管理")
             .navigationBarTitleDisplayMode(.inline)
