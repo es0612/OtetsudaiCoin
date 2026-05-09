@@ -156,6 +156,85 @@ final class PaymentReminderNotificationServiceTests: XCTestCase {
         XCTAssertEqual(trigger?.repeats, false)
     }
 
+    // MARK: - reschedule: 複数集約
+
+    func testRescheduleAggregatesMultipleChildrenAndMonths() async throws {
+        let cal = Calendar.current
+        let lastMonth = cal.date(byAdding: .month, value: -1, to: Date())!
+        let twoMonthsAgo = cal.date(byAdding: .month, value: -2, to: Date())!
+
+        let child1 = Child(id: UUID(), name: "さくら", themeColor: "#FF0000")
+        let child2 = Child(id: UUID(), name: "たろう", themeColor: "#00FF00")
+        mockChildRepository.children = [child1, child2]
+
+        let task = HelpTask(id: UUID(), name: "皿洗い", isActive: true, coinRate: 500)
+        mockHelpTaskRepository.tasks = [task]
+
+        mockHelpRecordRepository.records = [
+            HelpRecord(id: UUID(), childId: child1.id, helpTaskId: task.id, recordedAt: lastMonth),
+            HelpRecord(id: UUID(), childId: child1.id, helpTaskId: task.id, recordedAt: twoMonthsAgo),
+            HelpRecord(id: UUID(), childId: child2.id, helpTaskId: task.id, recordedAt: lastMonth)
+        ]
+        mockAllowancePaymentRepository.payments = []
+
+        service.isEnabled = true
+        mockNotificationCenter.mockAuthorizationStatus = .authorized
+
+        try await service.reschedule()
+
+        XCTAssertEqual(mockNotificationCenter.addCallCount, 1)
+        let body = mockNotificationCenter.addedRequests.first?.content.body ?? ""
+        XCTAssertTrue(body.contains("さくら"), "さくらの未払いが含まれるべき: \(body)")
+        XCTAssertTrue(body.contains("たろう"), "たろうの未払いが含まれるべき: \(body)")
+        XCTAssertTrue(body.contains("合計"), "合計表示があるべき: \(body)")
+        XCTAssertTrue(body.contains("¥1500"), "合計金額が表示されるべき: \(body)")
+    }
+
+    // MARK: - reschedule: 年またぎ
+
+    func testRescheduleHandlesYearRolloverDecemberToJanuary() async throws {
+        let child = Child(id: UUID(), name: "さくら", themeColor: "#FF0000")
+        mockChildRepository.children = [child]
+        let task = HelpTask(id: UUID(), name: "皿洗い", isActive: true, coinRate: 100)
+        mockHelpTaskRepository.tasks = [task]
+        let lastMonth = Calendar.current.date(byAdding: .month, value: -1, to: Date())!
+        mockHelpRecordRepository.records = [
+            HelpRecord(id: UUID(), childId: child.id, helpTaskId: task.id, recordedAt: lastMonth)
+        ]
+        service.isEnabled = true
+        mockNotificationCenter.mockAuthorizationStatus = .authorized
+
+        try await service.reschedule()
+
+        let trigger = mockNotificationCenter.addedRequests.first?.trigger as? UNCalendarNotificationTrigger
+        let cal = Calendar.current
+        let now = Date()
+        let nextMonth = cal.date(byAdding: .month, value: 1, to: cal.date(from: cal.dateComponents([.year, .month], from: now))!)!
+        let expectedComps = cal.dateComponents([.year, .month], from: nextMonth)
+        XCTAssertEqual(trigger?.dateComponents.year, expectedComps.year, "翌月の年が一致")
+        XCTAssertEqual(trigger?.dateComponents.month, expectedComps.month, "翌月の月が一致")
+    }
+
+    // MARK: - reschedule: 認可なし
+
+    func testRescheduleSkipsWhenAuthorizationDenied() async throws {
+        let child = Child(id: UUID(), name: "さくら", themeColor: "#FF0000")
+        mockChildRepository.children = [child]
+        let task = HelpTask(id: UUID(), name: "皿洗い", isActive: true, coinRate: 100)
+        mockHelpTaskRepository.tasks = [task]
+        mockHelpRecordRepository.records = [
+            HelpRecord(id: UUID(), childId: child.id, helpTaskId: task.id,
+                       recordedAt: Calendar.current.date(byAdding: .month, value: -1, to: Date())!)
+        ]
+        service.isEnabled = true
+        mockNotificationCenter.mockAuthorizationStatus = .denied
+
+        try await service.reschedule()
+
+        XCTAssertEqual(mockNotificationCenter.removeCallCount, 1, "cancelAll は呼ばれる")
+        XCTAssertEqual(mockNotificationCenter.addCallCount, 0, "認可なしなら add されない")
+    }
+
     func testLoadsPersistedValuesOnInit() {
         userDefaults.set(true, forKey: "paymentReminderNotificationEnabled")
         userDefaults.set(8, forKey: "paymentReminderNotificationHour")
