@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D5A61F032E0100FB00C8C1E9 /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = D5A61F022E0100FB00C8C1E9 /* GoogleMobileAds */; };
 		D5F61E0B2DFE70FB00C8C1E9 /* ViewInspector in Frameworks */ = {isa = PBXBuildFile; productRef = D5F61E0A2DFE70FB00C8C1E9 /* ViewInspector */; };
 /* End PBXBuildFile section */
 
@@ -33,9 +34,22 @@
 		D5F61D882DFE693E00C8C1E9 /* OtetsudaiCoinUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = OtetsudaiCoinUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		D5A61F042E0101DE00C8C1E9 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = D5F61D6B2DFE693C00C8C1E9 /* OtetsudaiCoin */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		D5F61D6E2DFE693C00C8C1E9 /* OtetsudaiCoin */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				D5A61F042E0101DE00C8C1E9 /* PBXFileSystemSynchronizedBuildFileExceptionSet */,
+			);
 			path = OtetsudaiCoin;
 			sourceTree = "<group>";
 		};
@@ -56,6 +70,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D5A61F032E0100FB00C8C1E9 /* GoogleMobileAds in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -125,6 +140,7 @@
 			);
 			name = OtetsudaiCoin;
 			packageProductDependencies = (
+				D5A61F022E0100FB00C8C1E9 /* GoogleMobileAds */,
 			);
 			productName = OtetsudaiCoin;
 			productReference = D5F61D6C2DFE693C00C8C1E9 /* OtetsudaiCoin.app */;
@@ -211,6 +227,7 @@
 			mainGroup = D5F61D632DFE693C00C8C1E9;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				D5A61F012E0100DE00C8C1E9 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
 				D5F61E082DFE70DE00C8C1E9 /* XCRemoteSwiftPackageReference "ViewInspector" */,
 			);
 			preferredProjectObjectVersion = 77;
@@ -418,6 +435,7 @@
 				DEVELOPMENT_TEAM = UUD4WPFJTD;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = OtetsudaiCoin/Info.plist;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -447,6 +465,7 @@
 				DEVELOPMENT_TEAM = UUD4WPFJTD;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = OtetsudaiCoin/Info.plist;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -580,6 +599,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		D5A61F012E0100DE00C8C1E9 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/googleads/swift-package-manager-google-mobile-ads.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.2.0;
+			};
+		};
 		D5F61E082DFE70DE00C8C1E9 /* XCRemoteSwiftPackageReference "ViewInspector" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/nalexn/ViewInspector";
@@ -591,6 +618,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		D5A61F022E0100FB00C8C1E9 /* GoogleMobileAds */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D5A61F012E0100DE00C8C1E9 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */;
+			productName = GoogleMobileAds;
+		};
 		D5F61E0A2DFE70FB00C8C1E9 /* ViewInspector */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = D5F61E082DFE70DE00C8C1E9 /* XCRemoteSwiftPackageReference "ViewInspector" */;

@@ -1,5 +1,6 @@
 import UIKit
 import UserNotifications
+import GoogleMobileAds
 
 class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
 
@@ -8,6 +9,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
         UNUserNotificationCenter.current().delegate = self
+        MobileAds.shared.start(completionHandler: nil)
         return true
     }
 
