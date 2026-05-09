@@ -91,7 +91,43 @@ class PaymentReminderNotificationService: PaymentReminderNotificationServiceProt
         let unpaidPeriods = try await collectUnpaidPeriods()
         guard !unpaidPeriods.isEmpty else { return }
 
-        // メッセージ組み立てとスケジュールは次タスク
+        let body = buildBody(for: unpaidPeriods)
+        let triggerComponents = nextMonthFirstComponents(hour: reminderHour, minute: reminderMinute)
+        let trigger = UNCalendarNotificationTrigger(dateMatching: triggerComponents, repeats: false)
+
+        let content = UNMutableNotificationContent()
+        content.title = "お小遣いの未払いがあります 💰"
+        content.body = body
+        content.sound = .default
+
+        let request = UNNotificationRequest(
+            identifier: Self.notificationIdentifier,
+            content: content,
+            trigger: trigger
+        )
+        try await notificationCenter.addNotificationRequest(request)
+    }
+
+    private func buildBody(for unpaid: [(child: Child, period: UnpaidPeriod)]) -> String {
+        let total = unpaid.reduce(0) { $0 + $1.period.expectedAmount }
+        let parts = unpaid.map { "\($0.child.name)\($0.period.month)月分(¥\($0.period.expectedAmount))" }
+
+        if unpaid.count == 1 {
+            let item = unpaid[0]
+            return "\(item.child.name)の\(item.period.month)月分 ¥\(item.period.expectedAmount) が未払いです"
+        }
+        return parts.joined(separator: "、") + " が未払いです（合計 ¥\(total)）"
+    }
+
+    private func nextMonthFirstComponents(hour: Int, minute: Int) -> DateComponents {
+        let cal = Calendar.current
+        let now = Date()
+        let thisMonthFirst = cal.date(from: cal.dateComponents([.year, .month], from: now))!
+        let nextMonthFirst = cal.date(byAdding: .month, value: 1, to: thisMonthFirst)!
+        var comps = cal.dateComponents([.year, .month, .day], from: nextMonthFirst)
+        comps.hour = hour
+        comps.minute = minute
+        return comps
     }
 
     private func collectUnpaidPeriods() async throws -> [(child: Child, period: UnpaidPeriod)] {
