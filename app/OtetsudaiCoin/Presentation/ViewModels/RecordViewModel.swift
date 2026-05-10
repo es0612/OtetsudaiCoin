@@ -10,6 +10,7 @@ class RecordViewModel: BaseViewModel {
     var selectedChild: Child?
     var selectedTask: HelpTask?
     var lastRecordedCoinValue: Int = 10
+    var recordedDate: Date = Date()
     var hasRecordedInSession: Bool = false
     
     func resetSessionState() {

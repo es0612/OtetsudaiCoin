@@ -180,11 +180,39 @@ final class RecordViewModelTests: XCTestCase {
     func testClearMessages() {
         viewModel.setError("テストエラー")
         viewModel.setSuccess("テスト成功")
-        
+
         viewModel.clearMessages()
-        
+
         XCTAssertNil(viewModel.errorMessage)
         XCTAssertNil(viewModel.successMessage)
+    }
+
+    // MARK: - 記録日（過去日付登録機能）
+
+    @MainActor
+    func testRecordedDateDefaultsToToday() {
+        XCTAssertTrue(
+            Calendar.current.isDateInToday(viewModel.recordedDate),
+            "ViewModel 初期化時の recordedDate が今日でない: \(viewModel.recordedDate)"
+        )
+    }
+
+    @MainActor
+    func testRecordedDateResetsToTodayOnNewViewModelInstance() {
+        let pastDate = Calendar.current.date(byAdding: .day, value: -30, to: Date())!
+        viewModel.recordedDate = pastDate
+
+        let newViewModel = RecordViewModel(
+            childRepository: mockChildRepository,
+            helpTaskRepository: mockHelpTaskRepository,
+            helpRecordRepository: mockHelpRecordRepository,
+            soundService: mockSoundService
+        )
+
+        XCTAssertTrue(
+            Calendar.current.isDateInToday(newViewModel.recordedDate),
+            "新 ViewModel の recordedDate が今日でない: \(newViewModel.recordedDate)"
+        )
     }
     
     // TODO: 効果音テストは後で修正する
