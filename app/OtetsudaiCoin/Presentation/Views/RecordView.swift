@@ -31,7 +31,9 @@ struct RecordView: View {
                                     }
                                     
                                     childSelectionView
-                                    
+
+                                    dateSection
+
                                     taskListView
                                 }
                                 .padding()
@@ -92,6 +94,27 @@ struct RecordView: View {
             childSelectionHeader
             childSelectionContent
         }
+    }
+
+    private var dateSection: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "calendar")
+                .foregroundColor(.blue)
+                .font(.title3)
+            Text(String(localized: "記録日"))
+                .appFont(.sectionHeader)
+            Spacer()
+            DatePicker(
+                "",
+                selection: $viewModel.recordedDate,
+                in: ...Date(),
+                displayedComponents: .date
+            )
+            .labelsHidden()
+            .datePickerStyle(.compact)
+            .accessibilityIdentifier("record_date_picker")
+        }
+        .padding(.horizontal)
     }
     
     private var childSelectionHeader: some View {
