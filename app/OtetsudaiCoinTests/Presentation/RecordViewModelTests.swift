@@ -246,6 +246,60 @@ final class RecordViewModelTests: XCTestCase {
         XCTAssertEqual(comps.minute, 0, "分が 0 にスナップされていない")
         XCTAssertEqual(comps.second, 0, "秒が 0 にスナップされていない")
     }
+
+    @MainActor
+    func testRecordedDatePersistsAcrossMultipleRecords() async {
+        let pastDate = Calendar.current.date(byAdding: .day, value: -10, to: Date())!
+        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+        let task1 = HelpTask(id: UUID(), name: "皿洗い", isActive: true)
+        let task2 = HelpTask(id: UUID(), name: "洗濯", isActive: true)
+
+        // 記録通知に伴って発火する loadData() で selectedChild が nil 化されないよう、
+        // mock repositories に同じ child/task を seed しておく
+        mockChildRepository.children = [child]
+        mockHelpTaskRepository.tasks = [task1, task2]
+
+        viewModel.selectChild(child)
+        viewModel.recordedDate = pastDate
+        viewModel.selectTask(task1)
+        viewModel.recordHelp()
+
+        // 1 件目の保存完了を records.count で堅牢に待機
+        await waitUntil(timeout: 2.0) {
+            self.mockHelpRecordRepository.records.count == 1
+        }
+        XCTAssertEqual(mockHelpRecordRepository.records.count, 1, "1 件目の保存が完了していない")
+
+        // 2 回目の選択と記録
+        viewModel.selectTask(task2)
+        viewModel.recordHelp()
+
+        await waitUntil(timeout: 2.0) {
+            self.mockHelpRecordRepository.records.count == 2
+        }
+
+        XCTAssertEqual(mockHelpRecordRepository.records.count, 2)
+        let cal = Calendar.current
+        for (index, record) in mockHelpRecordRepository.records.enumerated() {
+            XCTAssertTrue(
+                cal.isDate(record.recordedAt, inSameDayAs: pastDate),
+                "\(index + 1) 件目の日付が異なる: \(record.recordedAt)"
+            )
+        }
+        XCTAssertTrue(
+            cal.isDate(viewModel.recordedDate, inSameDayAs: pastDate),
+            "recordedDate が記録後にリセットされている: \(viewModel.recordedDate)"
+        )
+    }
+
+    /// 条件が満たされるまで polling する非同期ヘルパー
+    @MainActor
+    private func waitUntil(timeout: TimeInterval, condition: @escaping () -> Bool) async {
+        let deadline = Date().addingTimeInterval(timeout)
+        while !condition() && Date() < deadline {
+            try? await Task.sleep(nanoseconds: 10_000_000) // 10ms
+        }
+    }
     
     // TODO: 効果音テストは後で修正する
     /*
