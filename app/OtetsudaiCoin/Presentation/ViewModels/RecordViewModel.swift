@@ -10,6 +10,7 @@ class RecordViewModel: BaseViewModel {
     var selectedChild: Child?
     var selectedTask: HelpTask?
     var lastRecordedCoinValue: Int = 10
+    var recordedDate: Date = Date()
     var hasRecordedInSession: Bool = false
     
     func resetSessionState() {
@@ -170,11 +171,12 @@ class RecordViewModel: BaseViewModel {
         
         Task {
             do {
+                let normalizedDate = Self.normalizeToNoon(recordedDate)
                 let helpRecord = HelpRecord(
                     id: UUID(),
                     childId: child.id,
                     helpTaskId: task.id,
-                    recordedAt: Date()
+                    recordedAt: normalizedDate
                 )
                 
                 try await helpRecordRepository.save(helpRecord)
@@ -201,5 +203,11 @@ class RecordViewModel: BaseViewModel {
                 setUserFriendlyError(error)
             }
         }
+    }
+
+    private static func normalizeToNoon(_ date: Date) -> Date {
+        let cal = Calendar.current
+        let startOfDay = cal.startOfDay(for: date)
+        return cal.date(byAdding: .hour, value: 12, to: startOfDay) ?? startOfDay
     }
 }
