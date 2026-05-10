@@ -70,3 +70,6 @@ fastlane/test_output
 
 # PR 作成用に一時生成される本文ファイル
 /pr-body.md
+
+# Visual Companion (brainstorming skill) の作業ディレクトリ
+/.superpowers/
