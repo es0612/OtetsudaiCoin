@@ -214,6 +214,38 @@ final class RecordViewModelTests: XCTestCase {
             "新 ViewModel の recordedDate が今日でない: \(newViewModel.recordedDate)"
         )
     }
+
+    @MainActor
+    func testRecordHelpUsesRecordedDateSnappedToNoon() async {
+        let pastDate = Calendar.current.date(byAdding: .day, value: -30, to: Date())!
+        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+        let task = HelpTask(id: UUID(), name: "皿洗い", isActive: true)
+
+        viewModel.selectChild(child)
+        viewModel.selectTask(task)
+        viewModel.recordedDate = pastDate
+
+        viewModel.recordHelp()
+
+        let expectation = XCTestExpectation(description: "Record help with past date")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            expectation.fulfill()
+        }
+        await fulfillment(of: [expectation], timeout: 1.0)
+
+        XCTAssertEqual(mockHelpRecordRepository.records.count, 1)
+        let saved = mockHelpRecordRepository.records.first!
+
+        let cal = Calendar.current
+        XCTAssertTrue(
+            cal.isDate(saved.recordedAt, inSameDayAs: pastDate),
+            "保存された日付が選択日と異なる: saved=\(saved.recordedAt), expected=\(pastDate)"
+        )
+        let comps = cal.dateComponents([.hour, .minute, .second], from: saved.recordedAt)
+        XCTAssertEqual(comps.hour, 12, "時刻が 12:00 にスナップされていない")
+        XCTAssertEqual(comps.minute, 0, "分が 0 にスナップされていない")
+        XCTAssertEqual(comps.second, 0, "秒が 0 にスナップされていない")
+    }
     
     // TODO: 効果音テストは後で修正する
     /*
