@@ -90,4 +90,73 @@ final class MonthlyRetrospectiveViewModelTests: XCTestCase {
             Calendar.current.dateComponents([.year, .month], from: initial)
         )
     }
+
+    @MainActor
+    func testLoadMonthPopulatesSnapshot() async {
+        let cal = Calendar.current
+        let now = Date()
+        let thisMonth = cal.dateComponents([.year, .month], from: now)
+
+        let dishesId = UUID()
+        let dishes = HelpTask(id: dishesId, name: "皿洗い", isActive: true, coinRate: 100)
+        mockHelpTaskRepository.tasks = [dishes]
+
+        var c1 = thisMonth
+        c1.day = 3
+        c1.hour = 12
+        var c2 = thisMonth
+        c2.day = 5
+        c2.hour = 12
+
+        let r1 = HelpRecord(id: UUID(), childId: child.id, helpTaskId: dishesId, recordedAt: cal.date(from: c1)!)
+        let r2 = HelpRecord(id: UUID(), childId: child.id, helpTaskId: dishesId, recordedAt: cal.date(from: c2)!)
+        mockHelpRecordRepository.records = [r1, r2]
+
+        mockAllowancePaymentRepository.payments = []
+
+        await viewModel.loadMonth()
+
+        XCTAssertNotNil(viewModel.snapshot)
+        let snap = viewModel.snapshot!
+        XCTAssertEqual(snap.totalCount, 2)
+        XCTAssertEqual(snap.totalCoins, 200)
+        XCTAssertEqual(snap.taskBreakdown.count, 1)
+        XCTAssertEqual(snap.taskBreakdown.first?.name, "皿洗い")
+        XCTAssertEqual(snap.taskBreakdown.first?.count, 2)
+        XCTAssertEqual(snap.highlights.consecutiveDayStreak, 1)
+        XCTAssertEqual(snap.paymentStatus, .unpaid)
+        XCTAssertTrue(snap.monthLabel.contains("\(thisMonth.year!)"))
+        XCTAssertTrue(snap.monthLabel.contains("\(thisMonth.month!)"))
+    }
+
+    @MainActor
+    func testPaymentStatusReflectsAllowancePayment() async {
+        let cal = Calendar.current
+        let now = Date()
+        let thisMonth = cal.dateComponents([.year, .month], from: now)
+
+        let dishesId = UUID()
+        let dishes = HelpTask(id: dishesId, name: "皿洗い", isActive: true, coinRate: 100)
+        mockHelpTaskRepository.tasks = [dishes]
+
+        var c1 = thisMonth
+        c1.day = 3
+        c1.hour = 12
+        let r1 = HelpRecord(id: UUID(), childId: child.id, helpTaskId: dishesId, recordedAt: cal.date(from: c1)!)
+        mockHelpRecordRepository.records = [r1]
+
+        let payment = AllowancePayment(
+            id: UUID(),
+            childId: child.id,
+            amount: 100,
+            month: thisMonth.month!,
+            year: thisMonth.year!,
+            paidAt: Date()
+        )
+        mockAllowancePaymentRepository.payments = [payment]
+
+        await viewModel.loadMonth()
+
+        XCTAssertEqual(viewModel.snapshot?.paymentStatus, .paid)
+    }
 }
