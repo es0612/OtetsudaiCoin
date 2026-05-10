@@ -8,6 +8,8 @@ struct HomeView: View {
     
     // ViewModelのキャッシュ化
     @State private var monthlyHistoryViewModel: MonthlyHistoryViewModel?
+    @State private var showingRetrospective = false
+    @State private var retrospectiveViewModel: MonthlyRetrospectiveViewModel?
     
     // レスポンシブレイアウト用
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
@@ -87,6 +89,11 @@ struct HomeView: View {
                 MonthlyHistoryView(viewModel: monthlyViewModel)
             }
         }
+        .sheet(isPresented: $showingRetrospective) {
+            if let retroViewModel = retrospectiveViewModel {
+                MonthlyRetrospectiveView(viewModel: retroViewModel)
+            }
+        }
         .alert("支払い確認", isPresented: $showingPaymentConfirmation) {
             Button("キャンセル", role: .cancel) { }
             Button("支払う") {
@@ -143,6 +150,18 @@ struct HomeView: View {
                             .font(.title3)
                             .foregroundColor(Color(hex: child.themeColor) ?? .blue)
                     }
+
+                    Button(action: {
+                        DispatchQueue.main.async {
+                            prepareRetrospectiveViewModel(for: child)
+                            showingRetrospective = true
+                        }
+                    }) {
+                        Image(systemName: "sparkles")
+                            .font(.title3)
+                            .foregroundColor(Color(hex: child.themeColor) ?? .blue)
+                    }
+                    .accessibilityIdentifier("home_retrospective_button")
                 }
             }
             
@@ -296,6 +315,17 @@ struct HomeView: View {
         let viewModelFactory = ViewModelFactory(repositoryFactory: repositoryFactory)
         monthlyHistoryViewModel = viewModelFactory.createMonthlyHistoryViewModel()
         monthlyHistoryViewModel?.selectChild(child)
+    }
+
+    private func prepareRetrospectiveViewModel(for child: Child) {
+        let context = PersistenceController.shared.container.viewContext
+        let repositoryFactory = RepositoryFactory(context: context)
+        retrospectiveViewModel = MonthlyRetrospectiveViewModel(
+            child: child,
+            helpRecordRepository: repositoryFactory.createHelpRecordRepository(),
+            helpTaskRepository: repositoryFactory.createHelpTaskRepository(),
+            allowancePaymentRepository: repositoryFactory.createAllowancePaymentRepository()
+        )
     }
     
     private var childrenListView: some View {
