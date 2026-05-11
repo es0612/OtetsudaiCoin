@@ -1,0 +1,84 @@
+# ATT 対応方針（Non-personalized 広告で初回リリース）— 設計書
+
+Issue: #22
+作成日: 2026-05-11
+
+## 背景
+
+#10（PR #17）で AdMob バナー広告を導入。iOS 14+ では広告トラッキング（IDFA）利用時に App Tracking Transparency (ATT) の許可ダイアログ表示が必須。本プロジェクトでは、初回リリースに向けて **Non-personalized 広告（IDFA を利用しない）** のみで運用する方針を採る。
+
+`plans/partitioned-baking-dawn.md` の Phase 1 検討結果。
+
+## 方針判断
+
+**採用: 案A（Non-personalized のみ）**
+
+理由:
+
+- 家庭での親子利用が主なターゲット層であり、起動直後の「トラッキング許可」ダイアログは UX 上違和感が大きい
+- 初回リリース時は DL 数が伸びる前で、ATT/UMP 周りの不備がストアレビュー低下に直結しやすい
+- 将来 DAU が伸びてからパーソナライズ広告へ切り替え可能（後方互換）
+
+## 実装スコープ
+
+### 1. AdMob リクエストに `npa=1` を付与
+
+`BannerAdView.swift` で `Request` を作る際に `Extras` を `register` し、`additionalParameters` に `["npa": "1"]` を渡す。
+
+GoogleMobileAds SDK 12.x の Swift API:
+
+```swift
+let extras = Extras()
+extras.additionalParameters = ["npa": "1"]
+let request = Request()
+request.register(extras)
+bannerView.load(request)
+```
+
+### 2. Privacy Manifest（フォローアップに分離）
+
+`PrivacyInfo.xcprivacy` の追加は Xcode プロジェクトのターゲットメンバーシップ設定が必要で、`npa=1` 実装とは関心領域が異なる。別フォローアップ Issue（または `#22` の追加 PR）として分離する。
+
+宣言予定の内容:
+
+- `NSPrivacyTracking = false`（トラッキングしない）
+- `NSPrivacyTrackingDomains = []`
+- `NSPrivacyCollectedDataTypes = []`（アプリ本体は IDFA 等を収集しない。AdMob SDK 側の宣言は同梱 Privacy Manifest が担う）
+- `NSPrivacyAccessedAPITypes` … UserDefaults 利用に `CA92.1`（Access info from same app）
+
+### 3. やらないこと
+
+- `Info.plist` への `NSUserTrackingUsageDescription` 追加 → ATT ダイアログを呼ばないため不要
+- `ATTrackingManager.requestTrackingAuthorization` の呼び出し
+- UMP SDK（`UserMessagingPlatform`）の利用 → GDPR consent form を出さない（Non-personalized なら不要）
+
+## 関連ファイル
+
+- `app/OtetsudaiCoin/Presentation/Components/BannerAdView.swift` — `Request` 生成箇所
+- `app/OtetsudaiCoin/Info.plist` — トラッキング関連キーは追加しない
+- `app/OtetsudaiCoin/PrivacyInfo.xcprivacy` — 新規追加
+
+## 検証
+
+- 単体テスト: `Extras` の `additionalParameters` に `npa=1` が含まれることを検証（`BannerAdView` のロジック切り出しが必要）
+- ビルド: Debug / Release 両方で警告なくビルドできること
+- 実機: バナー広告が表示されること（テスト ID 環境）
+
+## 将来の Personalized 切替に向けた TODO
+
+- UMP SDK 統合（GDPR consent form）
+- `ATTrackingManager.requestTrackingAuthorization` の起動時呼び出し
+- `Info.plist` の `NSUserTrackingUsageDescription`（日英ローカライズ）
+- `PrivacyInfo.xcprivacy` の `NSPrivacyTracking = true` 化と `NSPrivacyTrackingDomains` 設定
+
+## 実装タスク（本 PR）
+
+- [x] `Request` 生成ロジックを `BannerAdView` から `static` メソッドに抽出
+- [x] `Extras` で `npa=1` を付与する実装
+- [x] テストを追加（`additionalParameters` に `npa=1` が含まれる）
+- [x] `xcodebuild test` で BannerAdView 全 7 件 PASS 確認
+- [ ] コミット → PR 作成
+
+## フォローアップ（別 PR）
+
+- [ ] `PrivacyInfo.xcprivacy` を新規追加（Xcode のターゲット追加が必要）
