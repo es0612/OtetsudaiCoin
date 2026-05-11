@@ -14,7 +14,7 @@ PR #17 で AdMob バナー広告を導入した際、Google 公式のテスト I
 具体的には、`OtetsudaiCoin` ターゲットの Debug / Release それぞれの `buildSettings` に、AdMob 用ビルド変数 2 つを per-configuration で追加する:
 
 | Configuration | `GAD_APPLICATION_IDENTIFIER` | `GAD_BANNER_AD_UNIT_ID` |
-|---|---|---|
+| --- | --- | --- |
 | Debug | テスト ID (`ca-app-pub-3940256099942544~1458002511`) | テスト ID (`ca-app-pub-3940256099942544/2934735716`) |
 | Release | 本番 ID | 本番 ID |
 
@@ -23,7 +23,7 @@ PR #17 で AdMob バナー広告を導入した際、Google 公式のテスト I
 ### 採用しなかった案: `Config/*.xcconfig` 新設
 
 | 観点 | xcconfig 新設 | buildSettings 直書き（採用） |
-|---|---|---|
+| --- | --- | --- |
 | pbxproj 編集量 | 大（PBXFileReference + baseConfigurationReference） | 小（既存 buildSettings に追記） |
 | プロジェクト整合性 | 既存スタイルと混在 | 既存 `INFOPLIST_KEY_*` パターンと一致 |
 | 拡張性 | 高（他の env 別設定も追加しやすい） | 中（同方式で十分対応可能） |
