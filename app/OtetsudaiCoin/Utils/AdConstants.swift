@@ -1,5 +1,11 @@
 import Foundation
 
 enum AdConstants {
-    static let testBannerAdUnitID = "ca-app-pub-3940256099942544/2934735716"
+    static var applicationIdentifier: String {
+        Bundle.main.object(forInfoDictionaryKey: "GADApplicationIdentifier") as? String ?? ""
+    }
+
+    static var bannerAdUnitID: String {
+        Bundle.main.object(forInfoDictionaryKey: "GADBannerAdUnitID") as? String ?? ""
+    }
 }

@@ -5,7 +5,7 @@ struct BannerAdView: UIViewRepresentable {
 
     func makeUIView(context: Context) -> BannerView {
         let bannerView = BannerView(adSize: AdSizeBanner)
-        bannerView.adUnitID = AdConstants.testBannerAdUnitID
+        bannerView.adUnitID = AdConstants.bannerAdUnitID
         bannerView.load(Self.makeNonPersonalizedRequest())
         return bannerView
     }
