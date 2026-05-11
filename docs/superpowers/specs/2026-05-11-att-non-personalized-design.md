@@ -35,14 +35,16 @@ request.register(extras)
 bannerView.load(request)
 ```
 
-### 2. Privacy Manifest を追加
+### 2. Privacy Manifest（フォローアップに分離）
 
-`PrivacyInfo.xcprivacy` をプロジェクトに追加し、以下を明示:
+`PrivacyInfo.xcprivacy` の追加は Xcode プロジェクトのターゲットメンバーシップ設定が必要で、`npa=1` 実装とは関心領域が異なる。別フォローアップ Issue（または `#22` の追加 PR）として分離する。
+
+宣言予定の内容:
 
 - `NSPrivacyTracking = false`（トラッキングしない）
 - `NSPrivacyTrackingDomains = []`
-- `NSPrivacyCollectedDataTypes = []`（アプリ本体は IDFA 等を収集しない。AdMob SDK 側の宣言は別途 SDK 同梱の Privacy Manifest が担う）
-- `NSPrivacyAccessedAPITypes` … 該当 API 利用に対するリーズンコード（UserDefaults 等）
+- `NSPrivacyCollectedDataTypes = []`（アプリ本体は IDFA 等を収集しない。AdMob SDK 側の宣言は同梱 Privacy Manifest が担う）
+- `NSPrivacyAccessedAPITypes` … UserDefaults 利用に `CA92.1`（Access info from same app）
 
 ### 3. やらないこと
 
@@ -69,12 +71,14 @@ bannerView.load(request)
 - `Info.plist` の `NSUserTrackingUsageDescription`（日英ローカライズ）
 - `PrivacyInfo.xcprivacy` の `NSPrivacyTracking = true` 化と `NSPrivacyTrackingDomains` 設定
 
-## 実装タスク
+## 実装タスク（本 PR）
 
-- [ ] `Request` 生成ロジックを `BannerAdView` から抽出し、テスト可能な関数に切り出す
-- [ ] `Extras` で `npa=1` を付与する実装
-- [ ] テストを追加（`additionalParameters` に `npa=1` が含まれる）
-- [ ] `PrivacyInfo.xcprivacy` を新規追加
-- [ ] Xcode プロジェクトに `PrivacyInfo.xcprivacy` を含める（手動ステップが必要な場合はユーザー依頼）
-- [ ] `xcodebuild test` 全 PASS 確認
+- [x] `Request` 生成ロジックを `BannerAdView` から `static` メソッドに抽出
+- [x] `Extras` で `npa=1` を付与する実装
+- [x] テストを追加（`additionalParameters` に `npa=1` が含まれる）
+- [x] `xcodebuild test` で BannerAdView 全 7 件 PASS 確認
 - [ ] コミット → PR 作成
+
+## フォローアップ（別 PR）
+
+- [ ] `PrivacyInfo.xcprivacy` を新規追加（Xcode のターゲット追加が必要）
