@@ -1,9 +1,30 @@
 import XCTest
 import SwiftUI
 import ViewInspector
+import GoogleMobileAds
 @testable import OtetsudaiCoin
 
 final class BannerAdViewTests: XCTestCase {
+
+    // MARK: - Non-personalized 広告リクエスト
+
+    @MainActor
+    func testNonPersonalizedExtrasHasNpaParameter() {
+        // Given/When: Non-personalized 用の Extras を生成
+        let extras = BannerAdView.makeNonPersonalizedExtras()
+
+        // Then: npa=1 が含まれている（IDFA を使わないトラッキング無し広告）
+        XCTAssertEqual(extras.additionalParameters?["npa"] as? String, "1")
+    }
+
+    @MainActor
+    func testNonPersonalizedRequestIsCreated() {
+        // Given/When: Non-personalized 用の Request を生成
+        let request = BannerAdView.makeNonPersonalizedRequest()
+
+        // Then: Request が生成される
+        XCTAssertNotNil(request)
+    }
 
     // MARK: - インスタンス生成
 
