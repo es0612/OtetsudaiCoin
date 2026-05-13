@@ -2,6 +2,9 @@
 
 お子様のお手伝いを記録して、コインを獲得し、お小遣い管理ができるiOSアプリです。
 
+公式サイト: <https://es0612.github.io/OtetsudaiCoin/>  
+プライバシーポリシー: <https://es0612.github.io/OtetsudaiCoin/privacy-policy.html>
+
 ## 概要
 
 おてつだいコインは、子供たちのお手伝いを楽しく記録し、モチベーションを向上させるためのアプリです。SwiftUIとCore Dataを使用したMVVM + クリーンアーキテクチャで開発されており、@Observableパターンによる最新の状態管理を採用しています。

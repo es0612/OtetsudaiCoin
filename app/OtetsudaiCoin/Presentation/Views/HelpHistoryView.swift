@@ -67,8 +67,10 @@ struct HelpHistoryView: View {
                 recordToEdit = nil
             }
         }
-        .onAppear {
+        .task {
+            // #32: 初期ロードを View 側の `.task` に統一（ViewModel init からの auto-Task を廃止）
             loadAvailableChildren()
+            await viewModel.loadInitialData()
         }
     }
     
@@ -167,15 +169,30 @@ struct HelpHistoryView: View {
             Image(systemName: "list.clipboard")
                 .font(.system(size: 60))
                 .foregroundColor(.secondary)
-            
-            Text("お手伝い記録がありません")
+
+            // #32: 「全データが無い」ではなく「今のフィルタには無い」ことを明示
+            Text("「\(viewModel.selectedPeriod.rawValue)」の記録はありません")
                 .font(.title2)
                 .fontWeight(.semibold)
-            
-            Text("選択した期間にお手伝いの記録がありません。\n記録タブから新しいお手伝いを記録してみましょう！")
+                .multilineTextAlignment(.center)
+
+            Text("期間を変えて過去の記録を探すか、記録タブから新しいお手伝いを記録してみましょう！")
                 .font(.body)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
+
+            if viewModel.selectedPeriod != .all {
+                Button {
+                    viewModel.selectedPeriod = .all
+                    viewModel.selectPeriod(.all)
+                } label: {
+                    Text("全期間で表示する")
+                        .font(.body)
+                        .fontWeight(.semibold)
+                }
+                .primaryGradientButton()
+                .padding(.top, 8)
+            }
         }
         .padding(.horizontal, 40)
         .frame(maxWidth: .infinity, maxHeight: .infinity)

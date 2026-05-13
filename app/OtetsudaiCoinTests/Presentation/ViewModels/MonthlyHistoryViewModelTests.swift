@@ -50,11 +50,38 @@ final class MonthlyHistoryViewModelTests: XCTestCase {
     @MainActor
     func testSelectChild() {
         let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
-        
+
         viewModel.selectChild(child)
-        
+
         XCTAssertEqual(viewModel.selectedChild?.id, child.id)
         XCTAssertEqual(viewModel.selectedChild?.name, "太郎")
+    }
+
+    // #33: selectChild は selectedChild をセットするだけで loadMonthlyHistory を自動起動しない
+    // （初回 sheet 表示で起こる二重 fetch / 表示崩れを防ぐため、ロードは View 側 .task の責務）
+    @MainActor
+    func testSelectChildDoesNotAutoLoad() async {
+        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+        let calendar = Calendar.current
+        let lastMonth = calendar.date(byAdding: .month, value: -1, to: Date())!
+        let helpRecord = HelpRecord(
+            id: UUID(),
+            childId: child.id,
+            helpTaskId: UUID(),
+            recordedAt: lastMonth
+        )
+        mockHelpRecordRepository.records = [helpRecord]
+        mockAllowanceCalculator.monthlyAllowance = 100
+
+        viewModel.selectChild(child)
+
+        // 旧設計は selectChild 内の Task が 100ms 程度で完了して monthlyRecords が埋まっていた
+        try? await Task.sleep(nanoseconds: 200_000_000)
+
+        // Then: selectedChild はセット、しかし fetch は走っていないので monthlyRecords は空
+        XCTAssertEqual(viewModel.selectedChild?.id, child.id)
+        XCTAssertTrue(viewModel.monthlyRecords.isEmpty)
+        XCTAssertFalse(viewModel.isLoading)
     }
     
     @MainActor
@@ -81,17 +108,19 @@ final class MonthlyHistoryViewModelTests: XCTestCase {
             expectedAmount: 100
         )
         mockUnpaidDetector.unpaidPeriods = [unpaidPeriod]
-        
+
         viewModel.selectChild(child)
-        
+        // #33 以後の設計: 明示的に loadMonthlyHistory() を呼ぶ（View 側 .task の責務に揃える）
+        viewModel.loadMonthlyHistory()
+
         // 非同期処理完了を待つ
         try? await Task.sleep(nanoseconds: 100_000_000) // 0.1秒待機
-        
+
         // 検証
         XCTAssertFalse(viewModel.monthlyRecords.isEmpty)
         XCTAssertEqual(viewModel.unpaidRecords.count, 1)
         XCTAssertEqual(viewModel.totalUnpaidAmount, 100)
-        
+
         let unpaidRecord = viewModel.unpaidRecords.first!
         XCTAssertTrue(unpaidRecord.isUnpaid)
         XCTAssertEqual(unpaidRecord.unpaidAmount, 100)
@@ -182,12 +211,14 @@ final class MonthlyHistoryViewModelTests: XCTestCase {
         
         // 未支払い期間なし
         mockUnpaidDetector.unpaidPeriods = []
-        
+
         viewModel.selectChild(child)
-        
+        // #33 以後の設計: 明示的に loadMonthlyHistory() を呼ぶ（View 側 .task の責務に揃える）
+        viewModel.loadMonthlyHistory()
+
         // 非同期処理完了を待つ
         try? await Task.sleep(nanoseconds: 100_000_000) // 0.1秒待機
-        
+
         // 検証
         XCTAssertFalse(viewModel.monthlyRecords.isEmpty)
         XCTAssertTrue(viewModel.unpaidRecords.isEmpty) // 未支払い記録なし

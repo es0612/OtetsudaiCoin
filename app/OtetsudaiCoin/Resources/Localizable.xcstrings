@@ -2028,6 +2028,16 @@
     },
     "開発者向け" : {
 
+    },
+    "App Store でレビューする" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Review on the App Store"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"
