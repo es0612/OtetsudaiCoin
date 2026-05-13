@@ -13,6 +13,7 @@ struct SettingsView: View {
     @State private var taskManagementViewModel: TaskManagementViewModel
     @State private var notificationSettingsViewModel: NotificationSettingsViewModel
     @State private var paymentReminderViewModel: PaymentReminderNotificationSettingsViewModel
+    @Environment(\.openURL) private var openURL
 
     #if DEBUG
     @State private var isGeneratingData = false
@@ -204,6 +205,26 @@ struct SettingsView: View {
                         }
                     }
                     .foregroundColor(.primary)
+
+                    // #31: TestFlight / Debug ビルドでは requestReview がダイアログを出さない仕様のため、
+                    // App Store のレビュー画面に直接遷移するフォールバックを併設する。
+                    // APP_STORE_APP_ID が未設定の場合は非表示。
+                    if let reviewURL = AppStoreReviewer.writeReviewURL {
+                        Button(action: {
+                            openURL(reviewURL)
+                        }) {
+                            HStack {
+                                Image(systemName: "arrow.up.right.square")
+                                    .foregroundColor(.blue)
+                                Text("App Store でレビューする")
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .foregroundColor(.secondary)
+                                    .font(.caption)
+                            }
+                        }
+                        .foregroundColor(.primary)
+                    }
                 }
             }
             .navigationTitle("設定")

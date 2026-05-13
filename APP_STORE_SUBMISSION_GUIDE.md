@@ -149,6 +149,32 @@ OtetsudaiCoin - お手伝いコイン
 - インターネット接続は不要です
 ```
 
+## 🔴 リリース前に必ず差し替えてください - `APP_STORE_APP_ID`
+
+設定画面の「App Store でレビューする」フォールバックボタン (#31) は、Build Settings の
+`APP_STORE_APP_ID` を Info.plist 経由で読んでレビュー画面 URL を組み立てます。
+
+- 現状: `app/OtetsudaiCoin.xcodeproj/project.pbxproj` の Debug / Release 両構成で
+  `APP_STORE_APP_ID = "";` の **空 placeholder** が入っています。
+- 本番リリース前に **App Store Connect で発行された数字 App ID**
+  （例: `6443148999`、Apple ID とも呼ばれる 10 桁前後の数字）に差し替えてください。
+- 空のままだと「App Store でレビューする」ボタンは UI 上 **非表示** になります（安全側設計）。
+- 差し替え方法: Xcode の Target → OtetsudaiCoin → Build Settings → User-Defined →
+  `APP_STORE_APP_ID` に Debug / Release 共通で数字 ID を入力。
+
+### `requestReview` 系の動作仕様（#31 メモ）
+
+「アプリを評価」ボタンが押されたときに呼ばれる `AppStore.requestReview` /
+`SKStoreReviewController.requestReview` は **Apple の仕様により以下の制限** があります：
+
+- **App Store から配布された本番ビルドでのみ** レビュー要求ダイアログが出る。
+- TestFlight / Debug ビルドでは API 自体は呼ばれるが、Apple 側でダイアログ表示が抑制される。
+- 本番でも「同一ユーザー / 365 日で最大 3 回」「Apple のヒューリスティクスで非表示にされうる」。
+
+これだけだと TestFlight で「押しても何も起きない」になるため、フォールバックとして
+`AppStoreReviewer.writeReviewURL` 経由で `itms-apps://...` を `@Environment(\.openURL)`
+で開く副ボタンを併設しています (#31)。
+
 ## 🟢 自動対応済み
 
 ### プロジェクト設定
