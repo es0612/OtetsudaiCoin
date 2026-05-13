@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>おてつだいコイン</title>
+    <meta
+      name="description"
+      content="子供のお手伝いを楽しく記録して、コインを獲得してお小遣い管理ができる iOS アプリ。お子様のモチベーション向上と、家庭でのお小遣い教育をサポートします。"
+    />
+    <style>
+      :root {
+        --bg: #fff8ec;
+        --fg: #1f2933;
+        --muted: #5c6773;
+        --accent: #ff8a3d;
+        --accent-dark: #e57221;
+        --card: #ffffff;
+        --border: rgba(31, 41, 51, 0.08);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN",
+          "Noto Sans JP", sans-serif;
+        background: var(--bg);
+        color: var(--fg);
+        line-height: 1.7;
+      }
+      header {
+        text-align: center;
+        padding: 64px 24px 32px;
+      }
+      header h1 {
+        font-size: 2.2rem;
+        margin: 0 0 8px;
+        letter-spacing: 0.02em;
+      }
+      header p.lead {
+        font-size: 1.1rem;
+        color: var(--muted);
+        margin: 0 auto;
+        max-width: 36em;
+      }
+      main {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 16px 24px 64px;
+      }
+      section {
+        margin: 32px 0;
+      }
+      h2 {
+        font-size: 1.4rem;
+        margin: 32px 0 12px;
+        border-left: 4px solid var(--accent);
+        padding-left: 12px;
+      }
+      .features {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+      .feature {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px 20px;
+      }
+      .feature strong {
+        display: block;
+        font-size: 1.05rem;
+        margin-bottom: 4px;
+      }
+      .feature span {
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+      .links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 16px;
+      }
+      .link {
+        display: inline-block;
+        padding: 10px 18px;
+        background: var(--accent);
+        color: #fff;
+        border-radius: 999px;
+        text-decoration: none;
+        font-weight: 600;
+      }
+      .link.secondary {
+        background: transparent;
+        color: var(--accent-dark);
+        border: 1.5px solid var(--accent);
+      }
+      .link:hover {
+        background: var(--accent-dark);
+      }
+      footer {
+        text-align: center;
+        padding: 32px 24px 48px;
+        color: var(--muted);
+        font-size: 0.9rem;
+        border-top: 1px solid var(--border);
+        margin-top: 48px;
+      }
+      footer a {
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>おてつだいコイン</h1>
+      <p class="lead">
+        子供のお手伝いを楽しく記録して、コインを獲得してお小遣い管理ができる iOS アプリ。
+      </p>
+    </header>
+
+    <main>
+      <section>
+        <h2>主な機能</h2>
+        <div class="features">
+          <div class="feature">
+            <strong>お手伝いを記録</strong>
+            <span
+              >お子様とタスクを選ぶだけ。コイン獲得アニメーション・効果音・触覚フィードバックでお子様のモチベーションを高めます。</span
+            >
+          </div>
+          <div class="feature">
+            <strong>お小遣い管理</strong>
+            <span
+              >獲得コインから月別お小遣いを自動計算。月末支払いの通知やリマインダーで、保護者の管理負担を軽減します。</span
+            >
+          </div>
+          <div class="feature">
+            <strong>履歴を振り返り</strong>
+            <span
+              >今週・今月・過去 3 か月・全期間のフィルタで履歴を確認。月別履歴では未払いの状況も一目でわかります。</span
+            >
+          </div>
+          <div class="feature">
+            <strong>家族で使える</strong>
+            <span
+              >複数のお子様を登録して、それぞれにテーマカラーを設定。個性を尊重しながら家族みんなで使えます。</span
+            >
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>動作環境</h2>
+        <p>iOS 18.5 以降の iPhone / iPad に対応。</p>
+      </section>
+
+      <section>
+        <h2>サポート・お問い合わせ</h2>
+        <p>
+          ご質問・ご意見・不具合報告は、開発者までメールでお寄せください:<br />
+          <a href="mailto:emashinya0612@gmail.com">emashinya0612@gmail.com</a>
+        </p>
+        <div class="links">
+          <a class="link secondary" href="privacy-policy.html">プライバシーポリシー</a>
+          <a class="link secondary" href="https://github.com/es0612/OtetsudaiCoin"
+            >GitHub リポジトリ</a
+          >
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      &copy; 2026 おてつだいコイン. All rights reserved.
+    </footer>
+  </body>
+</html>
