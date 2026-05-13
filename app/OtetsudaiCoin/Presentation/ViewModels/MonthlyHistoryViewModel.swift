@@ -83,13 +83,8 @@ class MonthlyHistoryViewModel {
     }
     
     func selectChild(_ child: Child) {
+        // データロードは View 側の .task で明示呼び出しする責務に変更（#33: sheet 初回表示時の二重 fetch を避ける）
         selectedChild = child
-        // 即座にデータロードを実行
-        Task {
-            await MainActor.run {
-                loadMonthlyHistory()
-            }
-        }
     }
     
     func loadMonthlyHistory() {
