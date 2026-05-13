@@ -6,7 +6,7 @@ import Combine
 class HelpHistoryViewModel {
     var helpRecords: [HelpRecordWithDetails] = []
     var selectedChild: Child?
-    var selectedPeriod: HistoryPeriod = .thisMonth
+    var selectedPeriod: HistoryPeriod = .last3Months
     var isLoading: Bool = false
     var errorMessage: String?
     
@@ -34,11 +34,8 @@ class HelpHistoryViewModel {
                 }
             }
             .store(in: &cancellables)
-        
-        // 初期データの読み込み
-        Task {
-            await loadInitialData()
-        }
+
+        // 初期データは View 側の .task で loadInitialData() を明示呼び出しする責務に変更（#32）
     }
     
     deinit {

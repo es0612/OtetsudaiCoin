@@ -45,9 +45,36 @@ final class HelpHistoryViewModelTests: XCTestCase {
     func testSelectPeriod() {
         // When
         viewModel.selectPeriod(.thisWeek)
-        
+
         // Then
         XCTAssertEqual(viewModel.selectedPeriod, .thisWeek)
+    }
+
+    // #32: 過去日付登録された記録が初期表示で見えない問題を防ぐため、デフォルトを過去3か月にする
+    @MainActor
+    func testDefaultSelectedPeriodIsLast3Months() {
+        XCTAssertEqual(viewModel.selectedPeriod, .last3Months)
+    }
+
+    // #32: init 内で勝手に loadInitialData() が走らないこと（View 側 .task から明示的に呼ぶ設計）
+    @MainActor
+    func testInitDoesNotAutoLoadInitialData() async {
+        // Given: mock に子供を仕込んだ状態でも、init 単独では auto-load されないこと
+        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+        mockChildRepository.children = [child]
+
+        let freshViewModel = HelpHistoryViewModel(
+            helpRecordRepository: mockHelpRecordRepository,
+            helpTaskRepository: mockHelpTaskRepository,
+            childRepository: mockChildRepository
+        )
+
+        // 旧設計なら init 内の Task { await loadInitialData() } が動いて selectedChild がセットされる
+        try? await Task.sleep(nanoseconds: 100_000_000)
+
+        // Then: selectedChild は nil のまま（View 側で明示的に loadInitialData() を呼ぶ責務）
+        XCTAssertNil(freshViewModel.selectedChild)
+        XCTAssertTrue(freshViewModel.helpRecords.isEmpty)
     }
     
     @MainActor
