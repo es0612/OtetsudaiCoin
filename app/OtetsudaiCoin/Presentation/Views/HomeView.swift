@@ -66,8 +66,11 @@ struct HomeView: View {
                 }
             }
             .navigationTitle("おてつだいコイン")
-            .onAppear {
-                viewModel.loadChildren()
+            .task {
+                // #44: 初期ロードを View 側の `.task` に統一（履歴系画面と同じパターン）。
+                // `.onAppear` から fire-and-forget の Task 起動だと、NotificationManager 経由の
+                // 自動再ロードと競合してメイン画面が空表示のまま固定されるケースが残っていた。
+                await viewModel.loadChildrenAsync()
             }
         }
         .alert("エラー", isPresented: .constant(viewModel.errorMessage != nil)) {

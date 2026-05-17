@@ -46,8 +46,33 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertFalse(viewModel.isLoading)
         XCTAssertNil(viewModel.errorMessage)
     }
-    
-    
+
+    // #44: View 側の `.task` から呼ばれる loadChildrenAsync の挙動を確認
+    @MainActor
+    func testLoadChildrenAsyncPopulatesChildrenAndFinishesLoading() async {
+        let child1 = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+        let child2 = Child(id: UUID(), name: "花子", themeColor: "#33FF57")
+        mockChildRepository.children = [child1, child2]
+
+        await viewModel.loadChildrenAsync()
+
+        XCTAssertEqual(viewModel.children.count, 2)
+        XCTAssertEqual(viewModel.children.map { $0.id }, [child1.id, child2.id])
+        XCTAssertFalse(viewModel.isLoading)
+        XCTAssertNil(viewModel.errorMessage)
+    }
+
+    @MainActor
+    func testLoadChildrenAsyncSurfacesErrorMessageOnFailure() async {
+        mockChildRepository.shouldThrowError = true
+
+        await viewModel.loadChildrenAsync()
+
+        XCTAssertTrue(viewModel.children.isEmpty)
+        XCTAssertFalse(viewModel.isLoading)
+        XCTAssertNotNil(viewModel.errorMessage)
+    }
+
     @MainActor
     func testSelectChild() {
         let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")

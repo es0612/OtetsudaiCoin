@@ -70,24 +70,30 @@ class HomeViewModel {
     // タスクはViewModelのライフサイクルとともに自動的にキャンセルされる
     
     func loadChildren() {
+        Task {
+            await loadChildrenAsync()
+        }
+    }
+
+    // #44: View 側の `.task` から明示的に await できる async 版。
+    // 内部の `Task { }` を経由しないため、SwiftUI の `.task` ライフサイクルでキャンセル制御できる。
+    func loadChildrenAsync() async {
         isLoading = true
         errorMessage = nil
-        
-        Task {
-            do {
-                let loadedChildren = try await childRepository.findAll()
-                children = loadedChildren
-                
-                // 未支払いのお小遣いがあるかチェック
-                if !children.isEmpty {
-                    await checkUnpaidAllowances()
-                }
-                
-                isLoading = false
-            } catch {
-                errorMessage = ErrorMessageConverter.convertToUserFriendlyMessage(error)
-                isLoading = false
+
+        do {
+            let loadedChildren = try await childRepository.findAll()
+            children = loadedChildren
+
+            // 未支払いのお小遣いがあるかチェック
+            if !children.isEmpty {
+                await checkUnpaidAllowances()
             }
+
+            isLoading = false
+        } catch {
+            errorMessage = ErrorMessageConverter.convertToUserFriendlyMessage(error)
+            isLoading = false
         }
     }
     

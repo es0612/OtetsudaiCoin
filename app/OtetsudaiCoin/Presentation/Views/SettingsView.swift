@@ -50,7 +50,14 @@ struct SettingsView: View {
             wrappedValue: PaymentReminderNotificationSettingsViewModel(service: paymentService)
         )
     }
-    
+
+    private var appVersionText: String {
+        let info = Bundle.main.infoDictionary
+        let version = info?["CFBundleShortVersionString"] as? String ?? "—"
+        let build = info?[kCFBundleVersionKey as String] as? String ?? "—"
+        return "\(version) (\(build))"
+    }
+
     var body: some View {
         NavigationStack {
             List {
@@ -187,7 +194,7 @@ struct SettingsView: View {
                             .foregroundColor(.blue)
                         Text("バージョン")
                         Spacer()
-                        Text("1.0.0")
+                        Text(appVersionText)
                             .foregroundColor(.secondary)
                     }
                     
