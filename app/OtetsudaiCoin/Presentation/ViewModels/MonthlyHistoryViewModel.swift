@@ -83,8 +83,11 @@ class MonthlyHistoryViewModel {
     }
     
     func selectChild(_ child: Child) {
-        // データロードは View 側の .task で明示呼び出しする責務に変更（#33: sheet 初回表示時の二重 fetch を避ける）
+        // #54: sheet 初回表示の empty state gap を回避するため、selectChild で load を即起動する。
+        // 既に loadMonthlyHistory 内で loadHistoryTask?.cancel() を呼んでいるので、
+        // View 側で重ねて refreshData() が走っても二重 fetch にはならない（# 33 の懸念は cancel で吸収済み）。
         selectedChild = child
+        loadMonthlyHistory()
     }
     
     func loadMonthlyHistory() {
