@@ -87,8 +87,8 @@ class ReminderNotificationService: ReminderNotificationServiceProtocol {
 
     func scheduleDaily() async throws {
         let content = UNMutableNotificationContent()
-        content.title = "おてつだいコイン"
-        content.body = "今日のお手伝いを記録しよう！🌟"
+        content.title = String(localized: "おてつだいコイン")
+        content.body = String(localized: "今日のお手伝いを記録しよう！🌟")
         content.sound = .default
 
         var dateComponents = DateComponents()
