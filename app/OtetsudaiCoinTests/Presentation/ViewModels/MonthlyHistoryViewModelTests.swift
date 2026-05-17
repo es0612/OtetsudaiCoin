@@ -57,10 +57,10 @@ final class MonthlyHistoryViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.selectedChild?.name, "太郎")
     }
 
-    // #33: selectChild は selectedChild をセットするだけで loadMonthlyHistory を自動起動しない
-    // （初回 sheet 表示で起こる二重 fetch / 表示崩れを防ぐため、ロードは View 側 .task の責務）
+    // #54: selectChild は load を即起動する。HelpHistoryViewModel と同じ挙動。
+    // sheet 初回表示時の empty state gap を排除するため、#33 の「load しない」設計を逆転。
     @MainActor
-    func testSelectChildDoesNotAutoLoad() async {
+    func testSelectChildKicksLoadImmediately() async {
         let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
         let calendar = Calendar.current
         let lastMonth = calendar.date(byAdding: .month, value: -1, to: Date())!
@@ -75,13 +75,16 @@ final class MonthlyHistoryViewModelTests: XCTestCase {
 
         viewModel.selectChild(child)
 
-        // 旧設計は selectChild 内の Task が 100ms 程度で完了して monthlyRecords が埋まっていた
-        try? await Task.sleep(nanoseconds: 200_000_000)
+        // selectChild 直後の同期チェック: isLoading == true（load Task が走り始めている）
+        XCTAssertTrue(viewModel.isLoading, "selectChild は loadMonthlyHistory を即起動して isLoading=true にすべき")
 
-        // Then: selectedChild はセット、しかし fetch は走っていないので monthlyRecords は空
+        // 非同期ロード完了を待機
+        try? await Task.sleep(nanoseconds: 300_000_000)
+
+        // ロード完了: monthlyRecords が埋まる
         XCTAssertEqual(viewModel.selectedChild?.id, child.id)
-        XCTAssertTrue(viewModel.monthlyRecords.isEmpty)
         XCTAssertFalse(viewModel.isLoading)
+        XCTAssertFalse(viewModel.monthlyRecords.isEmpty, "load 完了後 monthlyRecords が埋まる")
     }
     
     @MainActor
