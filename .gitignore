@@ -13,6 +13,10 @@ xcuserdata/
 *.dSYM.zip
 *.dSYM
 
+## Build artifacts (xcodebuild -derivedDataPath などで生成される一時生成物)
+build/
+DerivedData/
+
 ## Playgrounds
 timeline.xctimeline
 playground.xcworkspace
