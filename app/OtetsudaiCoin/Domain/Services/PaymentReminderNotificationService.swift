@@ -96,7 +96,7 @@ class PaymentReminderNotificationService: PaymentReminderNotificationServiceProt
         let trigger = UNCalendarNotificationTrigger(dateMatching: triggerComponents, repeats: false)
 
         let content = UNMutableNotificationContent()
-        content.title = "お小遣いの未払いがあります 💰"
+        content.title = String(localized: "お小遣いの未払いがあります 💰")
         content.body = body
         content.sound = .default
 
@@ -110,13 +110,31 @@ class PaymentReminderNotificationService: PaymentReminderNotificationServiceProt
 
     private func buildBody(for unpaid: [(child: Child, period: UnpaidPeriod)]) -> String {
         let total = unpaid.reduce(0) { $0 + $1.period.expectedAmount }
-        let parts = unpaid.map { "\($0.child.name)\($0.period.month)月分(¥\($0.period.expectedAmount))" }
 
         if unpaid.count == 1 {
             let item = unpaid[0]
-            return "\(item.child.name)の\(item.period.month)月分 ¥\(item.period.expectedAmount) が未払いです"
+            return String(
+                format: String(localized: "%1$@の%2$lld月分 ¥%3$lld が未払いです"),
+                item.child.name,
+                item.period.month,
+                item.period.expectedAmount
+            )
         }
-        return parts.joined(separator: "、") + " が未払いです（合計 ¥\(total)）"
+
+        let parts = unpaid.map {
+            String(
+                format: String(localized: "%1$@%2$lld月分(¥%3$lld)"),
+                $0.child.name,
+                $0.period.month,
+                $0.period.expectedAmount
+            )
+        }
+        let joined = parts.joined(separator: String(localized: "、"))
+        return String(
+            format: String(localized: "%1$@ が未払いです（合計 ¥%2$lld）"),
+            joined,
+            total
+        )
     }
 
     private func nextMonthFirstComponents(hour: Int, minute: Int) -> DateComponents {

@@ -15,7 +15,14 @@
       }
     },
     "%@ちゃんの記録" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@'s records"
+          }
+        }
+      }
     },
     "%@のお小遣い%lldコインを支払いますか？" : {
       "localizations" : {
@@ -43,7 +50,14 @@
 
     },
     "%lld回" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld times"
+          }
+        }
+      }
     },
     "+%lld" : {
 
@@ -52,7 +66,14 @@
 
     },
     "3ヶ月分サンプルデータ生成" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Generate 3-month sample data"
+          }
+        }
+      }
     },
     "OK" : {
       "localizations" : {
@@ -928,7 +949,14 @@
       }
     },
     "ホーム" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Home"
+          }
+        }
+      }
     },
     "ホーム画面" : {
       "extractionState" : "stale",
@@ -983,7 +1011,14 @@
       }
     },
     "リマインド通知" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reminder notifications"
+          }
+        }
+      }
     },
     "一部支払い済み" : {
       "localizations" : {
@@ -1154,7 +1189,14 @@
       }
     },
     "全データ削除" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete all data"
+          }
+        }
+      }
     },
     "全期間" : {
       "extractionState" : "stale",
@@ -1774,7 +1816,14 @@
       }
     },
     "記録" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Record"
+          }
+        }
+      }
     },
     "記録する" : {
       "localizations" : {
@@ -1818,7 +1867,14 @@
       }
     },
     "記録データのみ削除" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete records only"
+          }
+        }
+      }
     },
     "記録ボタンをタップ" : {
       "extractionState" : "stale",
@@ -1960,16 +2016,44 @@
       }
     },
     "通知" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notifications"
+          }
+        }
+      }
     },
     "通知を有効にする" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable notifications"
+          }
+        }
+      }
     },
     "通知時間" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notification time"
+          }
+        }
+      }
     },
     "通知設定" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notification settings"
+          }
+        }
+      }
     },
     "連続記録" : {
       "extractionState" : "stale",
@@ -2027,7 +2111,14 @@
       }
     },
     "開発者向け" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Developer"
+          }
+        }
+      }
     },
     "App Store でレビューする" : {
       "localizations" : {
@@ -2035,6 +2126,215 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Review on the App Store"
+          }
+        }
+      }
+    },
+    "データがありません" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No data available"
+          }
+        }
+      }
+    },
+    "振り返り" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retrospective"
+          }
+        }
+      }
+    },
+    "獲得" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Earned"
+          }
+        }
+      }
+    },
+    "ハイライト" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Highlights"
+          }
+        }
+      }
+    },
+    "連続" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Streak"
+          }
+        }
+      }
+    },
+    "頑張った日" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Best day"
+          }
+        }
+      }
+    },
+    "ベスト" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Top task"
+          }
+        }
+      }
+    },
+    "%lld日 (%lld回)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Day %1$lld (%2$lld times)"
+          }
+        }
+      }
+    },
+    "お手伝い内訳" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Help breakdown"
+          }
+        }
+      }
+    },
+    "まだ記録がありません" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No records yet"
+          }
+        }
+      }
+    },
+    "%@のカレンダー" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ calendar"
+          }
+        }
+      }
+    },
+    "お小遣いを渡す" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pay allowance"
+          }
+        }
+      }
+    },
+    "支払いリマインド" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Payment reminders"
+          }
+        }
+      }
+    },
+    "今日のお手伝いを記録しよう！🌟" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Let's record today's help! 🌟"
+          }
+        }
+      }
+    },
+    "お小遣いの未払いがあります 💰" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unpaid allowance 💰"
+          }
+        }
+      }
+    },
+    "%1$@の%2$lld月分 ¥%3$lld が未払いです" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@'s allowance for month %2$lld (¥%3$lld) is unpaid"
+          }
+        }
+      }
+    },
+    "%1$@%2$lld月分(¥%3$lld)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ month %2$lld (¥%3$lld)"
+          }
+        }
+      }
+    },
+    "%1$@ が未払いです（合計 ¥%2$lld）" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ are unpaid (total ¥%2$lld)"
+          }
+        }
+      }
+    },
+    "、" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : ", "
           }
         }
       }
