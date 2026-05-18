@@ -39,28 +39,69 @@ App Store の Kids カテゴリ申請はしておらず、`GADKidApp` / `tagForC
 
 ### 1. `RecordView.swift` への BannerAdView 追加
 
-`var body` 内の ScrollView コンテンツ末尾、`recordButtonView`（line 197 付近）の直後に `BannerAdView` を配置する。
+**現状のレイアウト構造**（line 7-53）:
 
-具体的な構造:
+```swift
+ZStack {
+    NavigationStack {
+        VStack(spacing: 0) {            // 外側 VStack
+            ScrollView {                 // スクロール領域
+                VStack(spacing: 16) {
+                    StateBasedContent(...) {
+                        VStack(spacing: 16) {
+                            successMessage?
+                            childSelectionView
+                            dateSection
+                            taskListView
+                        }
+                        .padding()
+                        .padding(.bottom, 80) // 固定ボタン分のスペース確保
+                    }
+                }
+            }
+
+            // 画面下部に固定された記録ボタン
+            VStack(spacing: 0) {
+                Divider()
+                recordButtonView
+                    .padding()
+                    .background(.ultraThinMaterial)
+            }
+        }
+    }
+}
+```
+
+`recordButtonView` は ScrollView の **外側** に pin 固定されているため、Option 2「ScrollView 内の最下部」は **`StateBasedContent` の直後**（= `taskListView` の後、スクロール末端）を意味する。
+
+**修正案**:
 
 ```swift
 ScrollView {
     VStack(spacing: 16) {
-        childSelectionView
-        dateSection
-        taskListView
-        recordButtonView
+        StateBasedContent(...) {
+            VStack(spacing: 16) {
+                successMessage?
+                childSelectionView
+                dateSection
+                taskListView
+            }
+            .padding()
+            .padding(.bottom, 80) // 既存維持: 固定ボタン分
+        }
+
         BannerAdView()
             .frame(height: 50)
-            .padding(.top, 16)
             .padding(.bottom, 8)
     }
 }
 ```
 
+- BannerAdView は `StateBasedContent` の **外側**に配置 → loading / error 状態でも banner は表示される（impressions を取りこぼさない）
 - `frame(height: 50)`: AdMob 標準バナーの高さ。Ad 読み込み中 / fill rate 0 でも layout shift しない
-- `padding(.top, 16)`: recordButtonView との視覚的・物理的距離
-- `padding(.bottom, 8)`: scroll 終端と少し余白
+- `padding(.bottom, 8)`: scroll 末端の余白（固定 recordButtonView の上にスクロール終端が来ても見切れない）
+
+タップ安全性: banner は ScrollView 末端で、固定の `recordButtonView` (CTA) とは scroll 位置によって接近するが、`recordButtonView` 側に既に `.background(.ultraThinMaterial)` の不透明バーがあるため視覚的に分離される。
 
 ### 2. `TaskManagementView.swift` は変更しない
 
