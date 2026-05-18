@@ -1,0 +1,34 @@
+name: Version Bump Check
+
+# project.pbxproj の MARKETING_VERSION / CURRENT_PROJECT_VERSION が
+# 前回 tag から正しく bump されているかを PR 時に検証する。
+# 詳細は scripts/version-bump-check.sh を参照。
+# ITMS-90186 / ITMS-90062 の再発防止 (issue #55)。
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled, edited]
+    paths:
+      - 'app/OtetsudaiCoin.xcodeproj/project.pbxproj'
+      - 'scripts/version-bump-check.sh'
+      - '.github/workflows/version-bump-check.yml'
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  check:
+    name: Verify version bump
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # tag を含む完全な履歴が必要
+
+      - name: Run version bump check
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_LABELS: ${{ toJson(github.event.pull_request.labels) }}
+        run: bash scripts/version-bump-check.sh

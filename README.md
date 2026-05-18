@@ -223,6 +223,20 @@
 - 包括的なエラーハンドリング
 - アクセシビリティ標準への準拠
 
+### リリース運用 / バージョンバンプ CI
+
+- `app/OtetsudaiCoin.xcodeproj/project.pbxproj` の `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` を変更する PR では、GitHub Actions [`Version Bump Check`](.github/workflows/version-bump-check.yml) が起動し、前回 git tag より値が増えているかを検証する。
+- 検証ロジックの実体は [`scripts/version-bump-check.sh`](scripts/version-bump-check.sh)。ローカル実行も可能:
+
+  ```bash
+  PR_TITLE="release: v1.2.0" bash scripts/version-bump-check.sh
+  ```
+
+- 動作モード:
+  - **enforce mode**: PR タイトルが `release:` または `chore: bump` で始まる / `release` ラベルが付いた PR → bump できていない場合は CI が fail
+  - **info mode**: 上記以外 → warning のみ (検査結果はログに出るが PR は落ちない)
+- 背景: ITMS-90186 / ITMS-90062 (App Store 公開済バージョンと同じバージョン番号で再アップロード → reject) の再発防止 (issue #55)。
+
 ## ライセンス
 
 このプロジェクトは開発中のため、ライセンスは未定です。
