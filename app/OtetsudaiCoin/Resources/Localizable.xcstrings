@@ -2,7 +2,14 @@
   "sourceLanguage" : "ja",
   "strings" : {
     "「%@」の記録を削除しますか？この操作は取り消せません。" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete the record \"%@\"? This action cannot be undone."
+          }
+        }
+      }
     },
     "%@さんの「%@」" : {
       "localizations" : {
@@ -10,6 +17,12 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "%1$@さんの「%2$@」"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@'s \"%@\""
           }
         }
       }
@@ -31,23 +44,64 @@
             "state" : "new",
             "value" : "%1$@のお小遣い%2$lldコインを支払いますか？"
           }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pay %@'s allowance of %lld Coins?"
+          }
         }
       }
     },
     "%@のお小遣いを支払う" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pay %@'s Allowance"
+          }
+        }
+      }
     },
     "%@を削除しますか？この操作は取り消せません。" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete %@? This action cannot be undone."
+          }
+        }
+      }
     },
     "%lld" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld"
+          }
+        }
+      }
     },
     "%lldコイン" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld Coins"
+          }
+        }
+      }
     },
     "%lldコイン支払い" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld Coins Paid"
+          }
+        }
+      }
     },
     "%lld回" : {
       "localizations" : {
@@ -60,10 +114,24 @@
       }
     },
     "+%lld" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%lld"
+          }
+        }
+      }
     },
     "1.0.0" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1.0.0"
+          }
+        }
+      }
     },
     "3ヶ月分サンプルデータ生成" : {
       "localizations" : {
@@ -86,7 +154,14 @@
       }
     },
     "OtetsudaiCoin" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OtetsudaiCoin"
+          }
+        }
+      }
     },
     "アプリを評価" : {
       "localizations" : {
@@ -413,7 +488,14 @@
       }
     },
     "お手伝いタスク一覧" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Help Task List"
+          }
+        }
+      }
     },
     "お手伝いでコインを貯めよう！" : {
       "localizations" : {
@@ -692,7 +774,14 @@
       }
     },
     "サンプルデータ" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sample Data"
+          }
+        }
+      }
     },
     "ストレージ容量が不足しています。デバイスの空き容量を確保してください。" : {
       "localizations" : {
@@ -815,7 +904,14 @@
       }
     },
     "チュートリアル完了です\nこれでおてつだいコインを\n始められます！" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tutorial complete!\nYou're ready to start\nusing OtetsudaiCoin!"
+          }
+        }
+      }
     },
     "チュートリアル完了です。\nこれでおてつだいコインを\n始められます！" : {
       "extractionState" : "stale",
@@ -1103,7 +1199,14 @@
       }
     },
     "今月のお小遣いを支払いますか？\n金額: %lldコイン" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pay this month's allowance?\nAmount: %lld Coins"
+          }
+        }
+      }
     },
     "今月のお小遣いを支払う" : {
       "localizations" : {
@@ -1230,7 +1333,14 @@
       }
     },
     "最初のお子様を\n登録しましょう" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Let's register your\nfirst child"
+          }
+        }
+      }
     },
     "最初のお子様を登録しましょう" : {
       "extractionState" : "stale",
@@ -1629,7 +1739,14 @@
       }
     },
     "更新" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update"
+          }
+        }
+      }
     },
     "月別履歴" : {
       "localizations" : {
@@ -2000,10 +2117,24 @@
       }
     },
     "追加" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add"
+          }
+        }
+      }
     },
     "追加分のお小遣いを支払いますか？\n金額: %lldコイン" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pay the additional allowance?\nAmount: %lld Coins"
+          }
+        }
+      }
     },
     "追加分を支払う" : {
       "localizations" : {
@@ -2078,7 +2209,14 @@
       }
     },
     "選択した期間にお手伝いの記録がありません。\n記録タブから新しいお手伝いを記録してみましょう！" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No chore records for the selected period.\nTry recording a new chore from the Record tab!"
+          }
+        }
+      }
     },
     "選択中" : {
       "localizations" : {
