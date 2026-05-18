@@ -157,9 +157,9 @@ final class HomeViewTests: XCTestCase {
         let view = HomeView(viewModel: viewModel)
 
         // バナーが表示されること
-        XCTAssertNoThrow(try view.inspect().find(text: "未支払いのお小遣いがあります"))
-        XCTAssertNoThrow(try view.inspect().find(text: "500コイン"))
-        XCTAssertNoThrow(try view.inspect().find(text: "支払い履歴を確認"))
+        XCTAssertNoThrow(try view.inspect().find(text: "未支払いのお小遣いがあります", locale: Locale(identifier: "ja")))
+        XCTAssertNoThrow(try view.inspect().find(text: "500コイン", locale: Locale(identifier: "ja")))
+        XCTAssertNoThrow(try view.inspect().find(text: "支払い履歴を確認", locale: Locale(identifier: "ja")))
     }
 
     @MainActor
