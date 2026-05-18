@@ -73,3 +73,12 @@ fastlane/test_output
 
 # Visual Companion (brainstorming skill) の作業ディレクトリ
 /.superpowers/
+
+# Xcode の xcodebuild 成果物 (.build/ は SwiftPM 用、こちらは app/ 配下のビルド)
+app/build/
+
+# Claude Code: session-reflection.sh が毎セッション生成する一時ファイル
+.claude/pending-reflection.md
+
+# Claude Code: 個人のローカル設定 (共有しない)
+.claude/settings.local.json
