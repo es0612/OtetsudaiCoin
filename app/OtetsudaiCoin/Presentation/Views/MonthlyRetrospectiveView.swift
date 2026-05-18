@@ -50,9 +50,6 @@ struct MonthlyRetrospectiveView: View {
             )
             .animation(.easeInOut, value: viewModel.selectedMonth)
         }
-        .task {
-            await viewModel.loadMonth()
-        }
     }
 
     // MARK: - Sections

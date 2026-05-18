@@ -38,6 +38,24 @@ final class MonthlyRetrospectiveViewModelTests: XCTestCase {
         super.tearDown()
     }
 
+    // #54: init 終端で isLoading=true を defensive に立てる。
+    // sheet 表示直後の empty state（「データがありません」）gap を避けるため。
+    // actual load の kick 責務は HomeView.prepareRetrospectiveViewModel 側に集中（二重起動回避）。
+    @MainActor
+    func testInitSetsIsLoadingDefensively() {
+        let freshViewModel = MonthlyRetrospectiveViewModel(
+            child: child,
+            helpRecordRepository: mockHelpRecordRepository,
+            helpTaskRepository: mockHelpTaskRepository,
+            allowancePaymentRepository: mockAllowancePaymentRepository
+        )
+
+        // 旧設計は init 直後 isLoading=false（empty state が見える）
+        // 新設計: init 直後から isLoading=true（ProgressView が見える）
+        XCTAssertTrue(freshViewModel.isLoading, "init 直後は defensive に isLoading=true でなければならない")
+        XCTAssertNil(freshViewModel.snapshot, "snapshot は init 直後は nil")
+    }
+
     @MainActor
     func testInitialMonthIsCurrentMonth() {
         let cal = Calendar.current

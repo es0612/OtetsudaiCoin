@@ -59,10 +59,6 @@ struct MonthlyHistoryView: View {
                 viewModel.refreshData()
             }
         }
-        .task {
-            // #33: ロードトリガを `.task` に統一して、ViewModel 側 selectChild の auto-Task と二重起動するのを防ぐ
-            viewModel.refreshData()
-        }
         .alert("エラー", isPresented: .constant(viewModel.errorMessage != nil)) {
             Button("OK") {
                 viewModel.clearError()

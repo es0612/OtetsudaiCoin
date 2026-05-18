@@ -40,6 +40,11 @@ class MonthlyRetrospectiveViewModel {
         let cal = Calendar.current
         let comps = cal.dateComponents([.year, .month], from: Date())
         self.selectedMonth = cal.date(from: comps) ?? Date()
+
+        // #54: sheet 表示直後の empty state（「データがありません」）gap を避けるため、
+        // init で defensive に isLoading=true を立てる。
+        // actual load の kick は HomeView.prepareRetrospectiveViewModel 側で行う設計（責務分離）。
+        self.isLoading = true
     }
 
     // MARK: - Navigation

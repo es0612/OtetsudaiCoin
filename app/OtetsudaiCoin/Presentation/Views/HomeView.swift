@@ -323,12 +323,16 @@ struct HomeView: View {
     private func prepareRetrospectiveViewModel(for child: Child) {
         let context = PersistenceController.shared.container.viewContext
         let repositoryFactory = RepositoryFactory(context: context)
-        retrospectiveViewModel = MonthlyRetrospectiveViewModel(
+        let newViewModel = MonthlyRetrospectiveViewModel(
             child: child,
             helpRecordRepository: repositoryFactory.createHelpRecordRepository(),
             helpTaskRepository: repositoryFactory.createHelpTaskRepository(),
             allowancePaymentRepository: repositoryFactory.createAllowancePaymentRepository()
         )
+        retrospectiveViewModel = newViewModel
+        // #54: load の kick はここに集中（init は defensive isLoading=true のみ）。
+        // sheet 表示時点で load が in-flight になり、empty state gap を回避する。
+        Task { await newViewModel.loadMonth() }
     }
     
     private var childrenListView: some View {
