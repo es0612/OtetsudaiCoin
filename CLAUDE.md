@@ -47,6 +47,10 @@ Note: Optional for new features or small additions. You can proceed directly to 
 6. **Keep steering current**: Run `/kiro:steering` after significant changes
 7. **Check spec compliance**: Use `/kiro:spec-status` to verify alignment
 
+## Git / PR 運用ルール
+- **feature branch に追加 commit する前**に、対応する PR が merge 済みでないかを `gh pr view <PR> --json mergedAt,state` で確認する。merge 後にローカル branch へ commit すると main に届かず、follow-up PR が必要になる。
+- **別目的の PR に無関係なファイルを同梱しない**（例: retrospective ドキュメント PR に別 issue の修正計画 plan.md を載せない）。実装対象 issue の feature branch に保管し、必要なら独立した PR を切る。
+
 ## Steering Configuration
 
 ### Current Steering Files
