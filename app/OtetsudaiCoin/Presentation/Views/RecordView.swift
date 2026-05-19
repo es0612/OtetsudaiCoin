@@ -200,9 +200,20 @@ struct RecordView: View {
                     ForEach(viewModel.availableTasks, id: \.id) { task in
                         TaskCardView(
                             task: task,
-                            isSelected: viewModel.selectedTask?.id == task.id,
+                            isSelected: viewModel.isBulkMode
+                                ? viewModel.selectedTaskIds.contains(task.id)
+                                : viewModel.selectedTask?.id == task.id,
+                            isBulkMode: viewModel.isBulkMode,
                             onTap: {
-                                viewModel.selectTask(task)
+                                if viewModel.isBulkMode {
+                                    if viewModel.selectedTaskIds.contains(task.id) {
+                                        viewModel.selectedTaskIds.remove(task.id)
+                                    } else {
+                                        viewModel.selectedTaskIds.insert(task.id)
+                                    }
+                                } else {
+                                    viewModel.selectTask(task)
+                                }
                             }
                         )
                         .accessibilityIdentifier("task_button")
@@ -259,6 +270,7 @@ struct RecordView: View {
 struct TaskCardView: View {
     let task: HelpTask
     let isSelected: Bool
+    var isBulkMode: Bool = false
     let onTap: () -> Void
     
     var body: some View {
@@ -308,11 +320,25 @@ struct TaskCardView: View {
     
     private var selectionIndicator: some View {
         Group {
-            if isSelected {
+            if isBulkMode {
+                bulkSelectionIndicator
+            } else if isSelected {
                 selectedIndicator
             } else {
                 unselectedIndicator
             }
+        }
+    }
+
+    private var bulkSelectionIndicator: some View {
+        HStack(spacing: 4) {
+            Image(systemName: isSelected ? "checkmark.square.fill" : "square")
+                .font(.title3)
+                .foregroundColor(isSelected ? .blue : .gray.opacity(0.5))
+            Text(isSelected ? "選択中" : "選択")
+                .appFont(.captionText)
+                .fontWeight(isSelected ? .semibold : .regular)
+                .foregroundColor(isSelected ? .blue : .gray.opacity(0.7))
         }
     }
     
