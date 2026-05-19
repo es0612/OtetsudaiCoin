@@ -53,6 +53,7 @@ Note: Optional for new features or small additions. You can proceed directly to 
 - **push / PR 作成の直前**に `git status` で HEAD ブランチを再確認する。別ターミナル・別 Claude セッション・外部プロセスがブランチを切り替えている可能性があり、意図しないブランチへの push を防ぐ。
 - **PR 作成の前**に `gh pr list --head <branch>` で同一ブランチの既存 PR を確認する。並列セッションが先に push&PR を作っているケースがあり、二重作成や test plan 上書きを避ける。
 - **新ブランチを切る前 / feature branch を作業し直す前**に `git fetch origin` を走らせ、`origin/main` を起点にする。ローカル `main` が遅れていると古い起点でブランチを切ってしまい、後で rebase / cherry-pick の手戻りになる。
+- **同一ファイル (CLAUDE.md など) を複数の feature branch から並行更新する場合**は、後発 PR を先発 PR の merge 後に `origin/main` から派生させる。同じ insertion point に並行追記すると conflict で手戻る。先発 PR がまだ open なら、後発の追記は先発に rebase する or 先発 merge 完了まで待つ。並行 session で同じ文書を触る予定があるときは、PR 作成前に `gh pr list --search "CLAUDE.md in:title"` 等で先行 PR の有無を確認する。
 
 ## Subagent / Task 実行ルール
 - subagent の存在意義は「context 隔離」。コード変更を伴う Task は subagent、verification / test 実行のみで成果物が無い Task は main 実行でも可。subagent 接続エラー時に verification-only なら即時 main 実行へフォールバックする。
