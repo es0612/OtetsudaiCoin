@@ -350,4 +350,31 @@ final class RecordViewModelTests: XCTestCase {
         XCTAssertTrue(mockSoundService.playErrorSoundCalled)
     }
     */
+
+    // MARK: - #69 Bulk Record Tests
+
+    @MainActor
+    func test_toggleBulkMode_resetsSelections() {
+        // Given: 1 件モードで何かしら選択済み
+        let task = HelpTask(id: UUID(), name: "ゴミ出し", isActive: true, coinRate: 10)
+        viewModel.selectedTask = task
+        XCTAssertFalse(viewModel.isBulkMode)
+
+        // When: 一括モードに切替
+        viewModel.toggleBulkMode()
+
+        // Then: bulk mode on、selectedTask は nil、selectedTaskIds は empty
+        XCTAssertTrue(viewModel.isBulkMode)
+        XCTAssertNil(viewModel.selectedTask)
+        XCTAssertTrue(viewModel.selectedTaskIds.isEmpty)
+
+        // When: 一括モードで何か選択して 1 件モードに戻す
+        viewModel.selectedTaskIds.insert(task.id)
+        viewModel.toggleBulkMode()
+
+        // Then: bulk mode off、両 selection 空に
+        XCTAssertFalse(viewModel.isBulkMode)
+        XCTAssertNil(viewModel.selectedTask)
+        XCTAssertTrue(viewModel.selectedTaskIds.isEmpty)
+    }
 }

@@ -12,11 +12,20 @@ class RecordViewModel: BaseViewModel {
     var lastRecordedCoinValue: Int = 10
     var recordedDate: Date = Date()
     var hasRecordedInSession: Bool = false
-    
+    var isBulkMode: Bool = false
+    var selectedTaskIds: Set<UUID> = []
+
     func resetSessionState() {
         hasRecordedInSession = false
         selectedTask = nil
         clearMessages()
+    }
+
+    func toggleBulkMode() {
+        isBulkMode.toggle()
+        selectedTask = nil
+        selectedTaskIds = []
+        clearErrorMessage()
     }
     
     private let childRepository: ChildRepository
