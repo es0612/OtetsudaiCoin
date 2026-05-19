@@ -67,7 +67,7 @@ struct RecordView: View {
 
                     recordButtonView
                         .padding()
-                        .background(.ultraThinMaterial)
+                        .background(Color(.systemBackground).opacity(0.95))
                 }
             }
             .navigationTitle("お手伝い記録")
