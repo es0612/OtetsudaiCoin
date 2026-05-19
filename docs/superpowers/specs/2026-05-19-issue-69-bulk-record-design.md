@@ -92,6 +92,8 @@ TaskCard tap → selectedTaskIds に insert / remove
 
 `successMessage` と `errorMessage` の両方を同時に表示するため、既存の単一メッセージ表示 (line 19〜31 of `RecordView.swift`) に warning row を 1 行追加する。
 
+`warningMessage` は **次の `recordBulkHelp()` 呼び出し時にのみ自動クリア** する (= リトライ動作の冒頭で `warningMessage = nil` に reset)。コインアニメ dismiss 時の `clearMessages()` では消えない設計とする。理由: 部分失敗時に "もう一度タップしてください" 文言を残し、ユーザーがリトライ動線を見失わないようにするため。
+
 ### 5. テスト方針 (TDD)
 
 `RecordViewModelTests.swift` (**既存**、`app/OtetsudaiCoinTests/Presentation/` 直下) に以下を追加:

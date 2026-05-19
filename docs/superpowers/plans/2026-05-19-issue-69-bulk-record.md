@@ -39,7 +39,7 @@ Run:
 ```bash
 git status
 ```
-Expected: `On branch feat/issue-69-bulk-record`、working tree clean (spec の自己修正 commit `60c6a59` 含む 2 commits ahead of main)。
+Expected: `On branch feat/issue-69-bulk-record`、working tree clean (spec 初版 + spec 自己修正 + plan 追加 + plan 修正 で 4 commits ahead of main)。
 
 - [ ] **origin 同期確認 (CLAUDE.md ルール)**
 
@@ -179,10 +179,40 @@ Expected: 既に存在するキーの位置を確認。挿入は `"strings"` ブ
     },
     "%lld 件をまとめて記録する" : {
       "localizations" : {
+        "ja" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld 件を記録する"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld 件をまとめて記録する"
+                }
+              }
+            }
+          }
+        },
         "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Record %lld items"
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Record %lld item"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Record %lld items"
+                }
+              }
+            }
           }
         }
       }
@@ -200,9 +230,21 @@ Expected: 既に存在するキーの位置を確認。挿入は `"strings"` ブ
     "%lld 件記録しました！" : {
       "localizations" : {
         "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Recorded %lld items!"
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Recorded %lld item!"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Recorded %lld items!"
+                }
+              }
+            }
           }
         }
       }
@@ -757,9 +799,10 @@ final class RecordViewTests: XCTestCase {
 
     func test_recordView_has_bulkModeToggle() throws {
         let view = RecordView(viewModel: viewModel)
-        let toggle = try view.inspect().find(ViewType.Toggle.self)
-        let labelText = try toggle.labelView().text().string()
-        XCTAssertTrue(labelText.contains("一括モード"), "toolbar に '一括モード' Toggle が存在すること")
+        // toolbar 内の Toggle は SwiftUI のレンダリング階層が別なので、
+        // ViewInspector では accessibilityIdentifier 経由で探す方が確実 (ViewType.Toggle 直 find は traverse できない既知制約)。
+        let toggleNode = try view.inspect().find(viewWithAccessibilityIdentifier: "bulk_mode_toggle")
+        XCTAssertNotNil(toggleNode, "toolbar に accessibilityIdentifier 'bulk_mode_toggle' を持つ Toggle が存在すること")
     }
 }
 ```
