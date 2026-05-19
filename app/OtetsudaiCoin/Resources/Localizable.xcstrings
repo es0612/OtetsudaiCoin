@@ -2476,6 +2476,108 @@
           }
         }
       }
+    },
+    "一括モード" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bulk Mode"
+          }
+        }
+      }
+    },
+    "%lld 件をまとめて記録する" : {
+      "localizations" : {
+        "ja" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld 件を記録する"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld 件をまとめて記録する"
+                }
+              }
+            }
+          }
+        },
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Record %lld item"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Record %lld items"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "選択中 %lld 件 / 計 %lld コイン" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld selected / %2$lld coins"
+          }
+        }
+      }
+    },
+    "%lld 件記録しました！" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Recorded %lld item!"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Recorded %lld items!"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld 件失敗、もう一度タップしてください" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld failed, tap to retry"
+          }
+        }
+      }
+    },
+    "記録に失敗しました" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to record"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"
