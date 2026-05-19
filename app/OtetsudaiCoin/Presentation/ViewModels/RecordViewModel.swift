@@ -147,7 +147,12 @@ class RecordViewModel: BaseViewModel {
     }
     
     func selectChild(_ child: Child) {
+        let isChangingChild = selectedChild != nil && selectedChild?.id != child.id
         selectedChild = child
+        if isChangingChild {
+            selectedTaskIds = []
+            selectedTask = nil
+        }
         // 成功メッセージは保持し、エラーメッセージのみクリア
         clearErrorMessage()
     }

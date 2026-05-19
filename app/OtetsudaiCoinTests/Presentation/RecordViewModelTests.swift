@@ -377,4 +377,22 @@ final class RecordViewModelTests: XCTestCase {
         XCTAssertNil(viewModel.selectedTask)
         XCTAssertTrue(viewModel.selectedTaskIds.isEmpty)
     }
+
+    @MainActor
+    func test_selectChild_resetsBulkSelection() {
+        // Given: 一括モードで複数選択済み
+        let child1 = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+        let child2 = Child(id: UUID(), name: "花子", themeColor: "#33FF57")
+        viewModel.isBulkMode = true
+        viewModel.selectedTaskIds = [UUID(), UUID(), UUID()]
+        viewModel.selectChild(child1)
+        XCTAssertEqual(viewModel.selectedTaskIds.count, 3)
+
+        // When: 別の child に切替
+        viewModel.selectChild(child2)
+
+        // Then: selectedTaskIds が空になる
+        XCTAssertTrue(viewModel.selectedTaskIds.isEmpty)
+        XCTAssertEqual(viewModel.selectedChild?.id, child2.id)
+    }
 }
