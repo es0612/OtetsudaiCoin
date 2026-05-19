@@ -447,6 +447,28 @@ final class RecordViewModelTests: XCTestCase {
     }
 
     @MainActor
+    func test_recordBulkHelp_partialFailure_setsWarningMessage() async {
+        // Given
+        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+        let t1 = HelpTask(id: UUID(), name: "A", isActive: true, coinRate: 10)
+        let t2 = HelpTask(id: UUID(), name: "B", isActive: true, coinRate: 20)
+        viewModel.availableChildren = [child]
+        viewModel.selectedChild = child
+        viewModel.availableTasks = [t1, t2]
+        viewModel.isBulkMode = true
+        viewModel.selectedTaskIds = [t1.id, t2.id]
+        mockHelpRecordRepository.failingHelpTaskIds = [t1.id]
+
+        // When
+        viewModel.recordBulkHelp()
+        try? await Task.sleep(nanoseconds: 200_000_000)
+
+        // Then
+        XCTAssertNotNil(viewModel.warningMessage)
+        XCTAssertTrue(viewModel.warningMessage?.contains("1") ?? false)
+    }
+
+    @MainActor
     func test_recordBulkHelp_allSuccess() async {
         // Given: child 選択済み、tasks 3 件選択 (coinRate 10/20/30)
         let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")

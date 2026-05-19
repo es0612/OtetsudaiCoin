@@ -31,6 +31,19 @@ struct RecordView: View {
                                         .cornerRadius(8)
                                     }
 
+                                    if let warningMessage = viewModel.warningMessage {
+                                        HStack {
+                                            Image(systemName: "exclamationmark.triangle.fill")
+                                                .foregroundColor(.orange)
+                                            Text(warningMessage)
+                                                .appFont(.buttonText)
+                                                .foregroundColor(.orange)
+                                        }
+                                        .padding()
+                                        .background(Color.orange.opacity(0.15))
+                                        .cornerRadius(8)
+                                    }
+
                                     childSelectionView
 
                                     dateSection

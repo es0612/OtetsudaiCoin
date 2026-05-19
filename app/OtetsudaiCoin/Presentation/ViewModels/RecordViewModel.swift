@@ -14,6 +14,7 @@ class RecordViewModel: BaseViewModel {
     var hasRecordedInSession: Bool = false
     var isBulkMode: Bool = false
     var selectedTaskIds: Set<UUID> = []
+    var warningMessage: String? = nil
 
     func resetSessionState() {
         hasRecordedInSession = false
@@ -170,6 +171,7 @@ class RecordViewModel: BaseViewModel {
     @MainActor
     func recordBulkHelp() {
         clearErrorMessage()
+        warningMessage = nil
 
         guard let child = selectedChild else {
             setError(String(localized: "お子様を選択してください"))
@@ -232,6 +234,10 @@ class RecordViewModel: BaseViewModel {
                 hasRecordedInSession = true
                 let format = String(localized: "%lld 件記録しました！")
                 setSuccess(String(format: format, successIds.count))
+            }
+            if !successIds.isEmpty && !failureIds.isEmpty {
+                let format = String(localized: "%lld 件失敗、もう一度タップしてください")
+                warningMessage = String(format: format, failureIds.count)
             }
             if successIds.isEmpty && !failureIds.isEmpty {
                 setError(String(localized: "記録に失敗しました"))
