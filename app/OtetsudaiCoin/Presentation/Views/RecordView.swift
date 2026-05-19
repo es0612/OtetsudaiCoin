@@ -287,9 +287,10 @@ struct RecordView: View {
 
     private var recordButtonLabel: String {
         if viewModel.isBulkMode {
+            // 文字列補間で `String.LocalizationValue` を生成すると、xcstrings の plural variations が
+            // count 値に応じて one / other 自動選択される。String(format:) は variations を bypass するため使わない。
             let count = viewModel.selectedTaskIds.count
-            let format = String(localized: "%lld 件をまとめて記録する")
-            return String(format: format, count)
+            return String(localized: "\(count) 件をまとめて記録する")
         } else {
             return String(localized: "記録する")
         }

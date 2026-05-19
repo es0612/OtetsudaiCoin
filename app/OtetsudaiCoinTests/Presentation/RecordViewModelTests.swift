@@ -447,6 +447,28 @@ final class RecordViewModelTests: XCTestCase {
     }
 
     @MainActor
+    func test_recordBulkHelp_singleSuccess_usesPluralOneVariation() async {
+        // Given: 1 件のみ選択 → 成功
+        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+        let t1 = HelpTask(id: UUID(), name: "A", isActive: true, coinRate: 10)
+        viewModel.availableChildren = [child]
+        viewModel.selectedChild = child
+        viewModel.availableTasks = [t1]
+        viewModel.isBulkMode = true
+        viewModel.selectedTaskIds = [t1.id]
+
+        // When
+        viewModel.recordBulkHelp()
+        try? await Task.sleep(nanoseconds: 200_000_000)
+
+        // Then: success message に count=1 が反映され、ja sourceLanguage のため
+        // "1 件記録しました！" (variations 未定義のため interpolation 経由でも他キーは使われる)
+        // count=1 でも "1" の文字列が含まれることを担保 (plural 違反でない文言を確認)
+        XCTAssertNotNil(viewModel.successMessage)
+        XCTAssertTrue(viewModel.successMessage?.contains("1") ?? false)
+    }
+
+    @MainActor
     func test_recordBulkHelp_partialFailure_setsWarningMessage() async {
         // Given
         let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")

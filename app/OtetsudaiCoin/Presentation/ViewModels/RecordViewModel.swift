@@ -232,12 +232,13 @@ class RecordViewModel: BaseViewModel {
 
             if !successIds.isEmpty {
                 hasRecordedInSession = true
-                let format = String(localized: "%lld 件記録しました！")
-                setSuccess(String(format: format, successIds.count))
+                let successCount = successIds.count
+                // 文字列補間で xcstrings の plural variations を利用 (String(format:) は variations を bypass)
+                setSuccess(String(localized: "\(successCount) 件記録しました！"))
             }
             if !successIds.isEmpty && !failureIds.isEmpty {
-                let format = String(localized: "%lld 件失敗、もう一度タップしてください")
-                warningMessage = String(format: format, failureIds.count)
+                let failureCount = failureIds.count
+                warningMessage = String(localized: "\(failureCount) 件失敗、もう一度タップしてください")
             }
             if successIds.isEmpty && !failureIds.isEmpty {
                 setError(String(localized: "記録に失敗しました"))
