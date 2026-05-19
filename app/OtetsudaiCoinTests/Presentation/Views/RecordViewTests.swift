@@ -49,4 +49,15 @@ final class RecordViewTests: XCTestCase {
         viewModel.toggleBulkMode()
         XCTAssertTrue(viewModel.isBulkMode)
     }
+
+    /// #74 refactor 完了後に PASS することを期待する structural test (red 段階).
+    /// 現状の top-level ZStack + .ultraThinMaterial で record_button へ ViewInspector
+    /// が到達できないことを Task 1 の段階で確認する.
+    /// BannerAdView (ScrollView 内) は #49 仕様維持のため移動せず、その結果
+    /// ScrollView 内の bulk_mode_toggle / record_date_picker には traversal せず
+    /// ScrollView の sibling である record_button のみを対象にする.
+    func test_recordView_canTraverseToRecordButton() throws {
+        let view = RecordView(viewModel: viewModel)
+        XCTAssertNoThrow(try view.inspect().find(viewWithAccessibilityIdentifier: "record_button"))
+    }
 }
