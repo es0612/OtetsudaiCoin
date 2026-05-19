@@ -22,7 +22,7 @@ Issue: #69
 UX 入り口は 3 案を検討:
 
 | 案 | 概要 | 採否 | 理由 |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | A | RecordView 内に Toggle で mode 切替、既存 `taskListView` を checkbox 風に流用 | ✅ 採用 | 画面遷移なし。child/date 選択を再利用できて実装最小。発見性も高い |
 | B | 長押しで select mode 起動 | ❌ 不採用 | iOS 標準だが「一括できる」発見性が低い |
 | C | 専用 `BulkRecordView` を別画面 push | ❌ 不採用 | child/date/task grid を全コピーする必要があり重複が多い |
@@ -47,7 +47,7 @@ UX 入り口は 3 案を検討:
 ### 2. 主要コンポーネント
 
 | 部位 | 変更内容 |
-|---|---|
+| --- | --- |
 | `RecordView` の `navigationTitle` 横 (`toolbar`) | `Toggle("一括モード", isOn: $viewModel.isBulkMode)` を追加 |
 | `taskListView` 内の `TaskCardView` | `isBulkMode` で見た目分岐: 左上角にチェックボックスアイコン、選択時の色変化を流用 |
 | `recordButtonView` | label と enable 条件を mode 別に切替 (下表参照) |
@@ -56,7 +56,7 @@ UX 入り口は 3 案を検討:
 `recordButtonView` の mode 別仕様:
 
 | mode | label | enable 条件 | 動作 |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 1 件 | `"記録する"` | `selectedTask != nil && selectedChild != nil` | `recordHelp()` (既存) |
 | 一括 | `"N 件をまとめて記録する"` | `!selectedTaskIds.isEmpty && selectedChild != nil` | `recordBulkHelp()` (新設) |
 
@@ -84,7 +84,7 @@ TaskCard tap → selectedTaskIds に insert / remove
 ### 4. エラーハンドリング
 
 | シナリオ | 挙動 |
-|---|---|
+| --- | --- |
 | 全成功 | `setSuccess("N 件記録しました")` + コインアニメ (合計値) |
 | 部分失敗 | `setSuccess("N 件記録しました")` + warning 表示 `"M 件失敗、もう一度タップしてください"` / 失敗 task は `selectedTaskIds` に残る |
 | 全失敗 | `setError("記録に失敗しました")` / 選択そのまま |
@@ -124,7 +124,7 @@ mock pattern は既存 `RecordViewModelTests.swift` の setUp/tearDown (`MockChi
 xcstrings に新規キーを追加し en/ja 両対応 (xcstrings-bulk-update skill 適用)。
 
 | key | ja | en |
-|---|---|---|
+| --- | --- | --- |
 | `bulk_mode_toggle` | `一括モード` | `Bulk Mode` |
 | `bulk_record_button_label` | `%lld 件をまとめて記録する` | `Record %lld items` |
 | `bulk_summary` | `選択中 %lld 件 / 計 %lld コイン` | `%lld selected / %lld coins` |
@@ -135,7 +135,7 @@ xcstrings に新規キーを追加し en/ja 両対応 (xcstrings-bulk-update ski
 ## 影響範囲
 
 | ファイル | 変更内容 |
-|---|---|
+| --- | --- |
 | `app/OtetsudaiCoin/Presentation/ViewModels/RecordViewModel.swift` | `isBulkMode`, `selectedTaskIds`, `recordBulkHelp()`, `toggleBulkMode()` 追加。`selectChild()` 拡張 |
 | `app/OtetsudaiCoin/Presentation/Views/RecordView.swift` | toolbar に Toggle 追加、TaskCard 表示分岐、`recordButtonView` ラベル分岐、サマリ表示 |
 | `app/OtetsudaiCoin/Resources/Localizable.xcstrings` | 新規キー 6 件 (`xcstrings-bulk-update` skill 適用) |
