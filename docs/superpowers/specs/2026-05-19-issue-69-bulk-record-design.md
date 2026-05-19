@@ -94,9 +94,7 @@ TaskCard tap → selectedTaskIds に insert / remove
 
 ### 5. テスト方針 (TDD)
 
-`RecordViewModel` と `RecordView` のテストファイルは現状 **どちらも未作成**。本対応で新規追加する。
-
-`RecordViewModelTests.swift` (**新規作成**):
+`RecordViewModelTests.swift` (**既存**、`app/OtetsudaiCoinTests/Presentation/` 直下) に以下を追加:
 
 - `test_toggleBulkMode_resetsSelections` — mode 切替で `selectedTask` / `selectedTaskIds` が両方 reset
 - `test_recordBulkHelp_全件成功` — 3 件選択 → 3 件保存 → success メッセージ
@@ -105,12 +103,12 @@ TaskCard tap → selectedTaskIds に insert / remove
 - `test_selectChild_resetsBulkSelection` — child 切替で `selectedTaskIds` empty に
 - `test_bulkMode_coinAnimation_lastRecordedCoinValue_は合計`
 
-`RecordViewTests.swift` (**新規作成**): UI 構造テスト 2 件
+`RecordViewTests.swift` (**新規作成**、`app/OtetsudaiCoinTests/Presentation/Views/`): UI 構造テスト 2 件
 
 - `test_recordView_has_bulkModeToggle` — toolbar 内に `Toggle("一括モード")` 存在
 - `test_recordView_bulkMode_recordButton_label` — `isBulkMode = true && selectedTaskIds.count = 2` で button label が `"2 件をまとめて記録する"`
 
-既存 mock pattern は `HelpRecordEditViewModelTests.swift` / `BannerAdViewTests.swift` を参照して合わせる。`HelpRecordRepository` の partial failure 模擬は `MockHelpRecordRepository` を拡張するか、既存 mock があれば再利用する (writing-plans で確定)。
+mock pattern は既存 `RecordViewModelTests.swift` の setUp/tearDown (`MockChildRepository` / `MockHelpTaskRepository` / `MockHelpRecordRepository` / `MockSoundService` の 4 つを inject) をそのまま再利用。`HelpRecordRepository` の partial failure 模擬は `MockHelpRecordRepository` に `failingHelpTaskIds: Set<UUID>` プロパティを追加し、`save()` 時に該当 `helpTaskId` のみ throw する形で writing-plans で実装する。view 構造テストは既存 `HomeViewTests.swift` の ViewInspector パターンに揃える。
 
 ### 6. 設計上の決定 (default 確定)
 
@@ -139,10 +137,11 @@ xcstrings に新規キーを追加し en/ja 両対応 (xcstrings-bulk-update ski
 | `app/OtetsudaiCoin/Presentation/ViewModels/RecordViewModel.swift` | `isBulkMode`, `selectedTaskIds`, `recordBulkHelp()`, `toggleBulkMode()` 追加。`selectChild()` 拡張 |
 | `app/OtetsudaiCoin/Presentation/Views/RecordView.swift` | toolbar に Toggle 追加、TaskCard 表示分岐、`recordButtonView` ラベル分岐、サマリ表示 |
 | `app/OtetsudaiCoin/Resources/Localizable.xcstrings` | 新規キー 6 件 (`xcstrings-bulk-update` skill 適用) |
-| `app/OtetsudaiCoinTests/Presentation/ViewModels/RecordViewModelTests.swift` | **新規作成**、テスト 6 件 |
+| `app/OtetsudaiCoinTests/Presentation/RecordViewModelTests.swift` | **既存ファイル**、テスト 6 件追加 |
 | `app/OtetsudaiCoinTests/Presentation/Views/RecordViewTests.swift` | **新規作成**、UI 構造テスト 2 件 |
+| `app/OtetsudaiCoinTests/Helpers/TestMocks.swift` | `MockHelpRecordRepository` に `failingHelpTaskIds: Set<UUID>` プロパティ追加 (partial-failure 模擬用) |
 
-`PBXFileSystemSynchronizedRootGroup` 採用のため、新規 `.swift` ファイル (上記 2 件) はディレクトリに置くだけで Xcode が自動認識し、`project.pbxproj` 編集は不要。
+`PBXFileSystemSynchronizedRootGroup` 採用のため、新規 `.swift` ファイル (`RecordViewTests.swift`) はディレクトリに置くだけで Xcode が自動認識し、`project.pbxproj` 編集は不要。
 
 ## 検討して採用しなかった案
 
