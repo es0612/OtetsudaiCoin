@@ -67,9 +67,26 @@ Note: Optional for new features or small additions. You can proceed directly to 
 ## Spec / Plan 作成ルール
 - spec / design ドキュメント作成時にも前提となる既存コードを実際に Read で開いて verify する。writing-plans 段階で初めて View 階層など実装差分が判明すると spec 修正に手戻りが発生する。spec 段階で View 階層・主要関数の実装を 1 回 Read してから書き起こす。
 - Plan からの「既存 convention に合わせるための設計改善的逸脱」は、その場で commit メッセージに deviation 理由を明記して反映する（例: 新規 `XxxViewTests.swift` を作る計画を既存 `BannerAdViewTests.swift` 等に揃える）。事前に plan を rewrite しない（時間ロス）、事後に黙って逸脱しない（レビュー時に混乱）。
+- spec 作成時のテストファイル存在確認は、`ls Presentation/ViewModels/` のような浅い listing ではなく `find . -name "X*Tests.swift" -not -path "*build*"` で全階層から探す。サブディレクトリ前提で見落とすと spec の前提が崩れて自己修正 commit が必要になる。
 
 ## プロジェクト固有制約 (Xcode 16+)
 - このプロジェクトの Xcode project は `PBXFileSystemSynchronizedRootGroup` を採用しているため、新規 `.swift` を所定ディレクトリに置くだけで自動認識され `project.pbxproj` 編集は不要。Plan 作成や Task 見積もりで「pbxproj 編集ステップ」を blocker 扱いしない。
+
+## SwiftUI View テスト戦略
+- ViewInspector は NavigationStack + ZStack + UIViewRepresentable (BannerAdView) + Material の組み合わせを深く traverse できない既知制約がある。`find(viewWithAccessibilityIdentifier:)` / `find(text:)` / `find(ViewType.X.self)` いずれも該当 view へ到達不可、`"Search did not find a match. Possible blockers: BannerAdView, Material, AccessibilityImageLabel"` で fail する。
+- 上記が予想される View では UI 構造の structural test を強行せず、(a) ViewModel テストでロジック網羅 + (b) View の smoke test (init crash なし) + (c) behavior test (toggle/binding が ViewModel state を動かすこと) で間接担保、UI の最終 visual は simulator 手動 / UI test に委ねる。
+- 該当 View の refactor を入れるなら BannerAdView を component 分離 / Material 依存を Color 系に置換 する方向で別 issue 化する (例: #74)。
+
+## i18n: xcstrings plural variations の呼び出し
+- xcstrings の `variations.plural` (one / other) を Swift 側から有効化するには **string interpolation** が必須。`String(localized: "%lld 件...") + String(format: format, count)` の組み合わせは plural 解釈を bypass して常に `other` を返す。
+- 正しい書き方: `String(localized: "\(count) 件...")` (`String.LocalizationValue` の placeholder に値を渡すと plural branch が選ばれる)。catalog のキーは `%lld` 形式のまま (`"%lld 件..."`) で、value 側も `%lld` を保つ。
+- 詳細は [[xcstrings-plural-variations]] skill にまとめている。複数キー追加時は [[xcstrings-bulk-update]] と併用。
+- count=1 のときに `one` バリアントが効くことを unit test (`XCTAssertTrue(message.contains("1"))` 程度でよい) で 1 件担保しておくと runtime bypass の regression を catch できる。
+
+## NotificationManager 発火と error message の干渉
+- `NotificationManager.shared.notifyHelpRecordUpdated()` (および類似の data-update 通知) を呼ぶと、observer 側で `loadData()` → `setLoading(true)` が走り、その副作用で `errorMessage` がクリアされる (`BaseViewModel.setLoading` の挙動: `if loading { errorMessage = nil }`)。
+- このため write 操作が **0 件しか成功しなかった場合に notify を呼ぶと、直前に `setError(...)` でセットした errorMessage が消えてしまう**。write が 1 件以上成功したときだけ notify する設計にする (`if !successIds.isEmpty { notify() }`)。
+- `successMessage` は `setLoading(true)` で消えないので、success のみ気にする既存パターン (`recordHelp` 等) では問題化しなかった。一括 / batch 系の新規実装で踏みやすい罠。
 
 ## Steering Configuration
 
