@@ -11,6 +11,7 @@ struct RecordView: View {
                     // メインコンテンツ
                     ScrollView {
                         VStack(spacing: 16) {
+                            bulkModeToggleRow
                             StateBasedContent(
                                 isLoading: viewModel.isLoading,
                                 errorMessage: viewModel.errorMessage,
@@ -95,6 +96,18 @@ struct RecordView: View {
         }
     }
     
+    private var bulkModeToggleRow: some View {
+        Toggle(isOn: Binding(
+            get: { viewModel.isBulkMode },
+            set: { _ in viewModel.toggleBulkMode() }
+        )) {
+            Text("一括モード")
+                .appFont(.sectionHeader)
+        }
+        .padding(.horizontal)
+        .accessibilityIdentifier("bulk_mode_toggle")
+    }
+
     private var childSelectionView: some View {
         VStack(alignment: .leading) {
             childSelectionHeader
