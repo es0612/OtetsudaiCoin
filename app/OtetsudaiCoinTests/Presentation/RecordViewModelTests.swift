@@ -350,4 +350,168 @@ final class RecordViewModelTests: XCTestCase {
         XCTAssertTrue(mockSoundService.playErrorSoundCalled)
     }
     */
+
+    // MARK: - #69 Bulk Record Tests
+
+    @MainActor
+    func test_toggleBulkMode_resetsSelections() {
+        // Given: 1 件モードで何かしら選択済み
+        let task = HelpTask(id: UUID(), name: "ゴミ出し", isActive: true, coinRate: 10)
+        viewModel.selectedTask = task
+        XCTAssertFalse(viewModel.isBulkMode)
+
+        // When: 一括モードに切替
+        viewModel.toggleBulkMode()
+
+        // Then: bulk mode on、selectedTask は nil、selectedTaskIds は empty
+        XCTAssertTrue(viewModel.isBulkMode)
+        XCTAssertNil(viewModel.selectedTask)
+        XCTAssertTrue(viewModel.selectedTaskIds.isEmpty)
+
+        // When: 一括モードで何か選択して 1 件モードに戻す
+        viewModel.selectedTaskIds.insert(task.id)
+        viewModel.toggleBulkMode()
+
+        // Then: bulk mode off、両 selection 空に
+        XCTAssertFalse(viewModel.isBulkMode)
+        XCTAssertNil(viewModel.selectedTask)
+        XCTAssertTrue(viewModel.selectedTaskIds.isEmpty)
+    }
+
+    @MainActor
+    func test_selectChild_resetsBulkSelection() {
+        // Given: 一括モードで複数選択済み
+        let child1 = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+        let child2 = Child(id: UUID(), name: "花子", themeColor: "#33FF57")
+        viewModel.isBulkMode = true
+        viewModel.selectedTaskIds = [UUID(), UUID(), UUID()]
+        viewModel.selectChild(child1)
+        XCTAssertEqual(viewModel.selectedTaskIds.count, 3)
+
+        // When: 別の child に切替
+        viewModel.selectChild(child2)
+
+        // Then: selectedTaskIds が空になる
+        XCTAssertTrue(viewModel.selectedTaskIds.isEmpty)
+        XCTAssertEqual(viewModel.selectedChild?.id, child2.id)
+    }
+
+    @MainActor
+    func test_recordBulkHelp_partialFailure_failedRemain() async {
+        // Given: 3 件選択、うち中央 1 件 (t2) のみ save 失敗
+        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+        let t1 = HelpTask(id: UUID(), name: "A", isActive: true, coinRate: 10)
+        let t2 = HelpTask(id: UUID(), name: "B", isActive: true, coinRate: 20)
+        let t3 = HelpTask(id: UUID(), name: "C", isActive: true, coinRate: 30)
+        viewModel.availableChildren = [child]
+        viewModel.selectedChild = child
+        viewModel.availableTasks = [t1, t2, t3]
+        viewModel.isBulkMode = true
+        viewModel.selectedTaskIds = [t1.id, t2.id, t3.id]
+        mockHelpRecordRepository.failingHelpTaskIds = [t2.id]
+
+        // When
+        viewModel.recordBulkHelp()
+        try? await Task.sleep(nanoseconds: 200_000_000)
+
+        // Then: 2 件保存、失敗 1 件のみ selectedTaskIds に残る、合計コイン 40
+        XCTAssertEqual(mockHelpRecordRepository.records.count, 2)
+        XCTAssertEqual(viewModel.selectedTaskIds, [t2.id])
+        XCTAssertEqual(viewModel.lastRecordedCoinValue, 40)
+        XCTAssertNotNil(viewModel.successMessage)
+    }
+
+    @MainActor
+    func test_recordBulkHelp_allFailed() async {
+        // Given: 2 件選択、全件 save 失敗
+        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+        let t1 = HelpTask(id: UUID(), name: "A", isActive: true, coinRate: 10)
+        let t2 = HelpTask(id: UUID(), name: "B", isActive: true, coinRate: 20)
+        viewModel.availableChildren = [child]
+        viewModel.selectedChild = child
+        viewModel.availableTasks = [t1, t2]
+        viewModel.isBulkMode = true
+        viewModel.selectedTaskIds = [t1.id, t2.id]
+        mockHelpRecordRepository.shouldThrowError = true
+
+        // When
+        viewModel.recordBulkHelp()
+        try? await Task.sleep(nanoseconds: 200_000_000)
+
+        // Then: 0 件保存、選択は全て残る、error メッセージ
+        XCTAssertEqual(mockHelpRecordRepository.records.count, 0)
+        XCTAssertEqual(viewModel.selectedTaskIds, [t1.id, t2.id])
+        XCTAssertEqual(viewModel.lastRecordedCoinValue, 0)
+        XCTAssertNil(viewModel.successMessage)
+        XCTAssertNotNil(viewModel.errorMessage)
+    }
+
+    @MainActor
+    func test_recordBulkHelp_singleSuccess_usesPluralOneVariation() async {
+        // Given: 1 件のみ選択 → 成功
+        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+        let t1 = HelpTask(id: UUID(), name: "A", isActive: true, coinRate: 10)
+        viewModel.availableChildren = [child]
+        viewModel.selectedChild = child
+        viewModel.availableTasks = [t1]
+        viewModel.isBulkMode = true
+        viewModel.selectedTaskIds = [t1.id]
+
+        // When
+        viewModel.recordBulkHelp()
+        try? await Task.sleep(nanoseconds: 200_000_000)
+
+        // Then: success message に count=1 が反映され、ja sourceLanguage のため
+        // "1 件記録しました！" (variations 未定義のため interpolation 経由でも他キーは使われる)
+        // count=1 でも "1" の文字列が含まれることを担保 (plural 違反でない文言を確認)
+        XCTAssertNotNil(viewModel.successMessage)
+        XCTAssertTrue(viewModel.successMessage?.contains("1") ?? false)
+    }
+
+    @MainActor
+    func test_recordBulkHelp_partialFailure_setsWarningMessage() async {
+        // Given
+        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+        let t1 = HelpTask(id: UUID(), name: "A", isActive: true, coinRate: 10)
+        let t2 = HelpTask(id: UUID(), name: "B", isActive: true, coinRate: 20)
+        viewModel.availableChildren = [child]
+        viewModel.selectedChild = child
+        viewModel.availableTasks = [t1, t2]
+        viewModel.isBulkMode = true
+        viewModel.selectedTaskIds = [t1.id, t2.id]
+        mockHelpRecordRepository.failingHelpTaskIds = [t1.id]
+
+        // When
+        viewModel.recordBulkHelp()
+        try? await Task.sleep(nanoseconds: 200_000_000)
+
+        // Then
+        XCTAssertNotNil(viewModel.warningMessage)
+        XCTAssertTrue(viewModel.warningMessage?.contains("1") ?? false)
+    }
+
+    @MainActor
+    func test_recordBulkHelp_allSuccess() async {
+        // Given: child 選択済み、tasks 3 件選択 (coinRate 10/20/30)
+        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+        let t1 = HelpTask(id: UUID(), name: "A", isActive: true, coinRate: 10)
+        let t2 = HelpTask(id: UUID(), name: "B", isActive: true, coinRate: 20)
+        let t3 = HelpTask(id: UUID(), name: "C", isActive: true, coinRate: 30)
+        viewModel.availableChildren = [child]
+        viewModel.selectedChild = child
+        viewModel.availableTasks = [t1, t2, t3]
+        viewModel.isBulkMode = true
+        viewModel.selectedTaskIds = [t1.id, t2.id, t3.id]
+
+        // When
+        viewModel.recordBulkHelp()
+        try? await Task.sleep(nanoseconds: 200_000_000)
+
+        // Then: 3 件保存、selectedTaskIds 空、合計 60 コイン、success メッセージ
+        XCTAssertEqual(mockHelpRecordRepository.records.count, 3)
+        XCTAssertTrue(viewModel.selectedTaskIds.isEmpty)
+        XCTAssertEqual(viewModel.lastRecordedCoinValue, 60)
+        XCTAssertNotNil(viewModel.successMessage)
+        XCTAssertNil(viewModel.errorMessage)
+    }
 }

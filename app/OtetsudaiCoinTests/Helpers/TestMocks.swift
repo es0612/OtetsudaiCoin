@@ -122,10 +122,14 @@ class MockHelpRecordRepository: HelpRecordRepository {
     var records: [HelpRecord] = []
     var shouldThrowError = false
     var errorToThrow = NSError(domain: "TestError", code: 1, userInfo: nil)
+    var failingHelpTaskIds: Set<UUID> = []
     var findCallCount = 0
-    
+
     func save(_ record: HelpRecord) async throws {
         if shouldThrowError {
+            throw errorToThrow
+        }
+        if failingHelpTaskIds.contains(record.helpTaskId) {
             throw errorToThrow
         }
         records.append(record)

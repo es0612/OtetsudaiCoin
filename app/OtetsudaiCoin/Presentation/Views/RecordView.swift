@@ -11,6 +11,7 @@ struct RecordView: View {
                     // メインコンテンツ
                     ScrollView {
                         VStack(spacing: 16) {
+                            bulkModeToggleRow
                             StateBasedContent(
                                 isLoading: viewModel.isLoading,
                                 errorMessage: viewModel.errorMessage,
@@ -27,6 +28,19 @@ struct RecordView: View {
                                         }
                                         .padding()
                                         .background(AccessibilityColors.successGreenLight)
+                                        .cornerRadius(8)
+                                    }
+
+                                    if let warningMessage = viewModel.warningMessage {
+                                        HStack {
+                                            Image(systemName: "exclamationmark.triangle.fill")
+                                                .foregroundColor(.orange)
+                                            Text(warningMessage)
+                                                .appFont(.buttonText)
+                                                .foregroundColor(.orange)
+                                        }
+                                        .padding()
+                                        .background(Color.orange.opacity(0.15))
                                         .cornerRadius(8)
                                     }
 
@@ -95,6 +109,18 @@ struct RecordView: View {
         }
     }
     
+    private var bulkModeToggleRow: some View {
+        Toggle(isOn: Binding(
+            get: { viewModel.isBulkMode },
+            set: { _ in viewModel.toggleBulkMode() }
+        )) {
+            Text("一括モード")
+                .appFont(.sectionHeader)
+        }
+        .padding(.horizontal)
+        .accessibilityIdentifier("bulk_mode_toggle")
+    }
+
     private var childSelectionView: some View {
         VStack(alignment: .leading) {
             childSelectionHeader
@@ -187,9 +213,20 @@ struct RecordView: View {
                     ForEach(viewModel.availableTasks, id: \.id) { task in
                         TaskCardView(
                             task: task,
-                            isSelected: viewModel.selectedTask?.id == task.id,
+                            isSelected: viewModel.isBulkMode
+                                ? viewModel.selectedTaskIds.contains(task.id)
+                                : viewModel.selectedTask?.id == task.id,
+                            isBulkMode: viewModel.isBulkMode,
                             onTap: {
-                                viewModel.selectTask(task)
+                                if viewModel.isBulkMode {
+                                    if viewModel.selectedTaskIds.contains(task.id) {
+                                        viewModel.selectedTaskIds.remove(task.id)
+                                    } else {
+                                        viewModel.selectedTaskIds.insert(task.id)
+                                    }
+                                } else {
+                                    viewModel.selectTask(task)
+                                }
                             }
                         )
                         .accessibilityIdentifier("task_button")
@@ -203,7 +240,9 @@ struct RecordView: View {
     private var recordButtonView: some View {
         VStack(spacing: 8) {
             // 選択状態の表示
-            if let selectedChild = viewModel.selectedChild, let selectedTask = viewModel.selectedTask {
+            if viewModel.isBulkMode {
+                bulkSummaryView
+            } else if let selectedChild = viewModel.selectedChild, let selectedTask = viewModel.selectedTask {
                 HStack(spacing: 8) {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundColor(.green)
@@ -226,26 +265,67 @@ struct RecordView: View {
                 }
                 .padding(.horizontal)
             }
-            
+
             // 記録ボタン
             Button(action: {
-                viewModel.recordHelp()
+                if viewModel.isBulkMode {
+                    viewModel.recordBulkHelp()
+                } else {
+                    viewModel.recordHelp()
+                }
             }) {
                 HStack(spacing: 8) {
                     Image(systemName: "plus.circle.fill")
-                    Text("記録する")
+                    Text(recordButtonLabel)
                 }
             }
-            .successGradientButton(isDisabled: viewModel.selectedChild == nil || viewModel.selectedTask == nil)
-            .disabled(viewModel.selectedChild == nil || viewModel.selectedTask == nil)
+            .successGradientButton(isDisabled: recordButtonDisabled)
+            .disabled(recordButtonDisabled)
             .accessibilityIdentifier("record_button")
         }
+    }
+
+    private var recordButtonLabel: String {
+        if viewModel.isBulkMode {
+            // 文字列補間で `String.LocalizationValue` を生成すると、xcstrings の plural variations が
+            // count 値に応じて one / other 自動選択される。String(format:) は variations を bypass するため使わない。
+            let count = viewModel.selectedTaskIds.count
+            return String(localized: "\(count) 件をまとめて記録する")
+        } else {
+            return String(localized: "記録する")
+        }
+    }
+
+    private var recordButtonDisabled: Bool {
+        if viewModel.isBulkMode {
+            return viewModel.selectedChild == nil || viewModel.selectedTaskIds.isEmpty
+        } else {
+            return viewModel.selectedChild == nil || viewModel.selectedTask == nil
+        }
+    }
+
+    private var bulkSummaryView: some View {
+        let count = viewModel.selectedTaskIds.count
+        let tasksById = Dictionary(uniqueKeysWithValues: viewModel.availableTasks.map { ($0.id, $0) })
+        let totalCoins = viewModel.selectedTaskIds.reduce(0) { acc, id in
+            acc + (tasksById[id]?.coinRate ?? 0)
+        }
+        let format = String(localized: "選択中 %lld 件 / 計 %lld コイン")
+        return HStack(spacing: 8) {
+            Image(systemName: "checkmark.circle.fill")
+                .foregroundColor(.green)
+            Text(String(format: format, count, totalCoins))
+                .appFont(.captionText)
+                .foregroundColor(.secondary)
+        }
+        .padding(.horizontal)
     }
 }
 
 struct TaskCardView: View {
     let task: HelpTask
     let isSelected: Bool
+    var isBulkMode: Bool = false
     let onTap: () -> Void
     
     var body: some View {
@@ -295,11 +375,25 @@ struct TaskCardView: View {
     
     private var selectionIndicator: some View {
         Group {
-            if isSelected {
+            if isBulkMode {
+                bulkSelectionIndicator
+            } else if isSelected {
                 selectedIndicator
             } else {
                 unselectedIndicator
             }
+        }
+    }
+
+    private var bulkSelectionIndicator: some View {
+        HStack(spacing: 4) {
+            Image(systemName: isSelected ? "checkmark.square.fill" : "square")
+                .font(.title3)
+                .foregroundColor(isSelected ? .blue : .gray.opacity(0.5))
+            Text(isSelected ? "選択中" : "選択")
+                .appFont(.captionText)
+                .fontWeight(isSelected ? .semibold : .regular)
+                .foregroundColor(isSelected ? .blue : .gray.opacity(0.7))
         }
     }
     

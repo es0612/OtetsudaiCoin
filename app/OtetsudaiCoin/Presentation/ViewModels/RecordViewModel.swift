@@ -12,11 +12,21 @@ class RecordViewModel: BaseViewModel {
     var lastRecordedCoinValue: Int = 10
     var recordedDate: Date = Date()
     var hasRecordedInSession: Bool = false
-    
+    var isBulkMode: Bool = false
+    var selectedTaskIds: Set<UUID> = []
+    var warningMessage: String? = nil
+
     func resetSessionState() {
         hasRecordedInSession = false
         selectedTask = nil
         clearMessages()
+    }
+
+    func toggleBulkMode() {
+        isBulkMode.toggle()
+        selectedTask = nil
+        selectedTaskIds = []
+        clearErrorMessage()
     }
     
     private let childRepository: ChildRepository
@@ -138,7 +148,12 @@ class RecordViewModel: BaseViewModel {
     }
     
     func selectChild(_ child: Child) {
+        let isChangingChild = selectedChild != nil && selectedChild?.id != child.id
         selectedChild = child
+        if isChangingChild {
+            selectedTaskIds = []
+            selectedTask = nil
+        }
         // 成功メッセージは保持し、エラーメッセージのみクリア
         clearErrorMessage()
     }
@@ -153,6 +168,85 @@ class RecordViewModel: BaseViewModel {
         clearErrorMessage()
     }
     
+    @MainActor
+    func recordBulkHelp() {
+        clearErrorMessage()
+        warningMessage = nil
+
+        guard let child = selectedChild else {
+            setError(String(localized: "お子様を選択してください"))
+            return
+        }
+        guard !selectedTaskIds.isEmpty else {
+            return
+        }
+
+        let targetIds = selectedTaskIds
+        let tasksById = Dictionary(uniqueKeysWithValues: availableTasks.map { ($0.id, $0) })
+
+        setLoading(true)
+
+        Task {
+            var successIds: Set<UUID> = []
+            var failureIds: Set<UUID> = []
+            var totalCoins = 0
+            let normalizedDate = Self.normalizeToNoon(recordedDate)
+
+            for taskId in targetIds {
+                guard let task = tasksById[taskId] else {
+                    failureIds.insert(taskId)
+                    continue
+                }
+                let helpRecord = HelpRecord(
+                    id: UUID(),
+                    childId: child.id,
+                    helpTaskId: taskId,
+                    recordedAt: normalizedDate
+                )
+                do {
+                    try await helpRecordRepository.save(helpRecord)
+                    successIds.insert(taskId)
+                    totalCoins += task.coinRate
+                } catch {
+                    failureIds.insert(taskId)
+                }
+            }
+
+            // 効果音 (成功 1 件以上で再生)
+            if !successIds.isEmpty {
+                do {
+                    try soundService.playCoinEarnSound()
+                    try soundService.playTaskCompleteSound()
+                } catch {
+                    try? soundService.playErrorSound()
+                }
+            }
+
+            lastRecordedCoinValue = totalCoins
+            selectedTaskIds = failureIds
+
+            // 通知は実際に save できた件があるときだけ送る (全件失敗時に loadData → setLoading(true) で errorMessage が消えてしまうのを防ぐ)
+            if !successIds.isEmpty {
+                NotificationManager.shared.notifyHelpRecordUpdated()
+            }
+
+            if !successIds.isEmpty {
+                hasRecordedInSession = true
+                let successCount = successIds.count
+                // 文字列補間で xcstrings の plural variations を利用 (String(format:) は variations を bypass)
+                setSuccess(String(localized: "\(successCount) 件記録しました！"))
+            }
+            if !successIds.isEmpty && !failureIds.isEmpty {
+                let failureCount = failureIds.count
+                warningMessage = String(localized: "\(failureCount) 件失敗、もう一度タップしてください")
+            }
+            if successIds.isEmpty && !failureIds.isEmpty {
+                setError(String(localized: "記録に失敗しました"))
+            }
+            setLoading(false)
+        }
+    }
+
     @MainActor
     func recordHelp() {
         clearErrorMessage()
