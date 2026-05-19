@@ -101,4 +101,63 @@ final class BannerAdViewTests: XCTestCase {
         // Then: ローディング中でもバナー広告が表示される
         XCTAssertNoThrow(try view.inspect().find(BannerAdView.self))
     }
+
+    // MARK: - RecordView との統合 (#49)
+
+    @MainActor
+    func testRecordViewContainsBannerAdView() throws {
+        // Given: RecordView のための依存を準備
+        let viewModel = makeRecordViewModel()
+
+        // When: RecordView を生成
+        let view = RecordView(viewModel: viewModel)
+
+        // Then: BannerAdView が含まれている
+        XCTAssertNoThrow(try view.inspect().find(BannerAdView.self))
+    }
+
+    @MainActor
+    func testRecordViewShowsBannerAdBelowScrollContent() throws {
+        // Given: 子供とタスクが存在する状態
+        let viewModel = makeRecordViewModel()
+        viewModel.availableChildren = [
+            Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+        ]
+        viewModel.availableTasks = [
+            HelpTask(id: UUID(), name: "お皿洗い", isActive: true, coinRate: 10)
+        ]
+
+        // When: RecordView を生成
+        let view = RecordView(viewModel: viewModel)
+
+        // Then: ScrollView とバナー広告の両方が含まれている
+        XCTAssertNoThrow(try view.inspect().find(ViewType.ScrollView.self))
+        XCTAssertNoThrow(try view.inspect().find(BannerAdView.self))
+    }
+
+    @MainActor
+    func testRecordViewShowsBannerAdDuringLoadingState() throws {
+        // Given: ローディング中の状態
+        let viewModel = makeRecordViewModel()
+        viewModel.isLoading = true
+
+        // When: RecordView を生成
+        let view = RecordView(viewModel: viewModel)
+
+        // Then: ローディング中でもバナー広告が表示される
+        // (BannerAdView は StateBasedContent の外側に配置されているため)
+        XCTAssertNoThrow(try view.inspect().find(BannerAdView.self))
+    }
+
+    // MARK: - Helpers
+
+    @MainActor
+    private func makeRecordViewModel() -> RecordViewModel {
+        RecordViewModel(
+            childRepository: MockChildRepository(),
+            helpTaskRepository: MockHelpTaskRepository(),
+            helpRecordRepository: MockHelpRecordRepository(),
+            soundService: MockSoundService()
+        )
+    }
 }

@@ -29,7 +29,7 @@ struct RecordView: View {
                                         .background(AccessibilityColors.successGreenLight)
                                         .cornerRadius(8)
                                     }
-                                    
+
                                     childSelectionView
 
                                     dateSection
@@ -39,6 +39,12 @@ struct RecordView: View {
                                 .padding()
                                 .padding(.bottom, 80) // 固定ボタン分のスペース確保
                             }
+
+                            // Issue #49: スクロール末端に AdMob バナーを配置。
+                            // StateBasedContent の外側に置くことで loading/error 中も表示。
+                            BannerAdView()
+                                .frame(height: 50)
+                                .padding(.bottom, 8)
                         }
                     }
                     
