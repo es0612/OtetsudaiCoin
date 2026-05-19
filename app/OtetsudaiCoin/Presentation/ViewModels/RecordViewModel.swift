@@ -168,6 +168,76 @@ class RecordViewModel: BaseViewModel {
     }
     
     @MainActor
+    func recordBulkHelp() {
+        clearErrorMessage()
+
+        guard let child = selectedChild else {
+            setError(String(localized: "お子様を選択してください"))
+            return
+        }
+        guard !selectedTaskIds.isEmpty else {
+            return
+        }
+
+        let targetIds = selectedTaskIds
+        let tasksById = Dictionary(uniqueKeysWithValues: availableTasks.map { ($0.id, $0) })
+
+        setLoading(true)
+
+        Task {
+            var successIds: Set<UUID> = []
+            var failureIds: Set<UUID> = []
+            var totalCoins = 0
+            let normalizedDate = Self.normalizeToNoon(recordedDate)
+
+            for taskId in targetIds {
+                guard let task = tasksById[taskId] else {
+                    failureIds.insert(taskId)
+                    continue
+                }
+                let helpRecord = HelpRecord(
+                    id: UUID(),
+                    childId: child.id,
+                    helpTaskId: taskId,
+                    recordedAt: normalizedDate
+                )
+                do {
+                    try await helpRecordRepository.save(helpRecord)
+                    successIds.insert(taskId)
+                    totalCoins += task.coinRate
+                } catch {
+                    failureIds.insert(taskId)
+                }
+            }
+
+            // 効果音 (成功 1 件以上で再生)
+            if !successIds.isEmpty {
+                do {
+                    try soundService.playCoinEarnSound()
+                    try soundService.playTaskCompleteSound()
+                } catch {
+                    try? soundService.playErrorSound()
+                }
+            }
+
+            lastRecordedCoinValue = totalCoins
+            selectedTaskIds = failureIds
+
+            NotificationManager.shared.notifyHelpRecordUpdated()
+
+            if !successIds.isEmpty {
+                hasRecordedInSession = true
+                let format = String(localized: "%lld 件記録しました！")
+                setSuccess(String(format: format, successIds.count))
+            }
+            if successIds.isEmpty && !failureIds.isEmpty {
+                setError(String(localized: "記録に失敗しました"))
+            }
+            setLoading(false)
+        }
+    }
+
+    @MainActor
     func recordHelp() {
         clearErrorMessage()
         

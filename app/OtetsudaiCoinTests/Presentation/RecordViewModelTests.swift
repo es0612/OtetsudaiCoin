@@ -395,4 +395,29 @@ final class RecordViewModelTests: XCTestCase {
         XCTAssertTrue(viewModel.selectedTaskIds.isEmpty)
         XCTAssertEqual(viewModel.selectedChild?.id, child2.id)
     }
+
+    @MainActor
+    func test_recordBulkHelp_allSuccess() async {
+        // Given: child 選択済み、tasks 3 件選択 (coinRate 10/20/30)
+        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+        let t1 = HelpTask(id: UUID(), name: "A", isActive: true, coinRate: 10)
+        let t2 = HelpTask(id: UUID(), name: "B", isActive: true, coinRate: 20)
+        let t3 = HelpTask(id: UUID(), name: "C", isActive: true, coinRate: 30)
+        viewModel.availableChildren = [child]
+        viewModel.selectedChild = child
+        viewModel.availableTasks = [t1, t2, t3]
+        viewModel.isBulkMode = true
+        viewModel.selectedTaskIds = [t1.id, t2.id, t3.id]
+
+        // When
+        viewModel.recordBulkHelp()
+        try? await Task.sleep(nanoseconds: 200_000_000)
+
+        // Then: 3 件保存、selectedTaskIds 空、合計 60 コイン、success メッセージ
+        XCTAssertEqual(mockHelpRecordRepository.records.count, 3)
+        XCTAssertTrue(viewModel.selectedTaskIds.isEmpty)
+        XCTAssertEqual(viewModel.lastRecordedCoinValue, 60)
+        XCTAssertNotNil(viewModel.successMessage)
+        XCTAssertNil(viewModel.errorMessage)
+    }
 }
