@@ -397,6 +397,56 @@ final class RecordViewModelTests: XCTestCase {
     }
 
     @MainActor
+    func test_recordBulkHelp_partialFailure_failedRemain() async {
+        // Given: 3 件選択、うち中央 1 件 (t2) のみ save 失敗
+        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+        let t1 = HelpTask(id: UUID(), name: "A", isActive: true, coinRate: 10)
+        let t2 = HelpTask(id: UUID(), name: "B", isActive: true, coinRate: 20)
+        let t3 = HelpTask(id: UUID(), name: "C", isActive: true, coinRate: 30)
+        viewModel.availableChildren = [child]
+        viewModel.selectedChild = child
+        viewModel.availableTasks = [t1, t2, t3]
+        viewModel.isBulkMode = true
+        viewModel.selectedTaskIds = [t1.id, t2.id, t3.id]
+        mockHelpRecordRepository.failingHelpTaskIds = [t2.id]
+
+        // When
+        viewModel.recordBulkHelp()
+        try? await Task.sleep(nanoseconds: 200_000_000)
+
+        // Then: 2 件保存、失敗 1 件のみ selectedTaskIds に残る、合計コイン 40
+        XCTAssertEqual(mockHelpRecordRepository.records.count, 2)
+        XCTAssertEqual(viewModel.selectedTaskIds, [t2.id])
+        XCTAssertEqual(viewModel.lastRecordedCoinValue, 40)
+        XCTAssertNotNil(viewModel.successMessage)
+    }
+
+    @MainActor
+    func test_recordBulkHelp_allFailed() async {
+        // Given: 2 件選択、全件 save 失敗
+        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+        let t1 = HelpTask(id: UUID(), name: "A", isActive: true, coinRate: 10)
+        let t2 = HelpTask(id: UUID(), name: "B", isActive: true, coinRate: 20)
+        viewModel.availableChildren = [child]
+        viewModel.selectedChild = child
+        viewModel.availableTasks = [t1, t2]
+        viewModel.isBulkMode = true
+        viewModel.selectedTaskIds = [t1.id, t2.id]
+        mockHelpRecordRepository.shouldThrowError = true
+
+        // When
+        viewModel.recordBulkHelp()
+        try? await Task.sleep(nanoseconds: 200_000_000)
+
+        // Then: 0 件保存、選択は全て残る、error メッセージ
+        XCTAssertEqual(mockHelpRecordRepository.records.count, 0)
+        XCTAssertEqual(viewModel.selectedTaskIds, [t1.id, t2.id])
+        XCTAssertEqual(viewModel.lastRecordedCoinValue, 0)
+        XCTAssertNil(viewModel.successMessage)
+        XCTAssertNotNil(viewModel.errorMessage)
+    }
+
+    @MainActor
     func test_recordBulkHelp_allSuccess() async {
         // Given: child 選択済み、tasks 3 件選択 (coinRate 10/20/30)
         let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")

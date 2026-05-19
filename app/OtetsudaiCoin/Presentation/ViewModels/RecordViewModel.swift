@@ -223,7 +223,10 @@ class RecordViewModel: BaseViewModel {
             lastRecordedCoinValue = totalCoins
             selectedTaskIds = failureIds
 
-            NotificationManager.shared.notifyHelpRecordUpdated()
+            // 通知は実際に save できた件があるときだけ送る (全件失敗時に loadData → setLoading(true) で errorMessage が消えてしまうのを防ぐ)
+            if !successIds.isEmpty {
+                NotificationManager.shared.notifyHelpRecordUpdated()
+            }
 
             if !successIds.isEmpty {
                 hasRecordedInSession = true
