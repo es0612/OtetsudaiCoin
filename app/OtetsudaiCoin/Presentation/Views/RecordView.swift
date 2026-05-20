@@ -65,7 +65,7 @@ struct RecordView: View {
                 VStack(spacing: 0) {
                     Divider()
 
-                    recordButtonView
+                    RecordButtonBar(viewModel: viewModel)
                         .padding()
                         .background(Color(.systemBackground).opacity(0.95))
                 }
@@ -238,89 +238,6 @@ struct RecordView: View {
         }
     }
     
-    private var recordButtonView: some View {
-        VStack(spacing: 8) {
-            // 選択状態の表示
-            if viewModel.isBulkMode {
-                bulkSummaryView
-            } else if let selectedChild = viewModel.selectedChild, let selectedTask = viewModel.selectedTask {
-                HStack(spacing: 8) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.green)
-                    Text("\(selectedChild.name)さんの「\(selectedTask.name)」")
-                        .appFont(.captionText)
-                        .foregroundColor(.secondary)
-                    Text("\(selectedTask.coinRate)コイン")
-                        .appFont(.captionText)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.orange)
-                }
-                .padding(.horizontal)
-            } else {
-                HStack(spacing: 8) {
-                    Image(systemName: "exclamationmark.circle")
-                        .foregroundColor(.orange)
-                    Text("お手伝いする人とタスクを選んでください")
-                        .appFont(.captionText)
-                        .foregroundColor(.secondary)
-                }
-                .padding(.horizontal)
-            }
-
-            // 記録ボタン
-            Button(action: {
-                if viewModel.isBulkMode {
-                    viewModel.recordBulkHelp()
-                } else {
-                    viewModel.recordHelp()
-                }
-            }) {
-                HStack(spacing: 8) {
-                    Image(systemName: "plus.circle.fill")
-                    Text(recordButtonLabel)
-                }
-            }
-            .successGradientButton(isDisabled: recordButtonDisabled)
-            .disabled(recordButtonDisabled)
-            .accessibilityIdentifier("record_button")
-        }
-    }
-
-    private var recordButtonLabel: String {
-        if viewModel.isBulkMode {
-            // 文字列補間で `String.LocalizationValue` を生成すると、xcstrings の plural variations が
-            // count 値に応じて one / other 自動選択される。String(format:) は variations を bypass するため使わない。
-            let count = viewModel.selectedTaskIds.count
-            return String(localized: "\(count) 件をまとめて記録する")
-        } else {
-            return String(localized: "記録する")
-        }
-    }
-
-    private var recordButtonDisabled: Bool {
-        if viewModel.isBulkMode {
-            return viewModel.selectedChild == nil || viewModel.selectedTaskIds.isEmpty
-        } else {
-            return viewModel.selectedChild == nil || viewModel.selectedTask == nil
-        }
-    }
-
-    private var bulkSummaryView: some View {
-        let count = viewModel.selectedTaskIds.count
-        let tasksById = Dictionary(uniqueKeysWithValues: viewModel.availableTasks.map { ($0.id, $0) })
-        let totalCoins = viewModel.selectedTaskIds.reduce(0) { acc, id in
-            acc + (tasksById[id]?.coinRate ?? 0)
-        }
-        let format = String(localized: "選択中 %lld 件 / 計 %lld コイン")
-        return HStack(spacing: 8) {
-            Image(systemName: "checkmark.circle.fill")
-                .foregroundColor(.green)
-            Text(String(format: format, count, totalCoins))
-                .appFont(.captionText)
-                .foregroundColor(.secondary)
-        }
-        .padding(.horizontal)
-    }
 }
 
 struct TaskCardView: View {
