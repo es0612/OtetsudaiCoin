@@ -49,4 +49,5 @@ final class RecordViewTests: XCTestCase {
         viewModel.toggleBulkMode()
         XCTAssertTrue(viewModel.isBulkMode)
     }
+
 }

@@ -5,88 +5,89 @@ struct RecordView: View {
     @State private var showCoinAnimation = false
     
     var body: some View {
-        ZStack {
-            NavigationStack {
-                VStack(spacing: 0) {
-                    // メインコンテンツ
-                    ScrollView {
-                        VStack(spacing: 16) {
-                            bulkModeToggleRow
-                            StateBasedContent(
-                                isLoading: viewModel.isLoading,
-                                errorMessage: viewModel.errorMessage,
-                                onRetry: { viewModel.loadTasks() }
-                            ) {
-                                VStack(spacing: 16) {
-                                    if let successMessage = viewModel.successMessage {
-                                        HStack {
-                                            Image(systemName: "checkmark.circle.fill")
-                                                .foregroundColor(AccessibilityColors.successGreen)
-                                            Text(successMessage)
-                                                .appFont(.buttonText)
-                                                .foregroundColor(AccessibilityColors.successGreen)
-                                        }
-                                        .padding()
-                                        .background(AccessibilityColors.successGreenLight)
-                                        .cornerRadius(8)
+        NavigationStack {
+            VStack(spacing: 0) {
+                // メインコンテンツ
+                ScrollView {
+                    VStack(spacing: 16) {
+                        bulkModeToggleRow
+                        StateBasedContent(
+                            isLoading: viewModel.isLoading,
+                            errorMessage: viewModel.errorMessage,
+                            onRetry: { viewModel.loadTasks() }
+                        ) {
+                            VStack(spacing: 16) {
+                                if let successMessage = viewModel.successMessage {
+                                    HStack {
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .foregroundColor(AccessibilityColors.successGreen)
+                                        Text(successMessage)
+                                            .appFont(.buttonText)
+                                            .foregroundColor(AccessibilityColors.successGreen)
                                     }
-
-                                    if let warningMessage = viewModel.warningMessage {
-                                        HStack {
-                                            Image(systemName: "exclamationmark.triangle.fill")
-                                                .foregroundColor(.orange)
-                                            Text(warningMessage)
-                                                .appFont(.buttonText)
-                                                .foregroundColor(.orange)
-                                        }
-                                        .padding()
-                                        .background(Color.orange.opacity(0.15))
-                                        .cornerRadius(8)
-                                    }
-
-                                    childSelectionView
-
-                                    dateSection
-
-                                    taskListView
+                                    .padding()
+                                    .background(AccessibilityColors.successGreenLight)
+                                    .cornerRadius(8)
                                 }
-                                .padding()
-                                .padding(.bottom, 80) // 固定ボタン分のスペース確保
-                            }
 
-                            // Issue #49: スクロール末端に AdMob バナーを配置。
-                            // StateBasedContent の外側に置くことで loading/error 中も表示。
-                            BannerAdView()
-                                .frame(height: 50)
-                                .padding(.bottom, 8)
-                        }
-                    }
-                    
-                    // 画面下部固定の記録ボタン
-                    VStack(spacing: 0) {
-                        Divider()
-                        
-                        recordButtonView
+                                if let warningMessage = viewModel.warningMessage {
+                                    HStack {
+                                        Image(systemName: "exclamationmark.triangle.fill")
+                                            .foregroundColor(.orange)
+                                        Text(warningMessage)
+                                            .appFont(.buttonText)
+                                            .foregroundColor(.orange)
+                                    }
+                                    .padding()
+                                    .background(Color.orange.opacity(0.15))
+                                    .cornerRadius(8)
+                                }
+
+                                childSelectionView
+
+                                dateSection
+
+                                taskListView
+                            }
                             .padding()
-                            .background(.ultraThinMaterial)
+                            .padding(.bottom, 80) // 固定ボタン分のスペース確保
+                        }
+
+                        // Issue #49: スクロール末端に AdMob バナーを配置。
+                        // StateBasedContent の外側に置くことで loading/error 中も表示。
+                        BannerAdView()
+                            .frame(height: 50)
+                            .padding(.bottom, 8)
                     }
                 }
-                .navigationTitle("お手伝い記録")
-                .onAppear {
-                    // エラーメッセージのみクリアし、成功メッセージは保持
-                    viewModel.clearErrorMessage()
-                    viewModel.loadData()
+
+                // 画面下部固定の記録ボタン
+                VStack(spacing: 0) {
+                    Divider()
+
+                    RecordButtonBar(viewModel: viewModel)
+                        .padding()
+                        .background(Color(.systemBackground).opacity(0.95))
                 }
             }
-            
-            // コインアニメーションオーバーレイ
-            if showCoinAnimation, let selectedChild = viewModel.selectedChild {
+            .navigationTitle("お手伝い記録")
+            .onAppear {
+                // エラーメッセージのみクリアし、成功メッセージは保持
+                viewModel.clearErrorMessage()
+                viewModel.loadData()
+            }
+        }
+        .overlay {
+            if showCoinAnimation {
                 Color.black.opacity(0.3)
                     .ignoresSafeArea()
                     .onTapGesture {
                         showCoinAnimation = false
                     }
-                
+            }
+        }
+        .overlay {
+            if showCoinAnimation, let selectedChild = viewModel.selectedChild {
                 CoinAnimationView(
                     isVisible: $showCoinAnimation,
                     coinValue: viewModel.lastRecordedCoinValue,
@@ -237,89 +238,6 @@ struct RecordView: View {
         }
     }
     
-    private var recordButtonView: some View {
-        VStack(spacing: 8) {
-            // 選択状態の表示
-            if viewModel.isBulkMode {
-                bulkSummaryView
-            } else if let selectedChild = viewModel.selectedChild, let selectedTask = viewModel.selectedTask {
-                HStack(spacing: 8) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.green)
-                    Text("\(selectedChild.name)さんの「\(selectedTask.name)」")
-                        .appFont(.captionText)
-                        .foregroundColor(.secondary)
-                    Text("\(selectedTask.coinRate)コイン")
-                        .appFont(.captionText)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.orange)
-                }
-                .padding(.horizontal)
-            } else {
-                HStack(spacing: 8) {
-                    Image(systemName: "exclamationmark.circle")
-                        .foregroundColor(.orange)
-                    Text("お手伝いする人とタスクを選んでください")
-                        .appFont(.captionText)
-                        .foregroundColor(.secondary)
-                }
-                .padding(.horizontal)
-            }
-
-            // 記録ボタン
-            Button(action: {
-                if viewModel.isBulkMode {
-                    viewModel.recordBulkHelp()
-                } else {
-                    viewModel.recordHelp()
-                }
-            }) {
-                HStack(spacing: 8) {
-                    Image(systemName: "plus.circle.fill")
-                    Text(recordButtonLabel)
-                }
-            }
-            .successGradientButton(isDisabled: recordButtonDisabled)
-            .disabled(recordButtonDisabled)
-            .accessibilityIdentifier("record_button")
-        }
-    }
-
-    private var recordButtonLabel: String {
-        if viewModel.isBulkMode {
-            // 文字列補間で `String.LocalizationValue` を生成すると、xcstrings の plural variations が
-            // count 値に応じて one / other 自動選択される。String(format:) は variations を bypass するため使わない。
-            let count = viewModel.selectedTaskIds.count
-            return String(localized: "\(count) 件をまとめて記録する")
-        } else {
-            return String(localized: "記録する")
-        }
-    }
-
-    private var recordButtonDisabled: Bool {
-        if viewModel.isBulkMode {
-            return viewModel.selectedChild == nil || viewModel.selectedTaskIds.isEmpty
-        } else {
-            return viewModel.selectedChild == nil || viewModel.selectedTask == nil
-        }
-    }
-
-    private var bulkSummaryView: some View {
-        let count = viewModel.selectedTaskIds.count
-        let tasksById = Dictionary(uniqueKeysWithValues: viewModel.availableTasks.map { ($0.id, $0) })
-        let totalCoins = viewModel.selectedTaskIds.reduce(0) { acc, id in
-            acc + (tasksById[id]?.coinRate ?? 0)
-        }
-        let format = String(localized: "選択中 %lld 件 / 計 %lld コイン")
-        return HStack(spacing: 8) {
-            Image(systemName: "checkmark.circle.fill")
-                .foregroundColor(.green)
-            Text(String(format: format, count, totalCoins))
-                .appFont(.captionText)
-                .foregroundColor(.secondary)
-        }
-        .padding(.horizontal)
-    }
 }
 
 struct TaskCardView: View {
