@@ -69,14 +69,21 @@ Note: Optional for new features or small additions. You can proceed directly to 
 - spec / design ドキュメント作成時にも前提となる既存コードを実際に Read で開いて verify する。writing-plans 段階で初めて View 階層など実装差分が判明すると spec 修正に手戻りが発生する。spec 段階で View 階層・主要関数の実装を 1 回 Read してから書き起こす。
 - Plan からの「既存 convention に合わせるための設計改善的逸脱」は、その場で commit メッセージに deviation 理由を明記して反映する（例: 新規 `XxxViewTests.swift` を作る計画を既存 `BannerAdViewTests.swift` 等に揃える）。事前に plan を rewrite しない（時間ロス）、事後に黙って逸脱しない（レビュー時に混乱）。
 - spec 作成時のテストファイル存在確認は、`ls Presentation/ViewModels/` のような浅い listing ではなく `find . -name "X*Tests.swift" -not -path "*build*"` で全階層から探す。サブディレクトリ前提で見落とすと spec の前提が崩れて自己修正 commit が必要になる。
+- **Plan 実行中の user 応答による deviation の取り扱い**: writing-plans 中の AskUserQuestion で plan を reverse / scope 縮小した場合 (例: BannerAdView 移動 → 維持、追加 test 3 件 → 1 件)、plan 本体も書き換えた上で PR description の `## Plan からの逸脱` 節に deviation 理由を明記する。reviewer が「なぜ plan と差分があるのか」を追えるようにすると、レビュー時の混乱を防げる。
 
 ## プロジェクト固有制約 (Xcode 16+)
 - このプロジェクトの Xcode project は `PBXFileSystemSynchronizedRootGroup` を採用しているため、新規 `.swift` を所定ディレクトリに置くだけで自動認識され `project.pbxproj` 編集は不要。Plan 作成や Task 見積もりで「pbxproj 編集ステップ」を blocker 扱いしない。
+
+## Simulator 視覚検証の限界
+- `xcrun simctl` には `tap` / `gesture` / `type` が存在しないため、CLI から UI を操作できない。`ios-simulator-app-verification` skill で UserDefaults / launch args 経由で state を pre-set してから launch するパターンを使う。
+- **TabView の選択 tab が `@State private var selectedTab = 0` (永続化なし) の場合、simctl 経由では他 tab へ切替不可**。RecordView 等 sub-tab の視覚検証が必要なら、(a) `@AppStorage` 化して `simctl spawn defaults write` で切替えるか、(b) XCUITest で tab tap シミュレートに切替える判断を **plan 段階で** しておく。実行中に気付くと verification が部分的になり、PR description で「手動確認推奨」と明示する妥協が必要になる (#74 PR #77 で発生)。
 
 ## SwiftUI View テスト戦略
 - ViewInspector は NavigationStack + ZStack + UIViewRepresentable (BannerAdView) + Material の組み合わせを深く traverse できない既知制約がある。`find(viewWithAccessibilityIdentifier:)` / `find(text:)` / `find(ViewType.X.self)` いずれも該当 view へ到達不可、`"Search did not find a match. Possible blockers: BannerAdView, Material, AccessibilityImageLabel"` で fail する。
 - 上記が予想される View では UI 構造の structural test を強行せず、(a) ViewModel テストでロジック網羅 + (b) View の smoke test (init crash なし) + (c) behavior test (toggle/binding が ViewModel state を動かすこと) で間接担保、UI の最終 visual は simulator 手動 / UI test に委ねる。
 - 該当 View の refactor を入れるなら BannerAdView を component 分離 / Material 依存を Color 系に置換 する方向で別 issue 化する (例: #74)。
+- **`AccessibilityImageLabel` blocker** (`Image(systemName:)` + `.foregroundColor` の組み合わせ): `find(viewWithAccessibilityIdentifier:)` は AccessibilityImageLabel が 1 つでもあると該当 button へ到達できない。回避策は `find(ViewType.Button.self)` 経由で button 自体を掴み `try button.isDisabled()` などで state を確認する。accessibilityIdentifier 経由の指定を諦めるトレードオフだが、Button が 1 つしか無い component なら structural test として十分機能する。
+- **Component 分離による blocker 回避** (#74 で確立した path): `RecordView` の `recordButtonView` を `RecordButtonBar` (`Presentation/Components/`) に切り出し、component 単独で View test を書く形を取った。親 View 側に NavigationStack + ScrollView + UIViewRepresentable の組み合わせが残っていても、component test はそれらの影響を受けない。BannerAdView の位置を維持しつつ structural test を確保したいケースで有効。
 
 ## i18n: xcstrings plural variations の呼び出し
 - xcstrings の `variations.plural` (one / other) を Swift 側から有効化するには **string interpolation** が必須。`String(localized: "%lld 件...") + String(format: format, count)` の組み合わせは plural 解釈を bypass して常に `other` を返す。
