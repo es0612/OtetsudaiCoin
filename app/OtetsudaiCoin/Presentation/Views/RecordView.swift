@@ -146,6 +146,9 @@ struct RecordView: View {
             .labelsHidden()
             .datePickerStyle(.compact)
             .accessibilityIdentifier("record_date_picker")
+            .onChange(of: viewModel.recordedDate) { _, _ in
+                viewModel.loadExistingCountsForCurrentDateAndChild()
+            }
         }
         .padding(.horizontal)
     }
@@ -218,6 +221,7 @@ struct RecordView: View {
                                 ? viewModel.selectedTaskIds.contains(task.id)
                                 : viewModel.selectedTask?.id == task.id,
                             isBulkMode: viewModel.isBulkMode,
+                            existingCount: viewModel.existingRecordCount(for: task.id),
                             onTap: {
                                 if viewModel.isBulkMode {
                                     if viewModel.selectedTaskIds.contains(task.id) {
