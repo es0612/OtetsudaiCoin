@@ -603,4 +603,28 @@ final class RecordViewModelTests: XCTestCase {
         await waitUntil(timeout: 2.0) { self.viewModel.existingRecordCount(for: task.id) == 2 }
         XCTAssertEqual(viewModel.existingRecordCount(for: task.id), 2)
     }
+
+    @MainActor
+    func test_recordHelpSuccess_updatesCountViaObserver() async {
+        // Given: 初期 record なし、child と task を選択済み
+        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+        let task = HelpTask(id: UUID(), name: "皿洗い", isActive: true, coinRate: 10)
+        mockChildRepository.children = [child]
+        mockHelpTaskRepository.tasks = [task]
+
+        viewModel.loadData()
+        await waitUntil(timeout: 2.0) { !self.viewModel.isLoading }
+        viewModel.selectTask(task)
+        XCTAssertEqual(viewModel.existingRecordCount(for: task.id), 0)
+
+        // When: 1 件 recordHelp
+        viewModel.recordHelp()
+
+        // observer chain (recordHelp → notify → loadData → loadCounts) は
+        // 多段の Task switch を経由するため、固定 sleep ではなく条件待ち
+        await waitUntil(timeout: 3.0) { self.viewModel.existingRecordCount(for: task.id) == 1 }
+
+        // Then: count map が +1 されている
+        XCTAssertEqual(viewModel.existingRecordCount(for: task.id), 1)
+    }
 }

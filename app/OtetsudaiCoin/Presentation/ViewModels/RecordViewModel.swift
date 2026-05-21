@@ -105,8 +105,9 @@ class RecordViewModel: BaseViewModel {
                 if selectedChild == nil && !children.isEmpty {
                     selectedChild = children.first
                 }
-                
+
                 setLoading(false)
+                loadExistingCountsForCurrentDateAndChild()
             } catch {
                 guard !Task.isCancelled else { return }
                 setUserFriendlyError(error)
