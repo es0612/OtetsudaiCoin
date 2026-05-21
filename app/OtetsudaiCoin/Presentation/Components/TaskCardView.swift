@@ -4,6 +4,7 @@ struct TaskCardView: View {
     let task: HelpTask
     let isSelected: Bool
     var isBulkMode: Bool = false
+    var existingCount: Int = 0
     let onTap: () -> Void
 
     var body: some View {
@@ -12,15 +13,40 @@ struct TaskCardView: View {
                 taskIcon
                 taskTitle
                 coinInfo
+                existingCountRow
                 selectionIndicator
             }
             .padding()
-            .frame(height: 140)
+            .frame(height: 150)
             .background(cardBackground)
         }
         .buttonStyle(PlainButtonStyle())
         .scaleEffect(isSelected ? 1.05 : 1.0)
         .animation(.easeInOut(duration: 0.2), value: isSelected)
+    }
+
+    @ViewBuilder
+    private var existingCountRow: some View {
+        if existingCount >= 1 {
+            HStack(spacing: 4) {
+                Image(systemName: "checkmark.seal")
+                    .font(.caption2)
+                    .foregroundColor(.gray.opacity(0.7))
+                Text(existingCountText)
+                    .appFont(.captionText)
+                    .foregroundColor(.gray.opacity(0.7))
+                    .accessibilityIdentifier("existing_count_label")
+            }
+        } else {
+            EmptyView()
+        }
+    }
+
+    private var existingCountText: String {
+        // 文字列補間で xcstrings の plural variations を利用する。
+        // String(format:) は variations を bypass する既知罠 (CLAUDE.md i18n 節)。
+        let count = existingCount
+        return String(localized: "すでに \(count) 件記録済み")
     }
 
     private var taskIcon: some View {
