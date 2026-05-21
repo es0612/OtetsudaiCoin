@@ -58,6 +58,9 @@ Note: Optional for new features or small additions. You can proceed directly to 
 ## Subagent / Task 実行ルール
 - subagent の存在意義は「context 隔離」。コード変更を伴う Task は subagent、verification / test 実行のみで成果物が無い Task は main 実行でも可。subagent 接続エラー時に verification-only なら即時 main 実行へフォールバックする。
 
+## daily-issue-triage 運用ルール
+- triage 開始時に `gh issue list` を取得したら、**各 issue body が参照する spin-off / 実装 PR の `mergedAt` をまとめて先に確認する**。手順は (a) `gh issue list` で全 open issue を取得 → (b) body 内の `#NNN` PR 参照を抽出 → (c) `gh pr view <PR> --json mergedAt,state` で merge 状況を一括確認。本体機能が PR で merge 済みなのに close 漏れしている issue (例: #69 が PR #72 で実質完了していたケース) を triage 表の集約段階で「対応不要 (close のみ)」に振り分けられ、調査スコープ判断時間を節約できる。
+
 ## iOS テスト flake 切り分け
 - 並列 simulator run で UI テスト・load 系テストが flaky に落ちることがある。regression と断定する前に該当テストを `xcodebuild test -only-testing:` で isolated 再実行し、PASS すれば parallel flake として扱う（本修正と無関係な既知問題として切り分け可能）。
 
