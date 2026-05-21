@@ -162,6 +162,7 @@ class RecordViewModel: BaseViewModel {
         }
         // 成功メッセージは保持し、エラーメッセージのみクリア
         clearErrorMessage()
+        loadExistingCountsForCurrentDateAndChild()
     }
     
     func setPreselectedChild(_ child: Child) {

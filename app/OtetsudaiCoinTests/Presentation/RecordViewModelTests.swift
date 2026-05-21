@@ -574,4 +574,33 @@ final class RecordViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.existingRecordCount(for: task1.id), 2)
         XCTAssertEqual(viewModel.existingRecordCount(for: task2.id), 1)
     }
+
+    @MainActor
+    func test_selectChild_triggersCountReload() async {
+        // Given: child A と child B、それぞれ別の record
+        let childA = Child(id: UUID(), name: "A", themeColor: "#FF5733")
+        let childB = Child(id: UUID(), name: "B", themeColor: "#33FF57")
+        let task = HelpTask(id: UUID(), name: "皿洗い", isActive: true, coinRate: 10)
+
+        let noon = Calendar.current.date(byAdding: .hour, value: 12, to: Calendar.current.startOfDay(for: Date()))!
+        mockChildRepository.children = [childA, childB]
+        mockHelpTaskRepository.tasks = [task]
+        mockHelpRecordRepository.records = [
+            HelpRecord(id: UUID(), childId: childA.id, helpTaskId: task.id, recordedAt: noon),
+            HelpRecord(id: UUID(), childId: childB.id, helpTaskId: task.id, recordedAt: noon),
+            HelpRecord(id: UUID(), childId: childB.id, helpTaskId: task.id, recordedAt: noon),
+        ]
+
+        viewModel.selectedChild = childA
+        viewModel.recordedDate = noon
+        viewModel.loadExistingCountsForCurrentDateAndChild()
+        await waitUntil(timeout: 2.0) { self.viewModel.existingRecordCount(for: task.id) == 1 }
+
+        // When: child B に切り替え
+        viewModel.selectChild(childB)
+
+        // Then: count map が child B のものに更新
+        await waitUntil(timeout: 2.0) { self.viewModel.existingRecordCount(for: task.id) == 2 }
+        XCTAssertEqual(viewModel.existingRecordCount(for: task.id), 2)
+    }
 }
