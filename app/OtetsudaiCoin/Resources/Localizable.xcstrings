@@ -2559,6 +2559,28 @@
         }
       }
     },
+    "すでに %lld 件記録済み" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Already recorded %lld time"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Already recorded %lld times"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld 件失敗、もう一度タップしてください" : {
       "localizations" : {
         "en" : {
