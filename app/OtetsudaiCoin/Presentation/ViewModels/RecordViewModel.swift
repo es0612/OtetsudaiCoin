@@ -15,6 +15,11 @@ class RecordViewModel: BaseViewModel {
     var isBulkMode: Bool = false
     var selectedTaskIds: Set<UUID> = []
     var warningMessage: String? = nil
+    var existingRecordCounts: [UUID: Int] = [:]
+
+    func existingRecordCount(for taskId: UUID) -> Int {
+        return existingRecordCounts[taskId] ?? 0
+    }
 
     func resetSessionState() {
         hasRecordedInSession = false

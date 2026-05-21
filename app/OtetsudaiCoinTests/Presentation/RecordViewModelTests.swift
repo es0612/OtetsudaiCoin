@@ -514,4 +514,17 @@ final class RecordViewModelTests: XCTestCase {
         XCTAssertNotNil(viewModel.successMessage)
         XCTAssertNil(viewModel.errorMessage)
     }
+
+    // MARK: - #73 existingRecordCounts
+
+    @MainActor
+    func test_existingRecordCounts_initiallyEmpty() {
+        XCTAssertEqual(viewModel.existingRecordCounts, [:])
+    }
+
+    @MainActor
+    func test_existingRecordCount_returnsZeroForUnknownTask() {
+        let unknownId = UUID()
+        XCTAssertEqual(viewModel.existingRecordCount(for: unknownId), 0)
+    }
 }
