@@ -15,6 +15,11 @@ class RecordViewModel: BaseViewModel {
     var isBulkMode: Bool = false
     var selectedTaskIds: Set<UUID> = []
     var warningMessage: String? = nil
+    var existingRecordCounts: [UUID: Int] = [:]
+
+    func existingRecordCount(for taskId: UUID) -> Int {
+        return existingRecordCounts[taskId] ?? 0
+    }
 
     func resetSessionState() {
         hasRecordedInSession = false
@@ -34,6 +39,7 @@ class RecordViewModel: BaseViewModel {
     private let helpRecordRepository: HelpRecordRepository
     private let soundService: SoundServiceProtocol
     private var loadChildrenTask: Task<Void, Never>?
+    private var loadCountsTask: Task<Void, Never>?
     
     init(
         childRepository: ChildRepository,
@@ -99,8 +105,9 @@ class RecordViewModel: BaseViewModel {
                 if selectedChild == nil && !children.isEmpty {
                     selectedChild = children.first
                 }
-                
+
                 setLoading(false)
+                loadExistingCountsForCurrentDateAndChild()
             } catch {
                 guard !Task.isCancelled else { return }
                 setUserFriendlyError(error)
@@ -156,6 +163,7 @@ class RecordViewModel: BaseViewModel {
         }
         // 成功メッセージは保持し、エラーメッセージのみクリア
         clearErrorMessage()
+        loadExistingCountsForCurrentDateAndChild()
     }
     
     func setPreselectedChild(_ child: Child) {
@@ -295,6 +303,38 @@ class RecordViewModel: BaseViewModel {
                 selectedTask = nil
             } catch {
                 setUserFriendlyError(error)
+            }
+        }
+    }
+
+    @MainActor
+    func loadExistingCountsForCurrentDateAndChild() {
+        loadCountsTask?.cancel()
+
+        guard let child = selectedChild else {
+            existingRecordCounts = [:]
+            return
+        }
+
+        let targetDate = recordedDate
+        let cal = Calendar.current
+        let startOfDay = cal.startOfDay(for: targetDate)
+        guard let endOfDay = cal.date(byAdding: .day, value: 1, to: startOfDay)?.addingTimeInterval(-1) else {
+            return
+        }
+
+        loadCountsTask = Task { [weak self] in
+            guard let self = self else { return }
+            do {
+                let records = try await self.helpRecordRepository.findByDateRange(from: startOfDay, to: endOfDay)
+                guard !Task.isCancelled else { return }
+                let filtered = records.filter { $0.childId == child.id }
+                let map = Dictionary(grouping: filtered, by: { $0.helpTaskId }).mapValues { $0.count }
+                await MainActor.run {
+                    self.existingRecordCounts = map
+                }
+            } catch {
+                // count 取得失敗時は無視 (UX 影響低、既存 errorMessage を上書きしない)
             }
         }
     }

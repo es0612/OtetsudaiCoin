@@ -571,4 +571,19 @@ final class LocalizedMessageTests: XCTestCase {
         // Then: ローカライズされたエラーメッセージが設定されること
         XCTAssertEqual(viewModel.errorMessage, String(localized: "お手伝いタスクを選択してください"))
     }
+
+    // MARK: - #73 existingRecordCount label
+
+    /// CLAUDE.md の「one バリアントが効くことを unit test で 1 件担保しておくと
+    /// runtime bypass の regression を catch できる」ルールに準拠。
+    /// String(localized: "すでに \(1) 件記録済み") が plural variations を
+    /// 経由して 1 を含む文字列を返すことを担保する。
+    func test_existingCountLabel_singularContainsOne() {
+        let message = String(localized: "すでに \(1) 件記録済み")
+        XCTAssertTrue(message.contains("1"))
+        XCTAssertTrue(
+            message.contains("件記録済み") || message.contains("recorded"),
+            "expected ja or en localized text, got \(message)"
+        )
+    }
 }

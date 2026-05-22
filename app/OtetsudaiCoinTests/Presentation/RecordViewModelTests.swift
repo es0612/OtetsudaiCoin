@@ -514,4 +514,117 @@ final class RecordViewModelTests: XCTestCase {
         XCTAssertNotNil(viewModel.successMessage)
         XCTAssertNil(viewModel.errorMessage)
     }
+
+    // MARK: - #73 existingRecordCounts
+
+    @MainActor
+    func test_existingRecordCounts_initiallyEmpty() {
+        XCTAssertEqual(viewModel.existingRecordCounts, [:])
+    }
+
+    @MainActor
+    func test_existingRecordCount_returnsZeroForUnknownTask() {
+        let unknownId = UUID()
+        XCTAssertEqual(viewModel.existingRecordCount(for: unknownId), 0)
+    }
+
+    @MainActor
+    func test_loadExistingCounts_noSelectedChild_clearsMap() {
+        // Given: 何らかの count が事前に残っている、selectedChild = nil
+        viewModel.existingRecordCounts = [UUID(): 5]
+
+        // When (selectedChild == nil の場合は同期的に [:] にする実装のため、await 不要)
+        viewModel.loadExistingCountsForCurrentDateAndChild()
+
+        // Then
+        XCTAssertEqual(viewModel.existingRecordCounts, [:])
+    }
+
+    @MainActor
+    func test_loadExistingCounts_filtersBySelectedChildAndDate() async {
+        // Given: 2 子供 × 同日同タスク × 異日同タスク を含む record 群
+        let childA = Child(id: UUID(), name: "A", themeColor: "#FF5733")
+        let childB = Child(id: UUID(), name: "B", themeColor: "#33FF57")
+        let task1 = HelpTask(id: UUID(), name: "皿洗い", isActive: true, coinRate: 10)
+        let task2 = HelpTask(id: UUID(), name: "ゴミ出し", isActive: true, coinRate: 5)
+
+        let today = Calendar.current.startOfDay(for: Date())
+        let noon = Calendar.current.date(byAdding: .hour, value: 12, to: today)!
+        let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: noon)!
+
+        mockChildRepository.children = [childA, childB]
+        mockHelpTaskRepository.tasks = [task1, task2]
+        mockHelpRecordRepository.records = [
+            HelpRecord(id: UUID(), childId: childA.id, helpTaskId: task1.id, recordedAt: noon),       // 対象
+            HelpRecord(id: UUID(), childId: childA.id, helpTaskId: task1.id, recordedAt: noon),       // 対象
+            HelpRecord(id: UUID(), childId: childA.id, helpTaskId: task2.id, recordedAt: noon),       // 対象 (別 task)
+            HelpRecord(id: UUID(), childId: childB.id, helpTaskId: task1.id, recordedAt: noon),       // 除外 (別 child)
+            HelpRecord(id: UUID(), childId: childA.id, helpTaskId: task1.id, recordedAt: yesterday),  // 除外 (別日)
+        ]
+
+        viewModel.selectedChild = childA
+        viewModel.recordedDate = noon
+
+        // When
+        viewModel.loadExistingCountsForCurrentDateAndChild()
+        // Task が cancel 制御込みで async に走るので、結果反映を条件待ち
+        await waitUntil(timeout: 2.0) { self.viewModel.existingRecordCount(for: task1.id) == 2 }
+
+        // Then
+        XCTAssertEqual(viewModel.existingRecordCount(for: task1.id), 2)
+        XCTAssertEqual(viewModel.existingRecordCount(for: task2.id), 1)
+    }
+
+    @MainActor
+    func test_selectChild_triggersCountReload() async {
+        // Given: child A と child B、それぞれ別の record
+        let childA = Child(id: UUID(), name: "A", themeColor: "#FF5733")
+        let childB = Child(id: UUID(), name: "B", themeColor: "#33FF57")
+        let task = HelpTask(id: UUID(), name: "皿洗い", isActive: true, coinRate: 10)
+
+        let noon = Calendar.current.date(byAdding: .hour, value: 12, to: Calendar.current.startOfDay(for: Date()))!
+        mockChildRepository.children = [childA, childB]
+        mockHelpTaskRepository.tasks = [task]
+        mockHelpRecordRepository.records = [
+            HelpRecord(id: UUID(), childId: childA.id, helpTaskId: task.id, recordedAt: noon),
+            HelpRecord(id: UUID(), childId: childB.id, helpTaskId: task.id, recordedAt: noon),
+            HelpRecord(id: UUID(), childId: childB.id, helpTaskId: task.id, recordedAt: noon),
+        ]
+
+        viewModel.selectedChild = childA
+        viewModel.recordedDate = noon
+        viewModel.loadExistingCountsForCurrentDateAndChild()
+        await waitUntil(timeout: 2.0) { self.viewModel.existingRecordCount(for: task.id) == 1 }
+
+        // When: child B に切り替え
+        viewModel.selectChild(childB)
+
+        // Then: count map が child B のものに更新
+        await waitUntil(timeout: 2.0) { self.viewModel.existingRecordCount(for: task.id) == 2 }
+        XCTAssertEqual(viewModel.existingRecordCount(for: task.id), 2)
+    }
+
+    @MainActor
+    func test_recordHelpSuccess_updatesCountViaObserver() async {
+        // Given: 初期 record なし、child と task を選択済み
+        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+        let task = HelpTask(id: UUID(), name: "皿洗い", isActive: true, coinRate: 10)
+        mockChildRepository.children = [child]
+        mockHelpTaskRepository.tasks = [task]
+
+        viewModel.loadData()
+        await waitUntil(timeout: 2.0) { !self.viewModel.isLoading }
+        viewModel.selectTask(task)
+        XCTAssertEqual(viewModel.existingRecordCount(for: task.id), 0)
+
+        // When: 1 件 recordHelp
+        viewModel.recordHelp()
+
+        // observer chain (recordHelp → notify → loadData → loadCounts) は
+        // 多段の Task switch を経由するため、固定 sleep ではなく条件待ち
+        await waitUntil(timeout: 3.0) { self.viewModel.existingRecordCount(for: task.id) == 1 }
+
+        // Then: count map が +1 されている
+        XCTAssertEqual(viewModel.existingRecordCount(for: task.id), 1)
+    }
 }
