@@ -73,6 +73,7 @@ Note: Optional for new features or small additions. You can proceed directly to 
 - Plan からの「既存 convention に合わせるための設計改善的逸脱」は、その場で commit メッセージに deviation 理由を明記して反映する（例: 新規 `XxxViewTests.swift` を作る計画を既存 `BannerAdViewTests.swift` 等に揃える）。事前に plan を rewrite しない（時間ロス）、事後に黙って逸脱しない（レビュー時に混乱）。
 - spec 作成時のテストファイル存在確認は、`ls Presentation/ViewModels/` のような浅い listing ではなく `find . -name "X*Tests.swift" -not -path "*build*"` で全階層から探す。サブディレクトリ前提で見落とすと spec の前提が崩れて自己修正 commit が必要になる。
 - **Plan 実行中の user 応答による deviation の取り扱い**: writing-plans 中の AskUserQuestion で plan を reverse / scope 縮小した場合 (例: BannerAdView 移動 → 維持、追加 test 3 件 → 1 件)、plan 本体も書き換えた上で PR description の `## Plan からの逸脱` 節に deviation 理由を明記する。reviewer が「なぜ plan と差分があるのか」を追えるようにすると、レビュー時の混乱を防げる。
+- **TDD の red verification step skip 条件**: red 段階の `xcodebuild test` 実行を skip 可能なのは、(a) コンパイルエラー確定 (型 / メソッド未定義で `BUILD FAILED` 必至)、(b) 直接的な期待値差 (`XCTAssertEqual` の数値ずれが impl 不在で必ず起きる) の場合のみ。skip した場合は commit メッセージと PR description の `## Plan からの逸脱` に skip 理由を明記して reviewer が追えるようにする。behavioral edge case (observer 経路、race condition、`setLoading` 副作用などタイミング依存) を試す red は **必ず実行** して fail を確認する。スキップすると「green になったが期待した経路ではなかった」を見逃す。
 
 ## プロジェクト固有制約 (Xcode 16+)
 - このプロジェクトの Xcode project は `PBXFileSystemSynchronizedRootGroup` を採用しているため、新規 `.swift` を所定ディレクトリに置くだけで自動認識され `project.pbxproj` 編集は不要。Plan 作成や Task 見積もりで「pbxproj 編集ステップ」を blocker 扱いしない。
@@ -98,6 +99,7 @@ Note: Optional for new features or small additions. You can proceed directly to 
 - `NotificationManager.shared.notifyHelpRecordUpdated()` (および類似の data-update 通知) を呼ぶと、observer 側で `loadData()` → `setLoading(true)` が走り、その副作用で `errorMessage` がクリアされる (`BaseViewModel.setLoading` の挙動: `if loading { errorMessage = nil }`)。
 - このため write 操作が **0 件しか成功しなかった場合に notify を呼ぶと、直前に `setError(...)` でセットした errorMessage が消えてしまう**。write が 1 件以上成功したときだけ notify する設計にする (`if !successIds.isEmpty { notify() }`)。
 - `successMessage` は `setLoading(true)` で消えないので、success のみ気にする既存パターン (`recordHelp` 等) では問題化しなかった。一括 / batch 系の新規実装で踏みやすい罠。
+- **reload trigger は data-lifecycle の入り口に集約する**: read-only な derived state (counts, summaries 等) を新規追加する場合、reload trigger は `loadData` 末尾 / `selectXxx` 末尾 / 依存値の `onChange` / 既存 `notifyXxxUpdated` observer 経路 にだけ置く。`recordXxx` / `recordBulkXxx` などの write 操作内で直接 reload を呼ばない。reload を 1 経路に統一することで、上記の `setLoading(true)` による errorMessage クリアの罠を踏まず、同一データの重複 fetch も避けられる (#73 で確立)。
 
 ## Steering Configuration
 
