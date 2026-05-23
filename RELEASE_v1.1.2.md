@@ -159,18 +159,19 @@ If you would like to verify the English localization, please run the app with sy
 >
 > - 「一括モード」→ `Bulk Mode` (UI 表示)
 > - 「すでに %lld 件記録済み」→ `Already recorded %lld time(s)` (one/other plural)
+> - ⚠️ **絵文字は使用不可** (Issue #85): ASC 英語ロケーションは Description / What's New の絵文字を automated reject する。本 § のテキストは全て plain text。`§ 2.1` の ja draft は絵文字維持で OK (実績あり)。
 
 ```text
-Version 1.1.2 makes recording chores faster and more reliable ✨
+Version 1.1.2 makes recording chores faster and more reliable.
 
-✨ New
+New
 - Added Bulk Mode — pick multiple chores and record them in one go. Great for logging chores in batches after the kids are done.
 - When a chore is already recorded for the same day, the task card now shows an "Already recorded N time(s)" badge so it's easy to avoid double-logging.
 
-🐛 Bug fixes
+Bug fixes
 - Fixed an issue where the chore history and monthly history sheets could appear empty the first time they were opened.
 
-🌍 Improved English support
+Improved English support
 - Added English translations for alert messages, the default help task names, and count phrases (one / other variants), so the app feels more natural in English.
 
 Thank you for using Otetsudai Coin — we hope you keep enjoying it with your family!

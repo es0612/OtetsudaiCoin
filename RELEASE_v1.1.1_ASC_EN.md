@@ -5,6 +5,7 @@ This document collects the **English-locale text drafts** for the v1.1.1 ASC lis
 - **Target audience (per #50 decision, 2026-05-23)**: Japanese-speaking families abroad / bilingual households. The app's currency is fixed to ¥ (JPY), so the English copy intentionally signals "Japanese-speaking household tool" rather than positioning as a generic English-market chores app.
 - **Ship gate**: App build is unaffected; only ASC localization metadata is added. The English locale can be saved on ASC without resubmitting v1.1.1.
 - **Scope**: Sections 1.2 / 1.3 / 1.4 / 1.6 from #50 Phase 1, plus App Name / Subtitle that ASC requires when adding a new locale. Section 1.5 (English-locale screenshots) is deferred to a follow-up using [[ios-simulator-locale-testing]].
+- **No emojis in the en locale** (Issue #85): ASC's automated review rejects emojis in the English Description / What's New text fields. All en drafts in this document use plain text only. The Japanese locale (`RELEASE_v1.1.1.md`) is unaffected and keeps its emoji conventions.
 
 ## 1. App Name (アプリ名)
 
@@ -55,18 +56,18 @@ ASC field: **Description** — up to 4000 characters.
 A fun way to support your child's chores at home — together as a family.
 
 [Main features]
-✅ Record chores with a single tap and earn coins
-✅ Register multiple children, each with a personal theme color
-✅ Customize the list of chores to match your home
-✅ Monthly history view with automatic allowance calculation
-✅ Monthly Retrospective screen — celebrate effort as a family
-✅ Backdate entries when you forget to log right away
+- Record chores with a single tap and earn coins
+- Register multiple children, each with a personal theme color
+- Customize the list of chores to match your home
+- Monthly history view with automatic allowance calculation
+- Monthly Retrospective screen — celebrate effort as a family
+- Backdate entries when you forget to log right away
 
 [What makes it different]
-🎯 Simple, child-friendly design
-🏆 Coin animations and sound effects to keep kids motivated
-📱 Fully offline — no internet connection required
-🔒 All data stays on your device only
+- Simple, child-friendly design
+- Coin animations and sound effects to keep kids motivated
+- Fully offline — no internet connection required
+- All data stays on your device only
 
 Note for international users:
 Otetsudai Coin is designed primarily for Japanese-speaking families.
@@ -82,7 +83,7 @@ Help your child build great habits and bring your family closer — one chore at
 
 - **Currency disclosure** is placed near the end so the value props land first. Trade-off: moving it to the top reduces "wrong-currency" review complaints but pushes the value props down. PO call.
 - Uses the App Name decided in § 1 (`Otetsudai Coin`). Swap if § 1 changes.
-- Emojis are kept — the Japanese listing uses them and they render fine in both locales.
+- **Emojis are removed in the en locale** — ASC's automated check rejects emojis in the English Description / What's New text (Issue #85, confirmed 2026-05-23). The Japanese locale still accepts emojis, so `RELEASE_v1.1.1.md` の日本語 draft は触らない。
 
 ## 4. Keywords (キーワード)
 
@@ -127,23 +128,23 @@ Source: Japanese **Draft A — emoji-friendly version** from RELEASE_v1.1.1.md �
 ASC field: **What's New in This Version** — up to 4000 characters. The first ~170 characters show in the App Store update tab before the "more" toggle, so the value summary is up top.
 
 ```text
-Version 1.1.1 brings a more stable home screen and improved English support ✨
+Version 1.1.1 brings a more stable home screen and improved English support.
 
-🐛 Bug fixes
+Bug fixes
 - Fixed an issue where your children's cards and stats sometimes failed to appear the first time the Home screen opened.
 - Fixed the "Version" row on the Settings screen so it now shows the current version (1.1.1) correctly instead of an outdated number.
 
-🌍 Improved English support
+Improved English support
 - Tab labels (Home / Record / Settings), the Retrospective screen, each section of the Settings screen, notification settings, and the body text of reminder notifications now display naturally in English.
 
 Thank you for using Otetsudai Coin — we hope you keep enjoying it together with your family!
 ```
 
-Leading summary line is **77 chars** — fits comfortably in the App Store "before more" window (~170 chars).
+Leading summary line is **76 chars** — fits comfortably in the App Store "before more" window (~170 chars).
 
 ### Notes / review points
 
-- "Improved English support" keeps the same emoji and ordering as the Japanese version (🐛 then 🌍), so the update note feels parallel across locales.
+- **Section headers are plain text (no emojis)** in the en locale per Issue #85. The Japanese version keeps the 🐛 / 🌍 emoji ordering; the en draft mirrors only the ordering, not the emojis.
 - Mentioning `1.1.1` in the Settings bug fix mirrors the Japanese text and helps users verify after updating.
 - For v1.1.2 onward, follow the **Phase 2** pattern in #50: append a `## What's New (English)` section to the new `RELEASE_v1.1.2.md` and run the same draft → spot-review → ASC paste flow.
 
