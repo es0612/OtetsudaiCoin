@@ -97,6 +97,11 @@ Note: Optional for new features or small additions. You can proceed directly to 
 - 詳細は [[xcstrings-plural-variations]] skill にまとめている。複数キー追加時は [[xcstrings-bulk-update]] と併用。
 - count=1 のときに `one` バリアントが効くことを unit test (`XCTAssertTrue(message.contains("1"))` 程度でよい) で 1 件担保しておくと runtime bypass の regression を catch できる。
 
+## ASC 提出時の落とし穴 (リリースで踏んだ learning)
+- **Age Rating の「広告」=「はい」設定が必須** (Issue #86, v1.1.2 提出時 2026-05-23): AdMob (Google Mobile Ads) を統合した v1.1.0 以降は、ASC → App 情報 → 年齢制限指定で「広告」を必ず「はい」に設定する。No のままだと automated review が SDK 統合を検知して reject する。metadata-only fix なので build 再アップロードは不要、ASC UI で切替えるのみ。リリース手順書 (`RELEASE_vX.Y.Z.md`) の提出前チェックリストに項目化済み。
+- **英語ロケーションの Description / What's New には絵文字を入れない** (Issue #85, 2026-05-23): ASC は en locale の text フィールドの絵文字を弾く (公式ドキュメント未明記の挙動)。日本語ロケーションでは絵文字 OK (v1.1.1 ja What's New で ✨🐛🌍 を公開実績あり)。en draft は plain text 見出し + `- ` ハイフン箇条書きで統一する。`RELEASE_vX.Y.Z.md` § What's New (en) / `RELEASE_vX.Y.Z_ASC_EN.md` 系の draft section に "plain text only, no emojis" 注意書きを残す運用とする。
+- スキル: [[release-version-bump-check]] が version bump + Age Rating + en 絵文字 NG をまとめてカバー。リリース PR 作成時に必ず invoke する。
+
 ## NotificationManager 発火と error message の干渉
 - `NotificationManager.shared.notifyHelpRecordUpdated()` (および類似の data-update 通知) を呼ぶと、observer 側で `loadData()` → `setLoading(true)` が走り、その副作用で `errorMessage` がクリアされる (`BaseViewModel.setLoading` の挙動: `if loading { errorMessage = nil }`)。
 - このため write 操作が **0 件しか成功しなかった場合に notify を呼ぶと、直前に `setError(...)` でセットした errorMessage が消えてしまう**。write が 1 件以上成功したときだけ notify する設計にする (`if !successIds.isEmpty { notify() }`)。
