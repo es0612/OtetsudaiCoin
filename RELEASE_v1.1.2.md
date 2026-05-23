@@ -41,7 +41,7 @@
 | プロモーションテキスト             | v1.1.1 のものを流用可、または § 2.2 のドラフトを使用                                        |
 | 説明文                            | v1.1.1 から流用 (`RELEASE_v1.1.1_ASC_EN.md` § 3 の en も同様)                                |
 | キーワード                        | 「おてつだい,お小遣い,記録,子供,家事,習慣,しつけ,家族」 (変更なし、en も § 4 を継続)        |
-| サポート URL                      | https://es0612.github.io/OtetsudaiCoin/                                                  |
+| サポート URL                      | <https://es0612.github.io/OtetsudaiCoin/>                                                |
 | マーケティング URL                | (任意、未設定で可)                                                                        |
 | ライセンス契約                     | (Apple 標準を使用)                                                                       |
 | **このバージョンの新機能 (ja)**     | **§ 2.1 のドラフトを使用**                                                                |
@@ -82,7 +82,7 @@ v1.1.1 と同じ。「使用しません (exempt)」を選択。
 
 > ASC では 4000 字制限。最初の 170 字程度が App Store の更新欄で「もっと見る」前に表示されるため、要点を冒頭に配置。
 
-**ドラフト A — 絵文字付き親しみ版 (推奨)**
+#### ドラフト A — 絵文字付き親しみ版 (推奨)
 
 ```text
 バージョン 1.1.2 では、お手伝い記録をもっと素早く、もっと安心して使えるようにアップデートしました ✨
@@ -100,7 +100,7 @@ v1.1.1 と同じ。「使用しません (exempt)」を選択。
 引き続きおてつだいコインを楽しんでお使いください！
 ```
 
-**ドラフト B — シンプル箇条書き版**
+#### ドラフト B — シンプル箇条書き版
 
 ```text
 バージョン 1.1.2 の更新内容:
@@ -115,9 +115,21 @@ v1.1.1 と同じ。「使用しません (exempt)」を選択。
 
 v1.1.1 のものを流用可。差し替える場合は以下のドラフト。
 
+**ja**:
+
 ```text
 お手伝いを複数選んで一括で記録できる「一括モード」を追加。同じ日の重複記録も視覚的に防げるようになり、お子様の頑張りをもっとスムーズに残せます。
 ```
+
+**en** (v1.1.2 用、`RELEASE_v1.1.1_ASC_EN.md` § 5 の v1.1.1 版から差し替える場合):
+
+```text
+New Bulk Mode lets you record several chores at once. Same-day duplicates now show an "already recorded" hint, so logging chores stays effortless.
+```
+
+Character count: **146 / 170 chars**. 24 chars headroom.
+
+> en promo は ASC submission 後でも編集可。v1.1.1 版 (`Stable home screen + English UI support…`) をそのまま継続する選択肢も有効 — 直近の v1.1.1 features が新規 / 復帰ユーザーには未だ訴求になるため。PO 判断。
 
 ### 2.3 説明文 (最新化案、必須ではない)
 
@@ -139,6 +151,7 @@ If you would like to verify the English localization, please run the app with sy
 
 > Phase 2 of Issue #50: "v1.1.2 以降は What's New 英訳をリリース手順に組み込む" 方針の初実装。
 > 用語は xcstrings (`Localizable.xcstrings`) の en 訳と一致させること。今回の確認結果:
+>
 > - 「一括モード」→ `Bulk Mode` (UI 表示)
 > - 「すでに %lld 件記録済み」→ `Already recorded %lld time(s)` (one/other plural)
 
@@ -166,7 +179,7 @@ Thank you for using Otetsudai Coin — we hope you keep enjoying it with your fa
 - [x] **`MARKETING_VERSION` が `1.1.2` (前回承認済みの `1.1.1` より高い) であること** ← ITMS-90062 対策
 - [x] **`CURRENT_PROJECT_VERSION` が `53` (前回アップロード Build 52 より高い) であること** ← ITMS-90186 / 90478 対策
 - [x] `release-version-bump-check.yml` (#55 で導入) が緑になっていること
-- [ ] ユニットテストが green (`xcodebuild test -scheme OtetsudaiCoin`)
+- [x] ユニットテストが green (`xcodebuild test -scheme OtetsudaiCoin -destination 'platform=iOS Simulator,name=iPhone 17'` を 2026-05-23 にローカル実行、全件 PASS / 0 failures)
 - [ ] iOS シミュレータで ja/en 両ロケール起動を目視確認
 
 ### App Store Connect
