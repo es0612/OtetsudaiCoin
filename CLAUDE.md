@@ -54,12 +54,14 @@ Note: Optional for new features or small additions. You can proceed directly to 
 - **PR 作成の前**に `gh pr list --head <branch>` で同一ブランチの既存 PR を確認する。並列セッションが先に push&PR を作っているケースがあり、二重作成や test plan 上書きを避ける。
 - **新ブランチを切る前 / feature branch を作業し直す前**に `git fetch origin` を走らせ、`origin/main` を起点にする。ローカル `main` が遅れていると古い起点でブランチを切ってしまい、後で rebase / cherry-pick の手戻りになる。
 - **同一ファイル (CLAUDE.md など) を複数の feature branch から並行更新する場合**は、後発 PR を先発 PR の merge 後に `origin/main` から派生させる。同じ insertion point に並行追記すると conflict で手戻る。先発 PR がまだ open なら、後発の追記は先発に rebase する or 先発 merge 完了まで待つ。並行 session で同じ文書を触る予定があるときは、PR 作成前に `gh pr list --search "CLAUDE.md in:title"` 等で先行 PR の有無を確認する。
+- **SessionStart hook が生成する `pending-reflection.md` の処理**: 前 session の feature branch (PR merge 済み) に checked-out したまま新 session を開始すると、hook が `pending-reflection.md` を merged branch 上に置いてしまう。そのまま commit しても main には届かないので、SessionStart 直後の最初のステップに `gh pr view <前 session の PR> --json mergedAt,state` で merge 状態確認を組み込み、merged だった場合は **stash → `git fetch origin && git checkout main && git merge --ff-only` → docs 専用ブランチ作成 → stash pop → 独立 PR** の流れに切替える。merged branch 上で hook 出力を編集し始めない。
 
 ## Subagent / Task 実行ルール
 - subagent の存在意義は「context 隔離」。コード変更を伴う Task は subagent、verification / test 実行のみで成果物が無い Task は main 実行でも可。subagent 接続エラー時に verification-only なら即時 main 実行へフォールバックする。
 
 ## daily-issue-triage 運用ルール
 - triage 開始時に `gh issue list` を取得したら、**各 issue body が参照する spin-off / 実装 PR の `mergedAt` をまとめて先に確認する**。手順は (a) `gh issue list` で全 open issue を取得 → (b) body 内の `#NNN` PR 参照を抽出 → (c) `gh pr view <PR> --json mergedAt,state` で merge 状況を一括確認。本体機能が PR で merge 済みなのに close 漏れしている issue (例: #69 が PR #72 で実質完了していたケース) を triage 表の集約段階で「対応不要 (close のみ)」に振り分けられ、調査スコープ判断時間を節約できる。
+- **全 open issue が "Blocked by external" (デザイン判断・リリース戦略待ち等) だった場合の出口戦略**: コード着手 0 件で triage を終了する代わりに、戦略判断系 issue を 1 件選び `superpowers:brainstorming` で結論をまとめ、**writing-plans に hand off せず issue body 更新 (もしくは comment) で skill を完了する** flow に切替える。brainstorming の terminal artifact は通常 plan だが、ゴールが「決定の記録」だけの場合は issue body 更新がそれに該当する。skill 適応理由 (writing-plans を呼ばない判断) を user-facing に明言してから入ると、reviewer が flow 逸脱を追える。
 
 ## iOS テスト flake 切り分け
 - 並列 simulator run で UI テスト・load 系テストが flaky に落ちることがある。regression と断定する前に該当テストを `xcodebuild test -only-testing:` で isolated 再実行し、PASS すれば parallel flake として扱う（本修正と無関係な既知問題として切り分け可能）。
