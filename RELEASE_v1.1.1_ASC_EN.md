@@ -161,7 +161,7 @@ This is the work the **author/PO must do in the ASC UI** to finish Phase 1 (#50 
 - [ ] Paste § 6 (What's New for v1.1.1) into the new English locale
 - [ ] Save the English locale (no version resubmission needed — locale add is metadata)
 - [ ] Capture English-locale screenshots and upload to ASC
-  - Source PNGs (撮影済み、Issue #50 Phase 1 § 1.5): 
+  - Source PNGs (撮影済み、Issue #50 Phase 1 § 1.5):
     - [`docs/screenshots/asc/v1.1.x/en/01-home.png`](./docs/screenshots/asc/v1.1.x/en/01-home.png)
     - [`docs/screenshots/asc/v1.1.x/en/02-record.png`](./docs/screenshots/asc/v1.1.x/en/02-record.png)
     - [`docs/screenshots/asc/v1.1.x/en/03-settings.png`](./docs/screenshots/asc/v1.1.x/en/03-settings.png)
