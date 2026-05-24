@@ -83,6 +83,7 @@ Note: Optional for new features or small additions. You can proceed directly to 
 ## Simulator 視覚検証の限界
 - `xcrun simctl` には `tap` / `gesture` / `type` が存在しないため、CLI から UI を操作できない。`ios-simulator-app-verification` skill で UserDefaults / launch args 経由で state を pre-set してから launch するパターンを使う。
 - **TabView の選択 tab が `@State private var selectedTab = 0` (永続化なし) の場合、simctl 経由では他 tab へ切替不可**。RecordView 等 sub-tab の視覚検証が必要なら、(a) `@AppStorage` 化して `simctl spawn defaults write` で切替えるか、(b) XCUITest で tab tap シミュレートに切替える判断を **plan 段階で** しておく。実行中に気付くと verification が部分的になり、PR description で「手動確認推奨」と明示する妥協が必要になる (#74 PR #77 で発生)。
+- **(b) XCUITest 解の実績** (#88 ASC スクショ撮影): tab は `app.tabBars.buttons.element(boundBy:)` で位置参照すれば locale-agnostic に切替可能。スクショ取得は `XCUIScreen.main.screenshot()` を `XCTAttachment` (`lifetime = .keepAlways`) で添付し `xcrun xcresulttool export attachments` で xcresult から抽出 (Xcode 16+)。`scripts/capture-asc-screenshots.sh` で全自動化済み (下記「ASC スクショ撮影」セクション参照)。
 
 ## SwiftUI View テスト戦略
 - ViewInspector は NavigationStack + ZStack + UIViewRepresentable (BannerAdView) + Material の組み合わせを深く traverse できない既知制約がある。`find(viewWithAccessibilityIdentifier:)` / `find(text:)` / `find(ViewType.X.self)` いずれも該当 view へ到達不可、`"Search did not find a match. Possible blockers: BannerAdView, Material, AccessibilityImageLabel"` で fail する。
@@ -97,10 +98,25 @@ Note: Optional for new features or small additions. You can proceed directly to 
 - 詳細は [[xcstrings-plural-variations]] skill にまとめている。複数キー追加時は [[xcstrings-bulk-update]] と併用。
 - count=1 のときに `one` バリアントが効くことを unit test (`XCTAssertTrue(message.contains("1"))` 程度でよい) で 1 件担保しておくと runtime bypass の regression を catch できる。
 
+## データ層 i18n の落とし穴 (Core Data 保存値)
+- `HelpTask.defaultTasks()` のように **Core Data に save される文字列** は、xcstrings に翻訳を追加するだけでは英訳されない (save 時の locale で確定し DB に persist される)。
+- 発見ケース: en ロケで起動しても DB 保存済みの ja 名「下の子の面倒を見る」がそのまま表示 (PR #88 の `docs/screenshots/asc/v1.1.x/en/02-record.png`、Issue #89 #1)。
+- 対応案: (a) name を xcstrings key 化して UI 表示時に `String(localized:)` 経由で読み替え、(b) 既存 ja DB 値の migration (起動時 1 回 only)。
+- 関連: UI 層 i18n の [[xcstrings-bulk-update]] と区別。サンプル生成 / Seeder / user-generated 等の data layer は別観点で扱う。
+
 ## ASC 提出時の落とし穴 (リリースで踏んだ learning)
 - **Age Rating の「広告」=「はい」設定が必須** (Issue #86, v1.1.2 提出時 2026-05-23): AdMob (Google Mobile Ads) を統合した v1.1.0 以降は、ASC → App 情報 → 年齢制限指定で「広告」を必ず「はい」に設定する。No のままだと automated review が SDK 統合を検知して reject する。metadata-only fix なので build 再アップロードは不要、ASC UI で切替えるのみ。リリース手順書 (`RELEASE_vX.Y.Z.md`) の提出前チェックリストに項目化済み。
 - **英語ロケーションの Description / What's New には絵文字を入れない** (Issue #85, 2026-05-23): ASC は en locale の text フィールドの絵文字を弾く (公式ドキュメント未明記の挙動)。日本語ロケーションでは絵文字 OK (v1.1.1 ja What's New で ✨🐛🌍 を公開実績あり)。en draft は plain text 見出し + `- ` ハイフン箇条書きで統一する。`RELEASE_vX.Y.Z.md` § What's New (en) / `RELEASE_vX.Y.Z_ASC_EN.md` 系の draft section に "plain text only, no emojis" 注意書きを残す運用とする。
 - スキル: [[release-version-bump-check]] が version bump + Age Rating + en 絵文字 NG をまとめてカバー。リリース PR 作成時に必ず invoke する。
+
+## ASC スクショ撮影 (v1.1.x 用 / Issue #50 PR #88 で確立)
+- 撮影実行: `./scripts/capture-asc-screenshots.sh` (1 コマンド完結、ja + en × 3 tab = 6 PNG を `docs/screenshots/asc/v1.1.x/{ja,en}/` に配置)。
+- 仕組み: `ASCScreenshotUITests` (`app/OtetsudaiCoinUITests/`) が locale launch args (`-AppleLanguages '(en)'` / `'(ja)'`) + tab 切替 (`element(boundBy:)` で locale-agnostic) + `XCUIScreen.main.screenshot()` を `XCTAttachment` (`.keepAlways`) で添付 → `xcrun xcresulttool export attachments` で xcresult から抽出 → `jq` で `manifest.json` parse + リネーム配置。
+- ASC 仕様で `XCUIScreen.main.screenshot()` (status bar 含む full screen) を使う。`app.screenshot()` だと status bar 抜けで解像度不足になり ASC reject の可能性。
+- Simulator は **iPhone 17 Pro Max** (6.7-inch、ASC 最大サイズ device) を destination 指定。`scripts/capture-asc-screenshots.sh` 内に hardcoded。
+- `--uitesting` launch arg で `TutorialService.checkFirstLaunch()` が skip され (TutorialService.swift:25-30)、`ContentView.setupInitialData()` で太郎 / 花子 sample data が seed される。
+- 再撮影だけなら repo 内 script を実行する。spec/plan は不要。撮影出力は `docs/screenshots/asc/v1.1.x/{ja,en}/` を上書き。
+- `scripts/capture-asc-screenshots.sh` は `-project "app/OtetsudaiCoin.xcodeproj"` を指定している (Xcode project が `app/` 配下にあるため repo root 実行で動作する)。同様の bash CLI script を追加する場合も同じ convention に揃える (`scripts/benchmark-tests.sh` も同パターン)。
 
 ## NotificationManager 発火と error message の干渉
 - `NotificationManager.shared.notifyHelpRecordUpdated()` (および類似の data-update 通知) を呼ぶと、observer 側で `loadData()` → `setLoading(true)` が走り、その副作用で `errorMessage` がクリアされる (`BaseViewModel.setLoading` の挙動: `if loading { errorMessage = nil }`)。
