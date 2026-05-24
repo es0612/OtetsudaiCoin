@@ -4,6 +4,10 @@
 //
 //  Captures ASC localization screenshots (ja + en) for Issue #50 Phase 1 § 1.5.
 //
+//  Assumes --uitesting keeps onboarding skipped on every launch — see
+//  TutorialService.swift:25-30. If onboarding flow changes, this file may
+//  capture leftover tutorial UI instead of the intended tabs.
+//
 
 import XCTest
 
@@ -13,6 +17,10 @@ final class ASCScreenshotUITests: XCTestCase {
         continueAfterFailure = false
     }
 
+    // NOTE: XCTest runs tests alphabetically: testCaptureScreenshots_en()
+    // executes BEFORE testCaptureScreenshots_ja(). Both are isolated via
+    // per-launch process args (XCUIApplication.launch() always cold-launches),
+    // so order is irrelevant for correctness, but be aware when reading logs.
     func testCaptureScreenshots_ja() throws {
         captureScreenshots(language: "ja", locale: "ja_JP")
     }
@@ -30,8 +38,9 @@ final class ASCScreenshotUITests: XCTestCase {
         ]
         app.launch()
 
-        // SplashScreenView は 2.5 秒 + フェードアウト 0.5 秒 で消える (SplashScreenView.swift:124)
-        // 余裕を持って 4 秒待機し、tab bar 出現も待つ
+        // Splash fade absorb (SplashScreenView.swift:124 = 2.5s + 0.5s fade).
+        // DO NOT shorten — waiting only for tab bar `exists` can race the fade
+        // animation on slower CI machines; the 4s baseline covers fade completion.
         sleep(4)
         let firstTab = app.tabBars.buttons.element(boundBy: 0)
         XCTAssertTrue(
