@@ -234,6 +234,9 @@ struct SettingsView: View {
                     }
                 }
             }
+            .safeAreaInset(edge: .bottom) {
+                Color.clear.frame(height: 16)
+            }
             .navigationTitle("設定")
             .refreshable {
                 await viewModel.loadChildren()
