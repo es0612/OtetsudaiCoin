@@ -63,6 +63,10 @@ Note: Optional for new features or small additions. You can proceed directly to 
 - triage 開始時に `gh issue list` を取得したら、**各 issue body が参照する spin-off / 実装 PR の `mergedAt` をまとめて先に確認する**。手順は (a) `gh issue list` で全 open issue を取得 → (b) body 内の `#NNN` PR 参照を抽出 → (c) `gh pr view <PR> --json mergedAt,state` で merge 状況を一括確認。本体機能が PR で merge 済みなのに close 漏れしている issue (例: #69 が PR #72 で実質完了していたケース) を triage 表の集約段階で「対応不要 (close のみ)」に振り分けられ、調査スコープ判断時間を節約できる。
 - **全 open issue が "Blocked by external" (デザイン判断・リリース戦略待ち等) だった場合の出口戦略**: コード着手 0 件で triage を終了する代わりに、戦略判断系 issue を 1 件選び `superpowers:brainstorming` で結論をまとめ、**writing-plans に hand off せず issue body 更新 (もしくは comment) で skill を完了する** flow に切替える。brainstorming の terminal artifact は通常 plan だが、ゴールが「決定の記録」だけの場合は issue body 更新がそれに該当する。skill 適応理由 (writing-plans を呼ばない判断) を user-facing に明言してから入ると、reviewer が flow 逸脱を追える。
 
+## Verification / Visual review 運用ルール
+- **Out-of-scope finding は本 PR で fix しない**: visual verification (screenshot / output 目視) で本来スコープ外の bug / regression を発見した場合、その PR 内で fix しようとしない。代わりに (a) PR description に finding を inline 記載 + (b) PR merge 後に **epic issue** を立てて優先順位 / target release version (例: #1 → v1.2 / #2-#4 → v1.1.3) を body に含める運用にする。本体 PR のスコープを clean に保ちつつ findings を triage 可能な形で残せる (#88 → Issue #89 で確立)。
+- **User 介在の verification step (画像目視 等) は assistant が一次目視してから判断仰ぐ**: visual review を user に丸投げせず、assistant 側で全 artifact を読んで所見 (内訳 / 残課題) を表でまとめた上で「この内容で OK ですか / 追加課題ありますか」と AskUserQuestion する。user の判断負荷が下がり、out-of-scope finding の検出確度が上がる (#88 で i18n 漏れ 4 件発見の起点となった flow)。
+
 ## iOS テスト flake 切り分け
 - 並列 simulator run で UI テスト・load 系テストが flaky に落ちることがある。regression と断定する前に該当テストを `xcodebuild test -only-testing:` で isolated 再実行し、PASS すれば parallel flake として扱う（本修正と無関係な既知問題として切り分け可能）。
 
@@ -76,6 +80,7 @@ Note: Optional for new features or small additions. You can proceed directly to 
 - spec 作成時のテストファイル存在確認は、`ls Presentation/ViewModels/` のような浅い listing ではなく `find . -name "X*Tests.swift" -not -path "*build*"` で全階層から探す。サブディレクトリ前提で見落とすと spec の前提が崩れて自己修正 commit が必要になる。
 - **Plan 実行中の user 応答による deviation の取り扱い**: writing-plans 中の AskUserQuestion で plan を reverse / scope 縮小した場合 (例: BannerAdView 移動 → 維持、追加 test 3 件 → 1 件)、plan 本体も書き換えた上で PR description の `## Plan からの逸脱` 節に deviation 理由を明記する。reviewer が「なぜ plan と差分があるのか」を追えるようにすると、レビュー時の混乱を防げる。
 - **TDD の red verification step skip 条件**: red 段階の `xcodebuild test` 実行を skip 可能なのは、(a) コンパイルエラー確定 (型 / メソッド未定義で `BUILD FAILED` 必至)、(b) 直接的な期待値差 (`XCTAssertEqual` の数値ずれが impl 不在で必ず起きる) の場合のみ。skip した場合は commit メッセージと PR description の `## Plan からの逸脱` に skip 理由を明記して reviewer が追えるようにする。behavioral edge case (observer 経路、race condition、`setLoading` 副作用などタイミング依存) を試す red は **必ず実行** して fail を確認する。スキップすると「green になったが期待した経路ではなかった」を見逃す。
+- **Plan の Task に global skill (`~/.claude/skills/`) 更新を含めない**: Plan / spec 作成時に `git ls-files | grep .claude/skills/` で対象 skill が project 内 (`.claude/skills/`) か global (`~/.claude/skills/`) かを確認する。global skill 更新を Task に含めると **project repo の `git add` 対象外**になり、Task 実行時に「Plan に書いたのに commit に入らない」逸脱が必発する (前 session で発生)。global skill 更新が必要な場合は別 step に分離し、PR description の `## Plan からの逸脱` 節に skill 更新内容を明記する運用にする。逸脱を事後説明するのではなく、Plan 設計時に分岐させる。
 
 ## プロジェクト固有制約 (Xcode 16+)
 - このプロジェクトの Xcode project は `PBXFileSystemSynchronizedRootGroup` を採用しているため、新規 `.swift` を所定ディレクトリに置くだけで自動認識され `project.pbxproj` 編集は不要。Plan 作成や Task 見積もりで「pbxproj 編集ステップ」を blocker 扱いしない。
