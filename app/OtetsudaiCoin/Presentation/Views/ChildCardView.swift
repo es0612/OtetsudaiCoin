@@ -41,7 +41,7 @@ struct ChildCardView: View {
                 }
             }
             .padding()
-            .frame(width: 100)
+            .frame(width: 120)
             .background(
                 RoundedRectangle(cornerRadius: 12)
                     .fill(isSelected ? themeColor.opacity(0.1) : Color.gray.opacity(0.05))

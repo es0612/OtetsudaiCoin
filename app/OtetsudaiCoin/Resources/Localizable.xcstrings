@@ -2054,6 +2054,16 @@
         }
       }
     },
+    "記録日" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recorded date"
+          }
+        }
+      }
+    },
     "記録日時" : {
       "localizations" : {
         "en" : {
