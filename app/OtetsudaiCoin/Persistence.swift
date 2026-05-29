@@ -27,12 +27,21 @@ enum PersistenceError: LocalizedError {
 
 @MainActor
 struct PersistenceController {
-    static let shared = PersistenceController()
-    
-    private static let logger = Logger(subsystem: "com.asapapalab.OtetsudaiCoin", category: "CoreData")
-    
+    // `shared` を @MainActor 隔離のままにすると nonisolated な init の default 引数
+    // (`persistenceController: PersistenceController = .shared`) から同期参照できず
+    // "main actor-isolated static property 'shared' can not be referenced from a
+    // nonisolated context" 警告 (Swift 6 では error) を 3 つの CoreData リポジトリで出す。
+    // 型は @MainActor 由来で Sendable なので `shared` を nonisolated 化すれば解消できる
+    // (compiler も "nonisolated(unsafe) is unnecessary for Sendable type" と指摘)。
+    // それには init を nonisolated 化する必要があり、init が参照する logger / errorPublisher
+    // も併せて隔離解除する (logger=Sendable で平 nonisolated、errorPublisher=非Sendable で
+    // nonisolated(unsafe))。いずれも単一インスタンスの不変 `let` で挙動は不変 (#90)。
+    nonisolated static let shared = PersistenceController()
+
+    private nonisolated static let logger = Logger(subsystem: "com.asapapalab.OtetsudaiCoin", category: "CoreData")
+
     /// 永続化エラーを通知するPublisher
-    static let errorPublisher = PassthroughSubject<PersistenceError, Never>()
+    nonisolated(unsafe) static let errorPublisher = PassthroughSubject<PersistenceError, Never>()
 
     static let preview: PersistenceController = {
         let result = PersistenceController(inMemory: true)
@@ -53,7 +62,7 @@ struct PersistenceController {
 
     let container: NSPersistentContainer
 
-    init(inMemory: Bool = false) {
+    nonisolated init(inMemory: Bool = false) {
         container = NSPersistentContainer(name: "OtetsudaiCoin")
         if inMemory {
             guard let storeDescription = container.persistentStoreDescriptions.first else {
