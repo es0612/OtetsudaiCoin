@@ -74,9 +74,12 @@ Note: Optional for new features or small additions. You can proceed directly to 
 ## CI スクリプト開発ルール
 - bash 系 CI スクリプトは push 前にローカルで全シナリオ (pass / fail / enforce / info などのモード分岐すべて) を実行し網羅検証する。本番 GitHub Actions で初めて挙動を確認するスタイルは 1 サイクル数分 × 修正回数のロスになる。
 - リリース系の自動チェック CI は、(a) `paths` フィルタで対象ファイル変更時のみ起動、(b) PR ラベル / タイトルで enforce (失敗で blocking) と info (警告のみ) を二段階に切り替える設計にすると、false positive と CI 時間を両方抑制できる。
+- **bash script を検証するときは本番と同じ shebang (`/bin/bash`) で実行する**: Bash tool は zsh で動くため、`[[ ... =~ ... ]]` のキャプチャは `$BASH_REMATCH` ではなく zsh の `$match` に入り、`$BASH_REMATCH` は**無言で空**になって誤診断を招く (#96 で BASH_REMATCH を真因と誤認しかけた起点)。offline 検証は `bash script.sh` か実行ビット経由で流し、`sh -c` / 素の zsh で叩かない。
+- **bash script の外部バイナリ解決は `--version` のライブ実行で確認する (`-x` チェックでは不十分)**: 破損した asdf shim (`~/.asdf/shims/jq` → 存在しない libexec) は実行ビットが立つので `-x` を通過するが、実呼び出しで exit 126 で落ちる。PATH 先頭の shim を盲信せず、候補を `--version` で実行確認しながら選び、`JQ` 等の env override も用意する (#96 の `resolve_jq` パターン)。
 
 ## エラー / reject 診断の初動ルール
 - **reject email / CI failure log を受け取ったら、原因仮説を立てる前に固有文言を verbatim で抜き出す**: ITMS コードやエラーキー (`previously approved version [X.Y.Z]`, `train ... closed`, `must contain a higher version`、CI なら exit code + 該当 step 名 + assertion 文言) を先に quote して並べてから診断を始める。実例: v1.1.3 の ITMS reject で initial diagnosis を「reject 後の再 upload で bump 忘れ」と書き始めた後、reject email を再読して `previously approved version [1.1.2]` の文言から「**approved 後の** next-version bump 忘れ」が正解と判明し、CLAUDE.md / PR description を書き直す手戻りが発生した (PR #98)。key string を先に固定してから原因仮説を組み立てると、初診ズレによる成果物の書き直しを防げる。ASC reject に限らず CI / runtime error の診断全般に適用する。
+- **issue 本文の「原因(推定)」「対応案」を鵜呑みにせず、疑われた箇所を `git blame` + 実再現で検証してから fix する**: 起票時の診断はしばしば誤り。#96 は「BASH_REMATCH が zsh で動かない」を疑ったが真因は bare `jq` の asdf shim 破損 (red herring)、#97 は「`sleep 2` 不足 → 4 に増やせ」と書かれていたが `git blame` で sleep は初版から `4` = 提案 fix は適用済みかつ無効と判明 (真因は splash crossfade の cold/warm race)。**1 PR で 2 件踏んだ**。issue の提案 fix を貼る前に、(a) 疑われた行を `git blame` で履歴確認、(b) 失敗をローカル再現、の 2 点を必ず通す。
 
 ## Spec / Plan 作成ルール
 - spec / design ドキュメント作成時にも前提となる既存コードを実際に Read で開いて verify する。writing-plans 段階で初めて View 階層など実装差分が判明すると spec 修正に手戻りが発生する。spec 段階で View 階層・主要関数の実装を 1 回 Read してから書き起こす。
