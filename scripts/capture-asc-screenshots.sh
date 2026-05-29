@@ -17,6 +17,35 @@ DESTINATION='platform=iOS Simulator,name=iPhone 17 Pro Max'
 TEST_CLASS="OtetsudaiCoinUITests/ASCScreenshotUITests"
 OUT_DIR="docs/screenshots/asc/v1.1.x"
 
+# Resolve a working jq before the slow xcodebuild (fail fast). On this
+# project's dev machines an asdf shim can be first in PATH
+# (~/.asdf/shims/jq) but broken when its libexec is missing, so checking
+# `-x` is not enough — run `--version` to confirm the binary executes.
+# Honors a JQ override and covers both Homebrew prefixes (Apple Silicon /
+# Intel) plus /usr/bin. See Issue #96.
+resolve_jq() {
+  local candidate
+  for candidate in "${JQ:-}" /opt/homebrew/bin/jq /usr/local/bin/jq /usr/bin/jq; do
+    { [ -n "$candidate" ] && [ -x "$candidate" ]; } || continue
+    if "$candidate" --version >/dev/null 2>&1; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+  # Last resort: whatever `jq` resolves to on PATH, if it actually runs.
+  if command -v jq >/dev/null 2>&1 && jq --version >/dev/null 2>&1; then
+    command -v jq
+    return 0
+  fi
+  return 1
+}
+
+JQ="$(resolve_jq)" || {
+  echo "error: no working jq found. Install with: brew install jq" >&2
+  exit 1
+}
+echo "==> Using jq: $JQ"
+
 TMP_ROOT="$(mktemp -d)"
 RESULT_BUNDLE="$TMP_ROOT/result.xcresult"
 EXTRACT_DIR="$TMP_ROOT/extracted"
@@ -43,7 +72,7 @@ mkdir -p "$OUT_DIR/ja" "$OUT_DIR/en"
 #   [ { "testIdentifier": "...", "attachments": [
 #     { "exportedFileName": "...", "suggestedHumanReadableName": "ja-01-home", ... }
 #   ] } ]
-jq -r '.[].attachments[] | "\(.suggestedHumanReadableName)\t\(.exportedFileName)"' \
+"$JQ" -r '.[].attachments[] | "\(.suggestedHumanReadableName)\t\(.exportedFileName)"' \
    "$EXTRACT_DIR/manifest.json" \
   | while IFS=$'\t' read -r human export; do
       if [[ "$human" =~ ^(ja|en)-([0-9]{2})-([a-z]+) ]]; then

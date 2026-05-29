@@ -38,18 +38,22 @@ final class ASCScreenshotUITests: XCTestCase {
         ]
         app.launch()
 
-        // Splash fade absorb (SplashScreenView.swift:124 = 2.5s + 0.5s fade).
-        // DO NOT shorten — waiting only for tab bar `exists` can race the fade
-        // animation on slower CI machines; the 4s baseline covers fade completion.
-        sleep(4)
-        let firstTab = app.tabBars.buttons.element(boundBy: 0)
+        // Issue #97: the in-app SplashScreenView is skipped entirely under
+        // --uitesting (ContentView.swift:16), so the main UI is present from the
+        // first frame — there is no splash→main crossfade to race. Previously a
+        // fixed sleep + tab-existence check could capture a half-faded splash on
+        // a warm 2nd launch (ja/01-home.png shipped at 1.29 MB with an orange
+        // splash tint vs en's clean 154 KB). Wait for the seeded child cards so
+        // Home content is fully loaded before capturing.
+        let firstChild = app.buttons.matching(identifier: "child_button").firstMatch
         XCTAssertTrue(
-            firstTab.waitForExistence(timeout: 10),
-            "Home tab did not appear within 10 seconds for locale=\(locale)"
+            firstChild.waitForExistence(timeout: 15),
+            "Home content (child_button) did not load within 15s for locale=\(locale)"
         )
+        // Brief settle so card entrance animations finish before capture.
+        sleep(1)
 
         // Home tab (index 0) — 既に選択済み
-        sleep(1)
         attach(name: "\(language)-01-home")
 
         // Record tab (index 1)

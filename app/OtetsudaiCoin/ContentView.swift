@@ -13,7 +13,10 @@ struct ContentView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @State private var selectedTab = 0
     @State private var tutorialService = TutorialService()
-    @State private var showSplashScreen = true
+    // Skip the cosmetic splash under UI testing so screenshots / automation never
+    // race its fade-out animation (Issue #97). Mirrors the --uitesting tutorial skip
+    // in TutorialService. The splash never appears in ASC screenshots anyway.
+    @State private var showSplashScreen = !ProcessInfo.processInfo.arguments.contains("--uitesting")
     
     // ファクトリーを使用した依存性注入
     private let repositoryFactory: RepositoryFactory
@@ -133,6 +136,14 @@ struct ContentView: View {
                         for child in sampleChildren {
                             try await childRepository.save(child)
                         }
+                        // Notify observers so HomeViewModel reloads the seeded
+                        // children. Seeding goes straight through the repository
+                        // (not ChildManagementViewModel, which would notify), so
+                        // without this a cold launch renders Home before the async
+                        // seed finishes and never reloads. The splash used to mask
+                        // this by delaying Home's first load (Issue #97 splash-skip
+                        // exposed it).
+                        NotificationManager.shared.notifyChildrenUpdated()
                     }
                 }
                 
