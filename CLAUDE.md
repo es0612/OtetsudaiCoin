@@ -55,6 +55,7 @@ Note: Optional for new features or small additions. You can proceed directly to 
 - **新ブランチを切る前 / feature branch を作業し直す前**に `git fetch origin` を走らせ、`origin/main` を起点にする。ローカル `main` が遅れていると古い起点でブランチを切ってしまい、後で rebase / cherry-pick の手戻りになる。
 - **同一ファイル (CLAUDE.md など) を複数の feature branch から並行更新する場合**は、後発 PR を先発 PR の merge 後に `origin/main` から派生させる。同じ insertion point に並行追記すると conflict で手戻る。先発 PR がまだ open なら、後発の追記は先発に rebase する or 先発 merge 完了まで待つ。並行 session で同じ文書を触る予定があるときは、PR 作成前に `gh pr list --search "CLAUDE.md in:title"` 等で先行 PR の有無を確認する。
 - **SessionStart hook が生成する `pending-reflection.md` の処理**: 前 session の feature branch (PR merge 済み) に checked-out したまま新 session を開始すると、hook が `pending-reflection.md` を merged branch 上に置いてしまう。そのまま commit しても main には届かないので、SessionStart 直後の最初のステップに `gh pr view <前 session の PR> --json mergedAt,state` で merge 状態確認を組み込み、merged だった場合は **stash → `git fetch origin && git checkout main && git merge --ff-only` → docs 専用ブランチ作成 → stash pop → 独立 PR** の流れに切替える。merged branch 上で hook 出力を編集し始めない。
+- **リリース reject / 障害対応では本体 fix PR と再発防止 PR を同セッションで並走させる**: 本体 fix PR (例 #98) を切ったら merge を待たず、別 branch で再発防止 PR (CLAUDE.md / skill 追記、例 #99) を即座に切って並走させる。本体 fix が ASC review queue 等に入る待ち時間が learnings を寝かせるリスクを生むので、retrospective を merge 後ではなく fix PR open 中に走らせる。reviewer も「修正 + 再発防止策」を同時に確認できる。既存「別目的の PR に無関係なファイルを同梱しない」ルールの **許容される並走 pattern** として明文化する。**並走が安全な前提は両 PR が別ファイルを触ること** (本体 = コード、再発防止 = CLAUDE.md)。同一ファイルを並行更新する場合は上記「同一ファイルを複数 feature branch から並行更新」ルールに従い、後発を先発 merge 後に `origin/main` から派生させる。
 
 ## Subagent / Task 実行ルール
 - subagent の存在意義は「context 隔離」。コード変更を伴う Task は subagent、verification / test 実行のみで成果物が無い Task は main 実行でも可。subagent 接続エラー時に verification-only なら即時 main 実行へフォールバックする。
@@ -73,6 +74,9 @@ Note: Optional for new features or small additions. You can proceed directly to 
 ## CI スクリプト開発ルール
 - bash 系 CI スクリプトは push 前にローカルで全シナリオ (pass / fail / enforce / info などのモード分岐すべて) を実行し網羅検証する。本番 GitHub Actions で初めて挙動を確認するスタイルは 1 サイクル数分 × 修正回数のロスになる。
 - リリース系の自動チェック CI は、(a) `paths` フィルタで対象ファイル変更時のみ起動、(b) PR ラベル / タイトルで enforce (失敗で blocking) と info (警告のみ) を二段階に切り替える設計にすると、false positive と CI 時間を両方抑制できる。
+
+## エラー / reject 診断の初動ルール
+- **reject email / CI failure log を受け取ったら、原因仮説を立てる前に固有文言を verbatim で抜き出す**: ITMS コードやエラーキー (`previously approved version [X.Y.Z]`, `train ... closed`, `must contain a higher version`、CI なら exit code + 該当 step 名 + assertion 文言) を先に quote して並べてから診断を始める。実例: v1.1.3 の ITMS reject で initial diagnosis を「reject 後の再 upload で bump 忘れ」と書き始めた後、reject email を再読して `previously approved version [1.1.2]` の文言から「**approved 後の** next-version bump 忘れ」が正解と判明し、CLAUDE.md / PR description を書き直す手戻りが発生した (PR #98)。key string を先に固定してから原因仮説を組み立てると、初診ズレによる成果物の書き直しを防げる。ASC reject に限らず CI / runtime error の診断全般に適用する。
 
 ## Spec / Plan 作成ルール
 - spec / design ドキュメント作成時にも前提となる既存コードを実際に Read で開いて verify する。writing-plans 段階で初めて View 階層など実装差分が判明すると spec 修正に手戻りが発生する。spec 段階で View 階層・主要関数の実装を 1 回 Read してから書き起こす。
