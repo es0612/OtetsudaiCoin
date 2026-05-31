@@ -8,7 +8,6 @@
 
 import CoreData
 import os.log
-import Combine
 
 /// Core Dataの永続化エラー
 enum PersistenceError: LocalizedError {
@@ -33,15 +32,12 @@ struct PersistenceController {
     // nonisolated context" 警告 (Swift 6 では error) を 3 つの CoreData リポジトリで出す。
     // 型は @MainActor 由来で Sendable なので `shared` を nonisolated 化すれば解消できる
     // (compiler も "nonisolated(unsafe) is unnecessary for Sendable type" と指摘)。
-    // それには init を nonisolated 化する必要があり、init が参照する logger / errorPublisher
-    // も併せて隔離解除する (logger=Sendable で平 nonisolated、errorPublisher=非Sendable で
-    // nonisolated(unsafe))。いずれも単一インスタンスの不変 `let` で挙動は不変 (#90)。
+    // それには init を nonisolated 化する必要があり、init が参照する logger も併せて
+    // 隔離解除する (logger=Sendable で平 nonisolated)。いずれも単一インスタンスの不変
+    // `let` で挙動は不変 (#90)。
     nonisolated static let shared = PersistenceController()
 
     private nonisolated static let logger = Logger(subsystem: "com.asapapalab.OtetsudaiCoin", category: "CoreData")
-
-    /// 永続化エラーを通知するPublisher
-    nonisolated(unsafe) static let errorPublisher = PassthroughSubject<PersistenceError, Never>()
 
     static let preview: PersistenceController = {
         let result = PersistenceController(inMemory: true)
@@ -67,7 +63,6 @@ struct PersistenceController {
         if inMemory {
             guard let storeDescription = container.persistentStoreDescriptions.first else {
                 Self.logger.error("永続ストア記述子が見つかりません")
-                Self.errorPublisher.send(.storeLoadingFailed(NSError(domain: "PersistenceController", code: -1, userInfo: [NSLocalizedDescriptionKey: "永続ストア記述子が見つかりません"])))
                 return
             }
             storeDescription.url = URL(fileURLWithPath: "/dev/null")
@@ -76,10 +71,7 @@ struct PersistenceController {
             if let error = error {
                 // エラーログの出力
                 Self.logger.error("Core Dataストアの読み込みに失敗しました: \(error.localizedDescription)")
-                
-                // エラーを通知
-                Self.errorPublisher.send(.storeLoadingFailed(error))
-                
+
                 /*
                  本番環境では以下のような対応を検討:
                  * ストアファイルの削除と再作成
@@ -111,7 +103,6 @@ struct PersistenceController {
                 try context.save()
             } catch {
                 Self.logger.error("コンテキストの保存に失敗しました: \(error.localizedDescription)")
-                Self.errorPublisher.send(.contextSaveFailed(error))
                 throw PersistenceError.contextSaveFailed(error)
             }
         }
