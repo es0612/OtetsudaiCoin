@@ -80,7 +80,7 @@ struct TaskManagementView: View {
                 taskToDelete = nil
             }
         } message: {
-            Text("\(taskToDelete?.name ?? "")を削除しますか？この操作は取り消せません。")
+            Text("\(taskToDelete?.displayName ?? "")を削除しますか？この操作は取り消せません。")
         }
         .alert("エラー", isPresented: .constant(viewModel.errorMessage != nil)) {
             Button("OK") {
@@ -112,7 +112,7 @@ struct TaskRowView: View {
                 .frame(width: 30)
             
             VStack(alignment: .leading, spacing: 4) {
-                Text(task.name)
+                Text(task.displayName)
                     .font(.body)
                     .foregroundColor(task.isActive ? .primary : .secondary)
                 
@@ -211,7 +211,7 @@ struct TaskFormView: View {
             }
             .onAppear {
                 if let task = editingTask {
-                    taskName = task.name
+                    taskName = task.displayName
                     isActive = task.isActive
                     coinRate = task.coinRate
                 }
@@ -233,7 +233,7 @@ struct TaskFormView: View {
         
         let updatedTask = HelpTask(
             id: editingTask.id,
-            name: taskName.trimmingCharacters(in: .whitespacesAndNewlines),
+            name: HelpTask.resolvePersistedName(editedText: taskName, original: editingTask),
             isActive: isActive,
             coinRate: coinRate
         )

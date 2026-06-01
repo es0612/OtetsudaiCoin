@@ -62,7 +62,7 @@ struct TaskCardView: View {
     }
 
     private var taskTitle: some View {
-        Text(task.name)
+        Text(task.displayName)
             .appFont(.cardTitle)
             .fontWeight(.medium)
             .multilineTextAlignment(.center)

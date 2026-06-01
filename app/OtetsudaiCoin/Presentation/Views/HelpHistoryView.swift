@@ -48,7 +48,7 @@ struct HelpHistoryView: View {
             }
         } message: {
             if let record = recordToDelete {
-                Text("「\(record.task.name)」の記録を削除しますか？この操作は取り消せません。")
+                Text("「\(record.task.displayName)」の記録を削除しますか？この操作は取り消せません。")
             }
         }
         .alert("エラー", isPresented: .constant(viewModel.errorMessage != nil)) {
@@ -314,7 +314,7 @@ struct HelpRecordRow: View {
             
             // タスク情報
             VStack(alignment: .leading, spacing: 4) {
-                Text(record.task.name)
+                Text(record.task.displayName)
                     .font(.headline)
                     .lineLimit(1)
                 

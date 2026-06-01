@@ -264,6 +264,20 @@ final class LocalizationStringCatalogTests: XCTestCase {
         )
     }
 
+    // MARK: - デフォルトお手伝い名 en 翻訳テスト
+
+    func testDefaultHelpTaskNamesHaveEnglishTranslation() {
+        let requiredKeys = HelpTask.defaultTaskNames + ["選択"]
+        // 「選択」は TaskCardView の bulk 選択ボタンラベル（タスク名ではないが同 PR で en 欠落を併修）
+        for key in requiredKeys {
+            let localizations = (strings[key] as? [String: Any])?["localizations"] as? [String: Any]
+            let enUnit = (localizations?["en"] as? [String: Any])?["stringUnit"] as? [String: Any]
+            let value = enUnit?["value"] as? String
+            XCTAssertNotNil(value, "キー '\(key)' に en 翻訳が必要")
+            XCTAssertFalse((value ?? "").isEmpty, "キー '\(key)' の en 翻訳が空であってはならない")
+        }
+    }
+
     // MARK: - 翻訳品質テスト
 
     func testEnglishTranslationsAreNotJapanese() {

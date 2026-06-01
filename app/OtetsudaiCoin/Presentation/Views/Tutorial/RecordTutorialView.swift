@@ -443,7 +443,7 @@ struct TutorialTaskCardView: View {
                         .foregroundColor(isSelected ? .white : .blue)
                 }
                 
-                Text(task.name)
+                Text(task.displayName)
                     .font(.caption)
                     .fontWeight(.medium)
                     .multilineTextAlignment(.center)

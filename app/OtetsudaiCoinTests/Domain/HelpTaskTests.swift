@@ -72,4 +72,34 @@ final class HelpTaskTests: XCTestCase {
         let actualNames = defaultTasks.map { $0.name }
         XCTAssertEqual(actualNames, expectedNames)
     }
+
+    func testDisplayNamePassesThroughUserCreatedTask() {
+        // ユーザー作成タスク（free text）は翻訳せず verbatim
+        let task = HelpTask(id: UUID(), name: "ユーザー独自タスク", isActive: true)
+        XCTAssertEqual(task.displayName, "ユーザー独自タスク")
+    }
+
+    func testEveryDefaultNameHasLocalizationEntry() {
+        // 既知デフォルト名はすべて翻訳マップに登録されている（locale 非依存）
+        XCTAssertTrue(
+            HelpTask.defaultTaskNames.allSatisfy { HelpTask.defaultNameLocalizations[$0] != nil },
+            "defaultTaskNames の全件が defaultNameLocalizations にエントリを持つべき"
+        )
+        XCTAssertEqual(HelpTask.defaultTaskNames.count, 10)
+    }
+
+    func testResolvePersistedNameUsesEditedTextWhenChanged() {
+        let original = HelpTask(id: UUID(), name: "下の子の面倒を見る", isActive: true)
+        XCTAssertEqual(HelpTask.resolvePersistedName(editedText: "新しいタスク名", original: original), "新しいタスク名")
+    }
+
+    func testResolvePersistedNameKeepsOriginalWhenUnchanged() {
+        let original = HelpTask(id: UUID(), name: "テーブルを拭く", isActive: true)
+        XCTAssertEqual(HelpTask.resolvePersistedName(editedText: original.displayName, original: original), "テーブルを拭く")
+    }
+
+    func testResolvePersistedNameTrimsWhitespace() {
+        let original = HelpTask(id: UUID(), name: "お片付けする", isActive: true)
+        XCTAssertEqual(HelpTask.resolvePersistedName(editedText: "  片付け  ", original: original), "片付け")
+    }
 }

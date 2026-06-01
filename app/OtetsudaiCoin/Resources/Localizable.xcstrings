@@ -2610,6 +2610,127 @@
           }
         }
       }
+    },
+    "下の子の面倒を見る" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Look after younger sibling"
+          }
+        }
+      }
+    },
+    "お風呂を入れる" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Run the bath"
+          }
+        }
+      }
+    },
+    "食器を出す" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set out the dishes"
+          }
+        }
+      }
+    },
+    "食器を片付ける" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clear the dishes"
+          }
+        }
+      }
+    },
+    "お片付けする" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tidy up"
+          }
+        }
+      }
+    },
+    "玄関の靴を並べる" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Line up shoes at the door"
+          }
+        }
+      }
+    },
+    "ゴミ出しのお手伝い" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Help take out the trash"
+          }
+        }
+      }
+    },
+    "洗濯物を運ぶ" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Carry the laundry"
+          }
+        }
+      }
+    },
+    "テーブルを拭く" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wipe the table"
+          }
+        }
+      }
+    },
+    "自分の部屋の掃除" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clean my room"
+          }
+        }
+      }
+    },
+    "選択" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

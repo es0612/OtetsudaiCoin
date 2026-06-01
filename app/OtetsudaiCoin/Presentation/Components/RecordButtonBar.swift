@@ -36,7 +36,7 @@ struct RecordButtonBar: View {
             HStack(spacing: 8) {
                 Image(systemName: "checkmark.circle.fill")
                     .foregroundColor(.green)
-                Text("\(selectedChild.name)さんの「\(selectedTask.name)」")
+                Text("\(selectedChild.name)さんの「\(selectedTask.displayName)」")
                     .appFont(.captionText)
                     .foregroundColor(.secondary)
                 Text("\(selectedTask.coinRate)コイン")
