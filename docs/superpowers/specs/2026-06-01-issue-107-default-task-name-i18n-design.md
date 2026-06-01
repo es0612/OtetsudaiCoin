@@ -110,8 +110,8 @@ en ロケでデフォルトタスクを編集するとき、編集欄（`TaskMan
 CLAUDE.md「`String(localized:)` を test 側で再計算すると test-bundle/locale に過結合」のトラップを避け、**locale 非依存の契約**をアサートする。
 
 - **passthrough**: `HelpTask(name: "ユーザー独自タスク").displayName == "ユーザー独自タスク"`（free text は verbatim）。
-- **membership**: `HelpTask.defaultNameLocalizations["下の子の面倒を見る"] != nil`（既知デフォルトが翻訳対象として登録されている。ロケール非依存）。
-- **「選択」キー**: 既存の String Catalog 網羅テスト（全キーに en 翻訳が存在することを検証）がキー追加で自動担保。
+- **membership**: `HelpTask.defaultTaskNames.allSatisfy { HelpTask.defaultNameLocalizations[$0] != nil }`（既知デフォルトが全件翻訳対象として登録されている。ロケール非依存）。
+- **catalog en 存在**: `LocalizationStringCatalogTests` に専用テストを新設し、デフォルト 10 件 + 「選択」が `.xcstrings` に en translated 値を持つことを検証する。既存の catalog テストは特定キー群のみ検証し「全キー en 網羅」チェックは無いため、自動担保には頼らず専用テストを追加する。catalog JSON を直接読むため locale 非依存。
 - **採用しない**: en 訳の exact string 一致アサート（locale 過結合のため）。
 
 ## 受け入れ条件
