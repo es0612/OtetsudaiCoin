@@ -72,4 +72,19 @@ final class HelpTaskTests: XCTestCase {
         let actualNames = defaultTasks.map { $0.name }
         XCTAssertEqual(actualNames, expectedNames)
     }
+
+    func testDisplayNamePassesThroughUserCreatedTask() {
+        // ユーザー作成タスク（free text）は翻訳せず verbatim
+        let task = HelpTask(id: UUID(), name: "ユーザー独自タスク", isActive: true)
+        XCTAssertEqual(task.displayName, "ユーザー独自タスク")
+    }
+
+    func testEveryDefaultNameHasLocalizationEntry() {
+        // 既知デフォルト名はすべて翻訳マップに登録されている（locale 非依存）
+        XCTAssertTrue(
+            HelpTask.defaultTaskNames.allSatisfy { HelpTask.defaultNameLocalizations[$0] != nil },
+            "defaultTaskNames の全件が defaultNameLocalizations にエントリを持つべき"
+        )
+        XCTAssertEqual(HelpTask.defaultTaskNames.count, 10)
+    }
 }

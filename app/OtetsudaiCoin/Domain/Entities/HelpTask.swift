@@ -28,22 +28,43 @@ struct HelpTask: Equatable {
     func updateCoinRate(_ newRate: Int) -> HelpTask {
         return HelpTask(id: id, name: name, isActive: isActive, coinRate: newRate)
     }
-    
+
+    static let defaultTaskNames: [String] = [
+        "下の子の面倒を見る",
+        "お風呂を入れる",
+        "食器を出す",
+        "食器を片付ける",
+        "お片付けする",
+        "玄関の靴を並べる",
+        "ゴミ出しのお手伝い",
+        "洗濯物を運ぶ",
+        "テーブルを拭く",
+        "自分の部屋の掃除"
+    ]
+
+    // defaultTaskNames と同期必須（en訳は .xcstrings で付与。testEveryDefaultNameHasLocalizationEntry が漏れを検出）
+    static let defaultNameLocalizations: [String: LocalizedStringResource] = [
+        "下の子の面倒を見る": "下の子の面倒を見る",
+        "お風呂を入れる": "お風呂を入れる",
+        "食器を出す": "食器を出す",
+        "食器を片付ける": "食器を片付ける",
+        "お片付けする": "お片付けする",
+        "玄関の靴を並べる": "玄関の靴を並べる",
+        "ゴミ出しのお手伝い": "ゴミ出しのお手伝い",
+        "洗濯物を運ぶ": "洗濯物を運ぶ",
+        "テーブルを拭く": "テーブルを拭く",
+        "自分の部屋の掃除": "自分の部屋の掃除"
+    ]
+
+    var displayName: String {
+        guard let resource = HelpTask.defaultNameLocalizations[name] else {
+            return name // ユーザー作成・改名済みデフォルトは verbatim
+        }
+        return String(localized: resource) // en→翻訳 / ja→no-op
+    }
+
     static func defaultTasks() -> [HelpTask] {
-        let taskNames = [
-            "下の子の面倒を見る",
-            "お風呂を入れる",
-            "食器を出す",
-            "食器を片付ける",
-            "お片付けする",
-            "玄関の靴を並べる",
-            "ゴミ出しのお手伝い",
-            "洗濯物を運ぶ",
-            "テーブルを拭く",
-            "自分の部屋の掃除"
-        ]
-        
-        return taskNames.map { name in
+        return defaultTaskNames.map { name in
             HelpTask(id: UUID(), name: name, isActive: true, coinRate: 10)
         }
     }
