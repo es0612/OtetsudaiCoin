@@ -65,6 +65,13 @@ struct HelpTask: Equatable {
         return String(localized: resource) // en→翻訳 / ja→no-op
     }
 
+    /// 編集フォームの保存名を解決する。表示値(displayName)のまま無変更で保存された場合は
+    /// 元の保存名(name)を維持し、デフォルト名のロケール追従(翻訳)を壊さない。
+    static func resolvePersistedName(editedText: String, original: HelpTask) -> String {
+        let trimmed = editedText.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed == original.displayName ? original.name : trimmed
+    }
+
     static func defaultTasks() -> [HelpTask] {
         return defaultTaskNames.map { name in
             HelpTask(id: UUID(), name: name, isActive: true, coinRate: 10)

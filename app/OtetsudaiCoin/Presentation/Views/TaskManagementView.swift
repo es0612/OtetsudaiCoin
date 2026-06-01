@@ -233,7 +233,7 @@ struct TaskFormView: View {
         
         let updatedTask = HelpTask(
             id: editingTask.id,
-            name: taskName.trimmingCharacters(in: .whitespacesAndNewlines),
+            name: HelpTask.resolvePersistedName(editedText: taskName, original: editingTask),
             isActive: isActive,
             coinRate: coinRate
         )

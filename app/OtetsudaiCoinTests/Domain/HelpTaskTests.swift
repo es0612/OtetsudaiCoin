@@ -87,4 +87,19 @@ final class HelpTaskTests: XCTestCase {
         )
         XCTAssertEqual(HelpTask.defaultTaskNames.count, 10)
     }
+
+    func testResolvePersistedNameUsesEditedTextWhenChanged() {
+        let original = HelpTask(id: UUID(), name: "下の子の面倒を見る", isActive: true)
+        XCTAssertEqual(HelpTask.resolvePersistedName(editedText: "新しいタスク名", original: original), "新しいタスク名")
+    }
+
+    func testResolvePersistedNameKeepsOriginalWhenUnchanged() {
+        let original = HelpTask(id: UUID(), name: "テーブルを拭く", isActive: true)
+        XCTAssertEqual(HelpTask.resolvePersistedName(editedText: original.displayName, original: original), "テーブルを拭く")
+    }
+
+    func testResolvePersistedNameTrimsWhitespace() {
+        let original = HelpTask(id: UUID(), name: "お片付けする", isActive: true)
+        XCTAssertEqual(HelpTask.resolvePersistedName(editedText: "  片付け  ", original: original), "片付け")
+    }
 }
