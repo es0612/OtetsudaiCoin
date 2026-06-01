@@ -42,7 +42,9 @@ struct HelpTask: Equatable {
         "自分の部屋の掃除"
     ]
 
-    // defaultTaskNames と同期必須（en訳は .xcstrings で付与。testEveryDefaultNameHasLocalizationEntry が漏れを検出）
+    // defaultTaskNames と同期必須（en訳は .xcstrings で付与）。
+    // Swift dict 側の漏れ → testEveryDefaultNameHasLocalizationEntry が検出
+    // xcstrings の en 翻訳漏れ → testDefaultHelpTaskNamesHaveEnglishTranslation が検出
     static let defaultNameLocalizations: [String: LocalizedStringResource] = [
         "下の子の面倒を見る": "下の子の面倒を見る",
         "お風呂を入れる": "お風呂を入れる",
