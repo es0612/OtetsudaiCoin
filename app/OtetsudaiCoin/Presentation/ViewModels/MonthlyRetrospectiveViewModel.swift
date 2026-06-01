@@ -131,7 +131,7 @@ class MonthlyRetrospectiveViewModel {
         return groups.compactMap { taskId, recs in
             guard let task = taskMap[taskId] else { return nil }
             return MonthSnapshot.TaskBreakdownItem(
-                name: task.name,
+                name: task.displayName,
                 count: recs.count,
                 coinTotal: recs.count * task.coinRate
             )

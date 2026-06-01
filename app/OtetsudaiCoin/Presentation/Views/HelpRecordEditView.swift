@@ -168,7 +168,7 @@ struct TaskSelectionRow: View {
                 
                 // タスク情報
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(task.name)
+                    Text(task.displayName)
                         .font(.headline)
                         .foregroundColor(.primary)
                         .lineLimit(1)
