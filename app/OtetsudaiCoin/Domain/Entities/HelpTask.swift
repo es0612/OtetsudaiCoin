@@ -67,6 +67,9 @@ struct HelpTask: Equatable {
 
     /// 編集フォームの保存名を解決する。表示値(displayName)のまま無変更で保存された場合は
     /// 元の保存名(name)を維持し、デフォルト名のロケール追従(翻訳)を壊さない。
+    /// 既知の許容トレードオフ: en ロケでデフォルト名を「その en 訳と完全一致する文字列」へ
+    /// 改名すると無変更とみなされ rename が破棄される(表示は元のまま)。display-time lookup の
+    /// 設計上の帰結であり意図的。安易に「修正」しないこと。
     static func resolvePersistedName(editedText: String, original: HelpTask) -> String {
         let trimmed = editedText.trimmingCharacters(in: .whitespacesAndNewlines)
         return trimmed == original.displayName ? original.name : trimmed
