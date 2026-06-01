@@ -321,6 +321,73 @@ raw name のまま据え置き。"
 
 ---
 
+## Task 3.5: 編集欄の無変更保存で元 ja 名を保護（コードレビュー由来の第3案）
+
+> 経緯: Task 3 のコード品質レビューが「編集欄 en 表示 → 無変更保存で ja 名が en 文字列に黙って上書き・cross-locale で英語表示」を Important 指摘。user 判断で「表示 en・無変更は保護」（第3案）を採用。spec § 編集欄の挙動を参照。
+
+**Files:**
+
+- Modify: `app/OtetsudaiCoin/Domain/Entities/HelpTask.swift`（`resolvePersistedName` 追加）
+- Test: `app/OtetsudaiCoinTests/Domain/HelpTaskTests.swift`
+- Modify: `app/OtetsudaiCoin/Presentation/Views/TaskManagementView.swift`（`updateTask()` の `name:` を helper 経由に）
+
+- [ ] **Step 1: 失敗するテストを書く（locale 非依存）**
+
+```swift
+func testResolvePersistedNameUsesEditedTextWhenChanged() {
+    let original = HelpTask(id: UUID(), name: "下の子の面倒を見る", isActive: true)
+    XCTAssertEqual(HelpTask.resolvePersistedName(editedText: "新しいタスク名", original: original), "新しいタスク名")
+}
+
+func testResolvePersistedNameKeepsOriginalWhenUnchanged() {
+    // 表示値(displayName)のまま無変更保存 → 元の保存名(name)を維持
+    let original = HelpTask(id: UUID(), name: "テーブルを拭く", isActive: true)
+    XCTAssertEqual(HelpTask.resolvePersistedName(editedText: original.displayName, original: original), "テーブルを拭く")
+}
+
+func testResolvePersistedNameTrimsWhitespace() {
+    let original = HelpTask(id: UUID(), name: "お片付けする", isActive: true)
+    XCTAssertEqual(HelpTask.resolvePersistedName(editedText: "  片付け  ", original: original), "片付け")
+}
+```
+
+- [ ] **Step 2: red 確認**（`resolvePersistedName` 未定義 → BUILD FAILED。コンパイルエラー確定のため確認のみで可）
+
+- [ ] **Step 3: 実装**
+
+`HelpTask.swift` に追加:
+
+```swift
+/// 編集フォームの保存名を解決する。表示値(displayName)のまま無変更で保存された場合は
+/// 元の保存名(name)を維持し、デフォルト名のロケール追従(翻訳)を壊さない。
+static func resolvePersistedName(editedText: String, original: HelpTask) -> String {
+    let trimmed = editedText.trimmingCharacters(in: .whitespacesAndNewlines)
+    return trimmed == original.displayName ? original.name : trimmed
+}
+```
+
+`TaskManagementView.swift` の `updateTask()`（~236）:
+
+```swift
+// before: name: taskName.trimmingCharacters(in: .whitespacesAndNewlines),
+name: HelpTask.resolvePersistedName(editedText: taskName, original: editingTask),
+```
+
+`addTask()`（新規作成、~224）は `editingTask` が無いので変更しない（free text のまま）。
+
+- [ ] **Step 4: green 確認**（HelpTaskTests + 全スイート。既知の date flake `testFilterRecordsForChildInCurrentMonth` を除き green）
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add app/OtetsudaiCoin/Domain/Entities/HelpTask.swift app/OtetsudaiCoinTests/Domain/HelpTaskTests.swift app/OtetsudaiCoin/Presentation/Views/TaskManagementView.swift
+git commit -m "feat(#107): 編集欄の無変更保存で元 ja 名を保護
+
+displayName のまま無変更保存された場合は元の name(ja)を維持し、
+デフォルト名のロケール追従を壊さない。コード品質レビュー指摘
+(無変更保存で ja→en 上書き) への対応 (第3案)。"
+```
+
 ## Task 4: en ロケ視覚検証
 
 **Files:** 検証のみ（コード変更なし。スクショ更新分は任意 commit）

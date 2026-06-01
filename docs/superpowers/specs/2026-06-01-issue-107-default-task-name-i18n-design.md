@@ -87,9 +87,22 @@ raw `name` のまま残す箇所（変更しない）:
 - DebugLogger 呼び出し（`HelpRecordEditViewModel` 84 / 86 / 143）— ログ用
 - `TaskManagementViewModel` 32（sort）/ 59（dup-check）/ 103（save）— ロジック用
 
-### 編集欄の挙動（確定）
+### 編集欄の挙動（確定: 表示 en・無変更保存は元名を保護）
 
-en ロケでデフォルトタスクを編集するとき、編集欄（`TaskManagementView:214`）には **en 訳（`displayName`）を表示**する。list と見た目が一致して直感的。トレードオフとして、無変更保存でも ja → en 上書きとなり以降ロケール非追従になるが、「一度ユーザーが編集したらユーザーのタスク扱い」として許容する。
+en ロケでデフォルトタスクを編集するとき、編集欄（`TaskManagementView:214`）には **en 訳（`displayName`）を表示**する（list と見た目が一致して直感的）。ただし**無変更保存で ja 名が en 文字列に黙って上書きされる**のを防ぐため、保存名を純粋ヘルパーで解決する:
+
+```swift
+/// 編集フォームの保存名を解決する。表示値(displayName)のまま無変更で保存された場合は
+/// 元の保存名(name)を維持し、デフォルト名のロケール追従(翻訳)を壊さない。
+static func resolvePersistedName(editedText: String, original: HelpTask) -> String {
+    let trimmed = editedText.trimmingCharacters(in: .whitespacesAndNewlines)
+    return trimmed == original.displayName ? original.name : trimmed
+}
+```
+
+- `updateTask()`（`TaskManagementView:236`）の `name:` をこのヘルパー経由に変更する。
+- ユーザーが文字を**変更した**場合のみ `editedText`（ユーザーの新名）を保存。**変更しなかった**場合は元の `name`（ja）を維持 → ja に戻しても翻訳が効き続ける。
+- これにより、コード品質レビューが指摘した「無変更保存で ja→en 上書き・cross-locale で英語表示」の副作用を解消しつつ、編集欄 en 表示の直感性を保つ。
 
 ### 同梱する軽微 finding ＋ スコープ境界
 
