@@ -33,6 +33,10 @@ final class ASCScreenshotUITests: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments += [
             "--uitesting",
+            // Issue #95: DEBUG 限定の「開発者向け」節を隠し、ASC スクショを App Store の
+            // Release 実画面に忠実化する。Developer 節 (~2 セクション分) を除くことで
+            // App Info(Version) 行が tab bar に被らず initial view に収まる。
+            "--hide-developer-tools",
             "-AppleLanguages", "(\(language))",
             "-AppleLocale", locale
         ]

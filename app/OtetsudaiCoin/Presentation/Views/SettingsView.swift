@@ -58,6 +58,16 @@ struct SettingsView: View {
         return "\(version) (\(build))"
     }
 
+    #if DEBUG
+    /// ASC マーケティングスクショを App Store の Release 実画面に忠実化するため、撮影時
+    /// (`--hide-developer-tools`) は DEBUG 限定の「開発者向け」節を隠す (Issue #95)。
+    /// Release ビルドには `#if DEBUG` により元から存在しないので、撮影 (Debug) ビルドで
+    /// だけ Release と同じ Settings レイアウトを再現し、Version 行が tab bar に被るのを防ぐ。
+    static func shouldShowDeveloperTools(arguments: [String] = ProcessInfo.processInfo.arguments) -> Bool {
+        !arguments.contains("--hide-developer-tools")
+    }
+    #endif
+
     var body: some View {
         NavigationStack {
             List {
@@ -117,6 +127,9 @@ struct SettingsView: View {
                 }
 
                 #if DEBUG
+                // Issue #95: ASC スクショ撮影時 (--hide-developer-tools) は Release 実画面に
+                // 忠実化するため Developer 節を隠す。実機 / 通常の開発ビルドでは従来通り表示。
+                if Self.shouldShowDeveloperTools() {
                 Section("開発者向け") {
                     Button(action: {
                         generateSampleData()
@@ -172,8 +185,9 @@ struct SettingsView: View {
                     .foregroundColor(.red)
                     .disabled(isClearingData)
                 }
+                }
                 #endif
-                
+
                 Section("ヘルプ") {
                     Button(action: {
                         tutorialService.resetTutorial()
