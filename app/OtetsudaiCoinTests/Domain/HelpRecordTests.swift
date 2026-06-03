@@ -72,7 +72,13 @@ final class HelpRecordTests: XCTestCase {
         let now = Date()
         
         let currentMonthRecord1 = HelpRecord(id: UUID(), childId: childId, helpTaskId: helpTaskId, recordedAt: now)
-        let currentMonthRecord2 = HelpRecord(id: UUID(), childId: childId, helpTaskId: helpTaskId, recordedAt: calendar.date(byAdding: .day, value: -5, to: now)!)
+        // Issue #112: 元実装の `now - 5日` は月初1〜5日に前月へ回り込み、filterForChildInCurrentMonth が
+        // 正しく前月分を除外して count=1 となり毎月1〜5日に必ず fail していた (プロダクトコードは正常)。
+        // 当月内に必ず収まる固定日 (当月15日) を使い、実行日に依存しない決定的なテストにする。
+        var currentMonthComponents = calendar.dateComponents([.year, .month], from: now)
+        currentMonthComponents.day = 15
+        let midCurrentMonth = calendar.date(from: currentMonthComponents)!
+        let currentMonthRecord2 = HelpRecord(id: UUID(), childId: childId, helpTaskId: helpTaskId, recordedAt: midCurrentMonth)
         let otherChildRecord = HelpRecord(id: UUID(), childId: otherChildId, helpTaskId: helpTaskId, recordedAt: now)
         let previousMonthRecord = HelpRecord(id: UUID(), childId: childId, helpTaskId: helpTaskId, recordedAt: calendar.date(byAdding: .month, value: -1, to: now)!)
         
