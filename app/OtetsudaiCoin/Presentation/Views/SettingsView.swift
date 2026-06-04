@@ -1,5 +1,4 @@
 import SwiftUI
-import StoreKit
 import UserNotifications
 
 struct SettingsView: View {
@@ -212,24 +211,10 @@ struct SettingsView: View {
                             .foregroundColor(.secondary)
                     }
                     
-                    Button(action: {
-                        requestAppReview()
-                    }) {
-                        HStack {
-                            Image(systemName: "star.circle")
-                                .foregroundColor(.yellow)
-                            Text("アプリを評価")
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .foregroundColor(.secondary)
-                                .font(.caption)
-                        }
-                    }
-                    .foregroundColor(.primary)
-
-                    // #31: TestFlight / Debug ビルドでは requestReview がダイアログを出さない仕様のため、
-                    // App Store のレビュー画面に直接遷移するフォールバックを併設する。
-                    // APP_STORE_APP_ID が未設定の場合は非表示。
+                    // #92: アプリ内レビュープロンプト (requestReview) はボタン契機の呼び出しを
+                    // Apple HIG が非推奨とし、TestFlight / Debug では無反応・本番でもスロットリングで
+                    // 「押しても何も起きない」失敗モードがある。常に動く App Store 直接遷移へ一本化する
+                    // (#31 で併設した導線を統合)。APP_STORE_APP_ID が未設定の場合は非表示。
                     if let reviewURL = AppStoreReviewer.writeReviewURL {
                         Button(action: {
                             openURL(reviewURL)
@@ -321,18 +306,6 @@ struct SettingsView: View {
                     helpRecordRepository: recordRepository
                 )
             )
-        }
-    }
-    
-    private func requestAppReview() {
-        if #available(iOS 18.0, *) {
-            if let scene = UIApplication.shared.connectedScenes.first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene {
-                AppStore.requestReview(in: scene)
-            }
-        } else {
-            if let scene = UIApplication.shared.connectedScenes.first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene {
-                SKStoreReviewController.requestReview(in: scene)
-            }
         }
     }
     
