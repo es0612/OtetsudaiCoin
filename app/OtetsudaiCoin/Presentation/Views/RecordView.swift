@@ -130,26 +130,16 @@ struct RecordView: View {
     }
 
     private var dateSection: some View {
-        HStack(spacing: 12) {
-            Image(systemName: "calendar")
-                .foregroundColor(.blue)
-                .font(.title3)
-            Text(String(localized: "記録日"))
-                .appFont(.sectionHeader)
-            Spacer()
-            DatePicker(
-                "",
-                selection: $viewModel.recordedDate,
-                in: ...Date(),
-                displayedComponents: .date
-            )
-            .labelsHidden()
-            .datePickerStyle(.compact)
-            .accessibilityIdentifier("record_date_picker")
-            .onChange(of: viewModel.recordedDate) { _, _ in
-                viewModel.loadExistingCountsForCurrentDateAndChild()
-            }
-        }
+        RecordCalendarView(
+            displayedMonth: viewModel.displayedMonth,
+            selectedDate: viewModel.recordedDate,
+            recordedDays: viewModel.recordedDays,
+            today: Date(),
+            canGoNextMonth: viewModel.canGoToNextMonth(),
+            onSelectDay: { viewModel.selectDay($0) },
+            onPrevMonth: { viewModel.goToPreviousMonth() },
+            onNextMonth: { viewModel.goToNextMonth() }
+        )
         .padding(.horizontal)
     }
     
