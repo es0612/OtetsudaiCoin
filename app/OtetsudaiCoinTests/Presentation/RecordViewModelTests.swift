@@ -721,6 +721,28 @@ final class RecordViewModelTests: XCTestCase {
     }
 
     @MainActor
+    func test_monthNavigation_handlesYearBoundary() {
+        let cal = Calendar.current
+        // goToPreviousMonth: 2026年1月 → 2025年12月 (年跨ぎ)
+        viewModel.displayedMonth = cal.date(from: DateComponents(year: 2026, month: 1, day: 1))!
+        viewModel.goToPreviousMonth()
+        XCTAssertEqual(viewModel.displayedMonth,
+                       cal.date(from: DateComponents(year: 2025, month: 12, day: 1))!)
+
+        // canGoToNextMonth: 2025年12月表示・今日=2026年1月 → 進める (年跨ぎ比較)
+        let todayJan = cal.date(from: DateComponents(year: 2026, month: 1, day: 10))!
+        XCTAssertTrue(viewModel.canGoToNextMonth(today: todayJan))
+
+        // goToNextMonth: 2025年12月 → 2026年1月 (年跨ぎ)
+        viewModel.goToNextMonth(today: todayJan)
+        XCTAssertEqual(viewModel.displayedMonth,
+                       cal.date(from: DateComponents(year: 2026, month: 1, day: 1))!)
+
+        // 今日の月 (2026年1月) で頭打ち
+        XCTAssertFalse(viewModel.canGoToNextMonth(today: todayJan))
+    }
+
+    @MainActor
     func test_selectDay_setsRecordedDateNoon_ignoresFuture() {
         let cal = Calendar.current
         let today = cal.date(from: DateComponents(year: 2026, month: 6, day: 15))!
