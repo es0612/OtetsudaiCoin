@@ -1,0 +1,14 @@
+# fastlane Appfile — per-app ASC identity (asc-metadata-delivery skill)
+#
+# Only the bundle identifier is committed here (it is unambiguous).
+# The ASC LOGIN identity is intentionally NOT hardcoded — set it in the
+# uncommitted fastlane/.env as FASTLANE_USER (see fastlane/SETUP.md).
+app_identifier("com.asapapalab.OtetsudaiCoin")
+
+# Team IDs vary per Apple account and are required by some deliver operations.
+# Uncomment + fill in if `fastlane deliver` cannot auto-resolve (multiple teams):
+#   team_id     — Apple Developer Portal Team ID (10 chars, e.g. "ABCDE12345")
+#   itc_team_id — App Store Connect Team ID (numeric)
+# Find via: developer.apple.com/account (Membership) or `fastlane deliver init`.
+# team_id("XXXXXXXXXX")
+# itc_team_id("XXXXXXXXX")

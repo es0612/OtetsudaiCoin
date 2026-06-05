@@ -61,6 +61,19 @@ fastlane/Preview.html
 fastlane/screenshots/**/*.png
 fastlane/test_output
 
+# fastlane ASC metadata delivery (asc-metadata-delivery skill)
+# Credentials — never commit
+fastlane/.env
+fastlane/.env.*
+# ASC review demo credentials & personal contact info — never commit
+# (notes.txt は「ログイン不要」の説明なのでコミット可)
+fastlane/metadata/review_information/demo_user.txt
+fastlane/metadata/review_information/demo_password.txt
+fastlane/metadata/review_information/first_name.txt
+fastlane/metadata/review_information/last_name.txt
+fastlane/metadata/review_information/email_address.txt
+fastlane/metadata/review_information/phone_number.txt
+
 .DS_Store
 
 # Claude Code plan-mode の自動生成成果物（使い捨て）

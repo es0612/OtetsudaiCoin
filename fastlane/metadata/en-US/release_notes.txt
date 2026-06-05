@@ -1,0 +1,10 @@
+Version 1.1.1 brings a more stable home screen and improved English support.
+
+Bug fixes
+- Fixed an issue where your children's cards and stats sometimes failed to appear the first time the Home screen opened.
+- Fixed the "Version" row on the Settings screen so it now shows the current version (1.1.1) correctly instead of an outdated number.
+
+Improved English support
+- Tab labels (Home / Record / Settings), the Retrospective screen, each section of the Settings screen, notification settings, and the body text of reminder notifications now display naturally in English.
+
+Thank you for using Otetsudai Coin — we hope you keep enjoying it together with your family!
