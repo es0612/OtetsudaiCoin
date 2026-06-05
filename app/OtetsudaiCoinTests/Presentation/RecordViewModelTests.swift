@@ -676,4 +676,70 @@ final class RecordViewModelTests: XCTestCase {
         // Then
         XCTAssertEqual(viewModel.recordedDays, [5, 20])
     }
+
+    // MARK: - #84 月移動と日選択
+
+    @MainActor
+    func test_canGoToNextMonth_falseForCurrentMonth_trueForPast() {
+        let cal = Calendar.current
+        let today = cal.date(from: DateComponents(year: 2026, month: 6, day: 15))!
+
+        viewModel.displayedMonth = RecordViewModel.startOfMonth(today)
+        XCTAssertFalse(viewModel.canGoToNextMonth(today: today))
+
+        viewModel.displayedMonth = cal.date(from: DateComponents(year: 2026, month: 4, day: 1))!
+        XCTAssertTrue(viewModel.canGoToNextMonth(today: today))
+    }
+
+    @MainActor
+    func test_goToPreviousMonth_movesDisplayedMonthBack() {
+        let cal = Calendar.current
+        viewModel.displayedMonth = cal.date(from: DateComponents(year: 2026, month: 3, day: 1))!
+
+        viewModel.goToPreviousMonth()
+
+        XCTAssertEqual(
+            viewModel.displayedMonth,
+            cal.date(from: DateComponents(year: 2026, month: 2, day: 1))!
+        )
+    }
+
+    @MainActor
+    func test_goToNextMonth_cappedAtCurrentMonth() {
+        let cal = Calendar.current
+        let today = cal.date(from: DateComponents(year: 2026, month: 6, day: 15))!
+
+        // 過去月からは進める
+        viewModel.displayedMonth = cal.date(from: DateComponents(year: 2026, month: 4, day: 1))!
+        viewModel.goToNextMonth(today: today)
+        XCTAssertEqual(viewModel.displayedMonth, cal.date(from: DateComponents(year: 2026, month: 5, day: 1))!)
+
+        // 今日の月で頭打ち (no-op)
+        viewModel.displayedMonth = RecordViewModel.startOfMonth(today)
+        viewModel.goToNextMonth(today: today)
+        XCTAssertEqual(viewModel.displayedMonth, RecordViewModel.startOfMonth(today))
+    }
+
+    @MainActor
+    func test_selectDay_setsRecordedDateNoon_ignoresFuture() {
+        let cal = Calendar.current
+        let today = cal.date(from: DateComponents(year: 2026, month: 6, day: 15))!
+        viewModel.displayedMonth = RecordViewModel.startOfMonth(today)
+
+        // 過去日は選択され noon 正規化される
+        viewModel.selectDay(10, today: today)
+        let comps = cal.dateComponents([.year, .month, .day, .hour], from: viewModel.recordedDate)
+        XCTAssertEqual(comps.year, 2026)
+        XCTAssertEqual(comps.month, 6)
+        XCTAssertEqual(comps.day, 10)
+        XCTAssertEqual(comps.hour, 12)
+
+        // 今日 (15) は選択可能 (guard は strict `>` なので今日は通る)
+        viewModel.selectDay(15, today: today)
+        XCTAssertEqual(cal.component(.day, from: viewModel.recordedDate), 15)
+
+        // 未来日 (16) は無視され recordedDate は 15 のまま
+        viewModel.selectDay(16, today: today)
+        XCTAssertEqual(cal.component(.day, from: viewModel.recordedDate), 15)
+    }
 }

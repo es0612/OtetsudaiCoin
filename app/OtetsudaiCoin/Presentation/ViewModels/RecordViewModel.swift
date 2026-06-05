@@ -376,6 +376,40 @@ class RecordViewModel: BaseViewModel {
         }
     }
 
+    func canGoToNextMonth(today: Date = Date()) -> Bool {
+        displayedMonth < RecordViewModel.startOfMonth(today)
+    }
+
+    @MainActor
+    func goToPreviousMonth() {
+        let cal = Calendar.current
+        guard let prev = cal.date(byAdding: .month, value: -1, to: displayedMonth) else { return }
+        displayedMonth = RecordViewModel.startOfMonth(prev)
+        loadRecordedDaysForDisplayedMonth()
+    }
+
+    @MainActor
+    func goToNextMonth(today: Date = Date()) {
+        guard canGoToNextMonth(today: today) else { return }
+        let cal = Calendar.current
+        guard let next = cal.date(byAdding: .month, value: 1, to: displayedMonth) else { return }
+        displayedMonth = RecordViewModel.startOfMonth(next)
+        loadRecordedDaysForDisplayedMonth()
+    }
+
+    @MainActor
+    func selectDay(_ day: Int, today: Date = Date()) {
+        let cal = Calendar.current
+        var comps = cal.dateComponents([.year, .month], from: displayedMonth)
+        comps.day = day
+        guard let date = cal.date(from: comps) else { return }
+        // 未来日は無視 (View 側でも disabled だが二重防御)
+        if cal.startOfDay(for: date) > cal.startOfDay(for: today) { return }
+        recordedDate = RecordViewModel.normalizeToNoon(date)
+        // 旧 DatePicker .onChange 相当: 選択日の per-task 件数 (#73) を更新
+        loadExistingCountsForCurrentDateAndChild()
+    }
+
     private static func normalizeToNoon(_ date: Date) -> Date {
         let cal = Calendar.current
         let startOfDay = cal.startOfDay(for: date)
