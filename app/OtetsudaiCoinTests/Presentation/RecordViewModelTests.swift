@@ -627,4 +627,53 @@ final class RecordViewModelTests: XCTestCase {
         // Then: count map が +1 されている
         XCTAssertEqual(viewModel.existingRecordCount(for: task.id), 1)
     }
+
+    // MARK: - #84 recordedDays (記録がある日の集合)
+
+    @MainActor
+    func test_recordedDays_initiallyEmpty() {
+        XCTAssertEqual(viewModel.recordedDays, [])
+    }
+
+    @MainActor
+    func test_loadRecordedDays_noSelectedChild_clearsSet() {
+        // Given: 何か入っている / selectedChild = nil
+        viewModel.recordedDays = [1, 2, 3]
+        viewModel.selectedChild = nil
+
+        // When (selectedChild == nil は同期的に空集合化)
+        viewModel.loadRecordedDaysForDisplayedMonth()
+
+        // Then
+        XCTAssertEqual(viewModel.recordedDays, [])
+    }
+
+    @MainActor
+    func test_loadRecordedDays_filtersBySelectedChildAndMonth() async {
+        // Given: childA の 3/5, 3/20 が対象。childB の 3/5・2月・4月 は除外。
+        let childA = Child(id: UUID(), name: "A", themeColor: "#FF5733")
+        let childB = Child(id: UUID(), name: "B", themeColor: "#33FF57")
+        let task = HelpTask(id: UUID(), name: "皿洗い", isActive: true, coinRate: 10)
+        let cal = Calendar.current
+        func noon(_ y: Int, _ m: Int, _ d: Int) -> Date {
+            cal.date(from: DateComponents(year: y, month: m, day: d, hour: 12))!
+        }
+        mockHelpTaskRepository.tasks = [task]
+        mockHelpRecordRepository.records = [
+            HelpRecord(id: UUID(), childId: childA.id, helpTaskId: task.id, recordedAt: noon(2026, 3, 5)),   // 対象
+            HelpRecord(id: UUID(), childId: childA.id, helpTaskId: task.id, recordedAt: noon(2026, 3, 20)),  // 対象
+            HelpRecord(id: UUID(), childId: childB.id, helpTaskId: task.id, recordedAt: noon(2026, 3, 5)),   // 除外(別child)
+            HelpRecord(id: UUID(), childId: childA.id, helpTaskId: task.id, recordedAt: noon(2026, 2, 28)),  // 除外(前月)
+            HelpRecord(id: UUID(), childId: childA.id, helpTaskId: task.id, recordedAt: noon(2026, 4, 1)),   // 除外(翌月)
+        ]
+        viewModel.selectedChild = childA
+        viewModel.displayedMonth = RecordViewModel.startOfMonth(noon(2026, 3, 15))
+
+        // When
+        viewModel.loadRecordedDaysForDisplayedMonth()
+        await waitUntil(timeout: 2.0) { self.viewModel.recordedDays == [5, 20] }
+
+        // Then
+        XCTAssertEqual(viewModel.recordedDays, [5, 20])
+    }
 }
