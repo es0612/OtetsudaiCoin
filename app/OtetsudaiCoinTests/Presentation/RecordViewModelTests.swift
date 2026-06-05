@@ -742,4 +742,33 @@ final class RecordViewModelTests: XCTestCase {
         viewModel.selectDay(16, today: today)
         XCTAssertEqual(cal.component(.day, from: viewModel.recordedDate), 15)
     }
+
+    @MainActor
+    func test_selectChild_triggersRecordedDaysReload() async {
+        let cal = Calendar.current
+        let base = RecordViewModel.startOfMonth(Date())
+        func noon(_ d: Int) -> Date {
+            cal.date(byAdding: DateComponents(day: d - 1, hour: 12), to: base)!
+        }
+        let childA = Child(id: UUID(), name: "A", themeColor: "#FF5733")
+        let childB = Child(id: UUID(), name: "B", themeColor: "#33FF57")
+        let task = HelpTask(id: UUID(), name: "皿洗い", isActive: true, coinRate: 10)
+        mockHelpTaskRepository.tasks = [task]
+        mockHelpRecordRepository.records = [
+            HelpRecord(id: UUID(), childId: childA.id, helpTaskId: task.id, recordedAt: noon(3)),
+            HelpRecord(id: UUID(), childId: childB.id, helpTaskId: task.id, recordedAt: noon(7)),
+            HelpRecord(id: UUID(), childId: childB.id, helpTaskId: task.id, recordedAt: noon(9)),
+        ]
+        // displayedMonth を records と同じ月アンカーに固定し、月境界 race を排除
+        viewModel.displayedMonth = base
+        viewModel.selectChild(childA)
+        await waitUntil(timeout: 2.0) { self.viewModel.recordedDays == [3] }
+
+        // When: childB に切替 → {7, 9}
+        viewModel.selectChild(childB)
+
+        // Then
+        await waitUntil(timeout: 2.0) { self.viewModel.recordedDays == [7, 9] }
+        XCTAssertEqual(viewModel.recordedDays, [7, 9])
+    }
 }

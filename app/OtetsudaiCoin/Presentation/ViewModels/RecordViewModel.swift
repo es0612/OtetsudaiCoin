@@ -111,6 +111,7 @@ class RecordViewModel: BaseViewModel {
 
                 setLoading(false)
                 loadExistingCountsForCurrentDateAndChild()
+                loadRecordedDaysForDisplayedMonth()   // ← 追加
             } catch {
                 guard !Task.isCancelled else { return }
                 setUserFriendlyError(error)
@@ -167,8 +168,9 @@ class RecordViewModel: BaseViewModel {
         // 成功メッセージは保持し、エラーメッセージのみクリア
         clearErrorMessage()
         loadExistingCountsForCurrentDateAndChild()
+        loadRecordedDaysForDisplayedMonth()   // ← 追加
     }
-    
+
     func setPreselectedChild(_ child: Child) {
         selectedChild = child
     }
