@@ -9,7 +9,7 @@ struct HomeView: View {
     // ViewModelのキャッシュ化
     @State private var monthlyHistoryViewModel: MonthlyHistoryViewModel?
     @State private var showingRetrospective = false
-    @State private var retrospectiveViewModel: MonthlyRetrospectiveViewModel?
+    @State private var retrospectiveViewModel: MonthlySummaryViewModel?
     
     // レスポンシブレイアウト用
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
@@ -323,7 +323,7 @@ struct HomeView: View {
     private func prepareRetrospectiveViewModel(for child: Child) {
         let context = PersistenceController.shared.container.viewContext
         let repositoryFactory = RepositoryFactory(context: context)
-        let newViewModel = MonthlyRetrospectiveViewModel(
+        let newViewModel = MonthlySummaryViewModel(
             child: child,
             helpRecordRepository: repositoryFactory.createHelpRecordRepository(),
             helpTaskRepository: repositoryFactory.createHelpTaskRepository(),

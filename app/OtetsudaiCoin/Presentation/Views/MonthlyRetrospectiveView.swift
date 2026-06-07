@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct MonthlyRetrospectiveView: View {
-    @Bindable var viewModel: MonthlyRetrospectiveViewModel
+    @Bindable var viewModel: MonthlySummaryViewModel
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {

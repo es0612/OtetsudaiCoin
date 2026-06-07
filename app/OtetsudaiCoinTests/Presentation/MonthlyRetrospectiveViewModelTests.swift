@@ -1,9 +1,9 @@
 import XCTest
 @testable import OtetsudaiCoin
 
-final class MonthlyRetrospectiveViewModelTests: XCTestCase {
+final class MonthlySummaryViewModelTests: XCTestCase {
 
-    private var viewModel: MonthlyRetrospectiveViewModel!
+    private var viewModel: MonthlySummaryViewModel!
     private var mockChildRepository: MockChildRepository!
     private var mockHelpRecordRepository: MockHelpRecordRepository!
     private var mockHelpTaskRepository: MockHelpTaskRepository!
@@ -20,7 +20,7 @@ final class MonthlyRetrospectiveViewModelTests: XCTestCase {
 
         child = Child(id: UUID(), name: "さくら", themeColor: "#FF6B6B")
 
-        viewModel = MonthlyRetrospectiveViewModel(
+        viewModel = MonthlySummaryViewModel(
             child: child,
             helpRecordRepository: mockHelpRecordRepository,
             helpTaskRepository: mockHelpTaskRepository,
@@ -43,7 +43,7 @@ final class MonthlyRetrospectiveViewModelTests: XCTestCase {
     // actual load の kick 責務は HomeView.prepareRetrospectiveViewModel 側に集中（二重起動回避）。
     @MainActor
     func testInitSetsIsLoadingDefensively() {
-        let freshViewModel = MonthlyRetrospectiveViewModel(
+        let freshViewModel = MonthlySummaryViewModel(
             child: child,
             helpRecordRepository: mockHelpRecordRepository,
             helpTaskRepository: mockHelpTaskRepository,
