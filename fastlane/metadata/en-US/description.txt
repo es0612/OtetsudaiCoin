@@ -1,0 +1,24 @@
+A fun way to support your child's chores at home — together as a family.
+
+[Main features]
+- Record chores with a single tap and earn coins
+- Register multiple children, each with a personal theme color
+- Customize the list of chores to match your home
+- Monthly history view with automatic allowance calculation
+- Monthly Retrospective screen — celebrate effort as a family
+- Backdate entries when you forget to log right away
+
+[What makes it different]
+- Simple, child-friendly design
+- Coin animations and sound effects to keep kids motivated
+- Fully offline — no internet connection required
+- All data stays on your device only
+
+Note for international users:
+Otetsudai Coin is designed primarily for Japanese-speaking families.
+The user interface is available in English, but the allowance amount
+is displayed in Japanese yen (¥) only. The app is well suited for
+Japanese families living abroad and bilingual households who want to
+maintain a Japanese-style chores-and-allowance routine.
+
+Help your child build great habits and bring your family closer — one chore at a time!

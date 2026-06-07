@@ -1,0 +1,29 @@
+default_platform(:ios)
+
+# asc-metadata-delivery: metadata-only delivery.
+# バイナリは Xcode Cloud が所有する (このリポジトリでは fastlane でビルド/アップロードしない)。
+# 投入系 lane は人間が認証情報付きで手実行する前提。CI / subagent では自動実行しないこと。
+# 実行前に fastlane/SETUP.md の download-first フローと認証情報設定を必ず読むこと。
+platform :ios do
+  desc "Stage metadata-only to ASC editable, then precheck the staged copy"
+  lane :upload_metadata do
+    # 1) metadata を ASC の editable バージョンに stage する。
+    #    skip_binary_upload : バイナリは Xcode Cloud 所有なので触らない。
+    #    submit_for_review  : false = ステージのみ。審査提出は ASC UI で人間が行う。
+    #    skip_screenshots   : true  = スクショは deliver 管理外 (SETUP.md 参照)。
+    #                         live ASC のスクショを誤って消さないための防御。
+    #    force は付けない : 本番書き込み前に deliver の HTML プレビューを
+    #                       人間が確認する gate を意図的に残す。
+    upload_to_app_store(
+      skip_binary_upload: true,
+      submit_for_review: false,
+      skip_screenshots: true
+    )
+
+    # 2) precheck は ASC 側 (editable) を検証する (ローカルを指す metadata_path は無い)。
+    #    よって upload の後に呼び、いま stage したコピーを人間 submit 前に検証する。
+    #    en-emoji / version bump は precheck では拾えない。upload 前に
+    #    release-version-bump-check skill でローカル検査すること (SETUP.md 参照)。
+    precheck
+  end
+end

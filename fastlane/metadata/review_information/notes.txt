@@ -1,0 +1,14 @@
+No sign-in or account is required to use this app.
+
+Otetsudai Coin is a fully offline app: all data (children, chores, records,
+allowance) is stored locally on the device only. There is no server, no login,
+and no demo account is needed for review.
+
+To exercise the main flow:
+1. Launch the app and complete (or skip) the brief tutorial.
+2. Add a child via the child-management screen if none exist.
+3. On the Record tab, pick the child and a date on the calendar, tap a chore
+   card, then "Record".
+4. Coins accumulate; the Home and monthly screens show history and allowance.
+
+The app integrates Google Mobile Ads (AdMob) with non-personalized ads only.
