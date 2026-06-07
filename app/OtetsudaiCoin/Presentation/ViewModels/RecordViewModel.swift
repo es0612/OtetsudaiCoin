@@ -16,6 +16,8 @@ class RecordViewModel: BaseViewModel {
     var selectedTaskIds: Set<UUID> = []
     var warningMessage: String? = nil
     var existingRecordCounts: [UUID: Int] = [:]
+    var displayedMonth: Date = RecordViewModel.startOfMonth(Date())
+    var recordedDays: Set<Int> = []
 
     func existingRecordCount(for taskId: UUID) -> Int {
         return existingRecordCounts[taskId] ?? 0
@@ -40,7 +42,8 @@ class RecordViewModel: BaseViewModel {
     private let soundService: SoundServiceProtocol
     private var loadChildrenTask: Task<Void, Never>?
     private var loadCountsTask: Task<Void, Never>?
-    
+    private var loadRecordedDaysTask: Task<Void, Never>?
+
     init(
         childRepository: ChildRepository,
         helpTaskRepository: HelpTaskRepository,
@@ -108,6 +111,7 @@ class RecordViewModel: BaseViewModel {
 
                 setLoading(false)
                 loadExistingCountsForCurrentDateAndChild()
+                loadRecordedDaysForDisplayedMonth()   // ← 追加
             } catch {
                 guard !Task.isCancelled else { return }
                 setUserFriendlyError(error)
@@ -164,8 +168,9 @@ class RecordViewModel: BaseViewModel {
         // 成功メッセージは保持し、エラーメッセージのみクリア
         clearErrorMessage()
         loadExistingCountsForCurrentDateAndChild()
+        loadRecordedDaysForDisplayedMonth()   // ← 追加
     }
-    
+
     func setPreselectedChild(_ child: Child) {
         selectedChild = child
     }
@@ -339,9 +344,83 @@ class RecordViewModel: BaseViewModel {
         }
     }
 
+    @MainActor
+    func loadRecordedDaysForDisplayedMonth() {
+        loadRecordedDaysTask?.cancel()
+
+        guard let child = selectedChild else {
+            recordedDays = []
+            return
+        }
+
+        let cal = Calendar.current
+        let monthStart = RecordViewModel.startOfMonth(displayedMonth)
+        guard let monthEnd = cal.date(byAdding: DateComponents(month: 1, second: -1), to: monthStart) else {
+            return
+        }
+
+        loadRecordedDaysTask = Task { [weak self] in
+            guard let self = self else { return }
+            do {
+                let records = try await self.helpRecordRepository.findByDateRange(from: monthStart, to: monthEnd)
+                guard !Task.isCancelled else { return }
+                let days = Set(
+                    records
+                        .filter { $0.childId == child.id }
+                        .map { cal.component(.day, from: $0.recordedAt) }
+                )
+                await MainActor.run {
+                    self.recordedDays = days
+                }
+            } catch {
+                // 取得失敗は無視 (UX 影響低・既存 errorMessage を上書きしない)
+            }
+        }
+    }
+
+    func canGoToNextMonth(today: Date = Date()) -> Bool {
+        displayedMonth < RecordViewModel.startOfMonth(today)
+    }
+
+    @MainActor
+    func goToPreviousMonth() {
+        let cal = Calendar.current
+        guard let prev = cal.date(byAdding: .month, value: -1, to: displayedMonth) else { return }
+        displayedMonth = RecordViewModel.startOfMonth(prev)
+        loadRecordedDaysForDisplayedMonth()
+    }
+
+    @MainActor
+    func goToNextMonth(today: Date = Date()) {
+        guard canGoToNextMonth(today: today) else { return }
+        let cal = Calendar.current
+        guard let next = cal.date(byAdding: .month, value: 1, to: displayedMonth) else { return }
+        displayedMonth = RecordViewModel.startOfMonth(next)
+        loadRecordedDaysForDisplayedMonth()
+    }
+
+    @MainActor
+    func selectDay(_ day: Int, today: Date = Date()) {
+        let cal = Calendar.current
+        var comps = cal.dateComponents([.year, .month], from: displayedMonth)
+        comps.day = day
+        guard let date = cal.date(from: comps) else { return }
+        // 未来日は無視 (View 側でも disabled だが二重防御)
+        if cal.startOfDay(for: date) > cal.startOfDay(for: today) { return }
+        recordedDate = RecordViewModel.normalizeToNoon(date)
+        // 旧 DatePicker .onChange 相当: 選択日の per-task 件数 (#73) を更新
+        loadExistingCountsForCurrentDateAndChild()
+    }
+
     private static func normalizeToNoon(_ date: Date) -> Date {
         let cal = Calendar.current
         let startOfDay = cal.startOfDay(for: date)
         return cal.date(byAdding: .hour, value: 12, to: startOfDay) ?? startOfDay
+    }
+
+    static func startOfMonth(_ date: Date) -> Date {
+        let cal = Calendar.current
+        let comps = cal.dateComponents([.year, .month], from: date)
+        return cal.date(from: comps) ?? cal.startOfDay(for: date)
     }
 }

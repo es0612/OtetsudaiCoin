@@ -627,4 +627,170 @@ final class RecordViewModelTests: XCTestCase {
         // Then: count map が +1 されている
         XCTAssertEqual(viewModel.existingRecordCount(for: task.id), 1)
     }
+
+    // MARK: - #84 recordedDays (記録がある日の集合)
+
+    @MainActor
+    func test_recordedDays_initiallyEmpty() {
+        XCTAssertEqual(viewModel.recordedDays, [])
+    }
+
+    @MainActor
+    func test_loadRecordedDays_noSelectedChild_clearsSet() {
+        // Given: 何か入っている / selectedChild = nil
+        viewModel.recordedDays = [1, 2, 3]
+        viewModel.selectedChild = nil
+
+        // When (selectedChild == nil は同期的に空集合化)
+        viewModel.loadRecordedDaysForDisplayedMonth()
+
+        // Then
+        XCTAssertEqual(viewModel.recordedDays, [])
+    }
+
+    @MainActor
+    func test_loadRecordedDays_filtersBySelectedChildAndMonth() async {
+        // Given: childA の 3/5, 3/20 が対象。childB の 3/5・2月・4月 は除外。
+        let childA = Child(id: UUID(), name: "A", themeColor: "#FF5733")
+        let childB = Child(id: UUID(), name: "B", themeColor: "#33FF57")
+        let task = HelpTask(id: UUID(), name: "皿洗い", isActive: true, coinRate: 10)
+        let cal = Calendar.current
+        func noon(_ y: Int, _ m: Int, _ d: Int) -> Date {
+            cal.date(from: DateComponents(year: y, month: m, day: d, hour: 12))!
+        }
+        mockHelpTaskRepository.tasks = [task]
+        mockHelpRecordRepository.records = [
+            HelpRecord(id: UUID(), childId: childA.id, helpTaskId: task.id, recordedAt: noon(2026, 3, 5)),   // 対象
+            HelpRecord(id: UUID(), childId: childA.id, helpTaskId: task.id, recordedAt: noon(2026, 3, 20)),  // 対象
+            HelpRecord(id: UUID(), childId: childB.id, helpTaskId: task.id, recordedAt: noon(2026, 3, 5)),   // 除外(別child)
+            HelpRecord(id: UUID(), childId: childA.id, helpTaskId: task.id, recordedAt: noon(2026, 2, 28)),  // 除外(前月)
+            HelpRecord(id: UUID(), childId: childA.id, helpTaskId: task.id, recordedAt: noon(2026, 4, 1)),   // 除外(翌月)
+        ]
+        viewModel.selectedChild = childA
+        viewModel.displayedMonth = RecordViewModel.startOfMonth(noon(2026, 3, 15))
+
+        // When
+        viewModel.loadRecordedDaysForDisplayedMonth()
+        await waitUntil(timeout: 2.0) { self.viewModel.recordedDays == [5, 20] }
+
+        // Then
+        XCTAssertEqual(viewModel.recordedDays, [5, 20])
+    }
+
+    // MARK: - #84 月移動と日選択
+
+    @MainActor
+    func test_canGoToNextMonth_falseForCurrentMonth_trueForPast() {
+        let cal = Calendar.current
+        let today = cal.date(from: DateComponents(year: 2026, month: 6, day: 15))!
+
+        viewModel.displayedMonth = RecordViewModel.startOfMonth(today)
+        XCTAssertFalse(viewModel.canGoToNextMonth(today: today))
+
+        viewModel.displayedMonth = cal.date(from: DateComponents(year: 2026, month: 4, day: 1))!
+        XCTAssertTrue(viewModel.canGoToNextMonth(today: today))
+    }
+
+    @MainActor
+    func test_goToPreviousMonth_movesDisplayedMonthBack() {
+        let cal = Calendar.current
+        viewModel.displayedMonth = cal.date(from: DateComponents(year: 2026, month: 3, day: 1))!
+
+        viewModel.goToPreviousMonth()
+
+        XCTAssertEqual(
+            viewModel.displayedMonth,
+            cal.date(from: DateComponents(year: 2026, month: 2, day: 1))!
+        )
+    }
+
+    @MainActor
+    func test_goToNextMonth_cappedAtCurrentMonth() {
+        let cal = Calendar.current
+        let today = cal.date(from: DateComponents(year: 2026, month: 6, day: 15))!
+
+        // 過去月からは進める
+        viewModel.displayedMonth = cal.date(from: DateComponents(year: 2026, month: 4, day: 1))!
+        viewModel.goToNextMonth(today: today)
+        XCTAssertEqual(viewModel.displayedMonth, cal.date(from: DateComponents(year: 2026, month: 5, day: 1))!)
+
+        // 今日の月で頭打ち (no-op)
+        viewModel.displayedMonth = RecordViewModel.startOfMonth(today)
+        viewModel.goToNextMonth(today: today)
+        XCTAssertEqual(viewModel.displayedMonth, RecordViewModel.startOfMonth(today))
+    }
+
+    @MainActor
+    func test_monthNavigation_handlesYearBoundary() {
+        let cal = Calendar.current
+        // goToPreviousMonth: 2026年1月 → 2025年12月 (年跨ぎ)
+        viewModel.displayedMonth = cal.date(from: DateComponents(year: 2026, month: 1, day: 1))!
+        viewModel.goToPreviousMonth()
+        XCTAssertEqual(viewModel.displayedMonth,
+                       cal.date(from: DateComponents(year: 2025, month: 12, day: 1))!)
+
+        // canGoToNextMonth: 2025年12月表示・今日=2026年1月 → 進める (年跨ぎ比較)
+        let todayJan = cal.date(from: DateComponents(year: 2026, month: 1, day: 10))!
+        XCTAssertTrue(viewModel.canGoToNextMonth(today: todayJan))
+
+        // goToNextMonth: 2025年12月 → 2026年1月 (年跨ぎ)
+        viewModel.goToNextMonth(today: todayJan)
+        XCTAssertEqual(viewModel.displayedMonth,
+                       cal.date(from: DateComponents(year: 2026, month: 1, day: 1))!)
+
+        // 今日の月 (2026年1月) で頭打ち
+        XCTAssertFalse(viewModel.canGoToNextMonth(today: todayJan))
+    }
+
+    @MainActor
+    func test_selectDay_setsRecordedDateNoon_ignoresFuture() {
+        let cal = Calendar.current
+        let today = cal.date(from: DateComponents(year: 2026, month: 6, day: 15))!
+        viewModel.displayedMonth = RecordViewModel.startOfMonth(today)
+
+        // 過去日は選択され noon 正規化される
+        viewModel.selectDay(10, today: today)
+        let comps = cal.dateComponents([.year, .month, .day, .hour], from: viewModel.recordedDate)
+        XCTAssertEqual(comps.year, 2026)
+        XCTAssertEqual(comps.month, 6)
+        XCTAssertEqual(comps.day, 10)
+        XCTAssertEqual(comps.hour, 12)
+
+        // 今日 (15) は選択可能 (guard は strict `>` なので今日は通る)
+        viewModel.selectDay(15, today: today)
+        XCTAssertEqual(cal.component(.day, from: viewModel.recordedDate), 15)
+
+        // 未来日 (16) は無視され recordedDate は 15 のまま
+        viewModel.selectDay(16, today: today)
+        XCTAssertEqual(cal.component(.day, from: viewModel.recordedDate), 15)
+    }
+
+    @MainActor
+    func test_selectChild_triggersRecordedDaysReload() async {
+        let cal = Calendar.current
+        let base = RecordViewModel.startOfMonth(Date())
+        func noon(_ d: Int) -> Date {
+            cal.date(byAdding: DateComponents(day: d - 1, hour: 12), to: base)!
+        }
+        let childA = Child(id: UUID(), name: "A", themeColor: "#FF5733")
+        let childB = Child(id: UUID(), name: "B", themeColor: "#33FF57")
+        let task = HelpTask(id: UUID(), name: "皿洗い", isActive: true, coinRate: 10)
+        mockHelpTaskRepository.tasks = [task]
+        mockHelpRecordRepository.records = [
+            HelpRecord(id: UUID(), childId: childA.id, helpTaskId: task.id, recordedAt: noon(3)),
+            HelpRecord(id: UUID(), childId: childB.id, helpTaskId: task.id, recordedAt: noon(7)),
+            HelpRecord(id: UUID(), childId: childB.id, helpTaskId: task.id, recordedAt: noon(9)),
+        ]
+        // displayedMonth を records と同じ月アンカーに固定し、月境界 race を排除
+        viewModel.displayedMonth = base
+        viewModel.selectChild(childA)
+        await waitUntil(timeout: 2.0) { self.viewModel.recordedDays == [3] }
+
+        // When: childB に切替 → {7, 9}
+        viewModel.selectChild(childB)
+
+        // Then
+        await waitUntil(timeout: 2.0) { self.viewModel.recordedDays == [7, 9] }
+        XCTAssertEqual(viewModel.recordedDays, [7, 9])
+    }
 }
