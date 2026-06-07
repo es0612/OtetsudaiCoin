@@ -10,6 +10,7 @@ struct RecordCalendarView: View {
     let recordedDays: Set<Int>    // displayedMonth 内で記録がある日
     let today: Date               // 未来日判定の基準
     let canGoNextMonth: Bool
+    var showHeader: Bool = true
     let onSelectDay: (Int) -> Void
     let onPrevMonth: () -> Void
     let onNextMonth: () -> Void
@@ -18,7 +19,9 @@ struct RecordCalendarView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            header
+            if showHeader {
+                header
+            }
             weekdayHeader
             ForEach(Array(weeks.enumerated()), id: \.offset) { _, week in
                 HStack(spacing: 4) {
@@ -31,7 +34,9 @@ struct RecordCalendarView: View {
                     }
                 }
             }
-            selectedCaption
+            if showHeader {
+                selectedCaption
+            }
         }
     }
 

@@ -30,7 +30,8 @@ final class RecordCalendarViewTests: XCTestCase {
         onSelectDay: @escaping (Int) -> Void = { _ in },
         onPrevMonth: @escaping () -> Void = {},
         onNextMonth: @escaping () -> Void = {},
-        canGoNextMonth: Bool = false
+        canGoNextMonth: Bool = false,
+        showHeader: Bool = true
     ) -> RecordCalendarView {
         let displayedMonth = cal.date(from: DateComponents(year: 2026, month: 6, day: 1))!
         let today = cal.date(from: DateComponents(year: 2026, month: 6, day: 15))!
@@ -43,6 +44,7 @@ final class RecordCalendarViewTests: XCTestCase {
             recordedDays: recordedDays,
             today: today,
             canGoNextMonth: canGoNextMonth,
+            showHeader: showHeader,
             onSelectDay: onSelectDay,
             onPrevMonth: onPrevMonth,
             onNextMonth: onNextMonth
@@ -163,5 +165,15 @@ final class RecordCalendarViewTests: XCTestCase {
         }
         try prev.tap()
         XCTAssertTrue(called, "前月ボタンのタップで onPrevMonth が呼ばれない (allButtons=\(allButtons.count))")
+    }
+
+    /// showHeader:false で月ナビ chevron (‹/›) と selectedCaption (記録日 + 日付) を描画しない。
+    /// サマリ埋め込み用途で chrome を隠す経路を担保する。
+    func testShowHeaderFalseHidesMonthNavChevrons() throws {
+        let view = makeView(showHeader: false)
+        let texts = try view.inspect().findAll(ViewType.Text.self).map { try $0.string() }
+        XCTAssertFalse(texts.contains("‹"), "showHeader:false ではヘッダーの ‹ を描画しない / rendered: \(texts)")
+        XCTAssertFalse(texts.contains("›"), "showHeader:false ではヘッダーの › を描画しない / rendered: \(texts)")
+        XCTAssertFalse(texts.contains("記録日"), "showHeader:false では selectedCaption(記録日 + 日付) を描画しない / rendered: \(texts)")
     }
 }
