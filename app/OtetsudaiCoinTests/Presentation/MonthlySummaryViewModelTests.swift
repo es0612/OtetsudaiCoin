@@ -39,8 +39,8 @@ final class MonthlySummaryViewModelTests: XCTestCase {
     }
 
     // #54: init 終端で isLoading=true を defensive に立てる。
-    // sheet 表示直後の empty state（「データがありません」）gap を避けるため。
-    // actual load の kick 責務は HomeView.prepareRetrospectiveViewModel 側に集中（二重起動回避）。
+    // 画面表示直後の empty state（「データがありません」）gap を避けるため。
+    // actual load の kick 責務は HomeView.monthlySummaryView(for:) の .onAppear に集中（二重起動回避）。
     @MainActor
     func testInitSetsIsLoadingDefensively() {
         let freshViewModel = MonthlySummaryViewModel(
