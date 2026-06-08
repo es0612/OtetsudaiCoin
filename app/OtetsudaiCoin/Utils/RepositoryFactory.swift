@@ -86,15 +86,6 @@ class ViewModelFactory {
         )
     }
     
-    func createMonthlyHistoryViewModel() -> MonthlyHistoryViewModel {
-        MonthlyHistoryViewModel(
-            helpRecordRepository: repositoryFactory.createHelpRecordRepository(),
-            allowancePaymentRepository: repositoryFactory.createAllowancePaymentRepository(),
-            helpTaskRepository: repositoryFactory.createHelpTaskRepository(),
-            allowanceCalculator: AllowanceCalculator()
-        )
-    }
-    
     func createHelpRecordEditViewModel(
         helpRecord: HelpRecord,
         child: Child

@@ -1,9 +1,9 @@
 import XCTest
 @testable import OtetsudaiCoin
 
-final class MonthlyRetrospectiveViewModelTests: XCTestCase {
+final class MonthlySummaryViewModelTests: XCTestCase {
 
-    private var viewModel: MonthlyRetrospectiveViewModel!
+    private var viewModel: MonthlySummaryViewModel!
     private var mockChildRepository: MockChildRepository!
     private var mockHelpRecordRepository: MockHelpRecordRepository!
     private var mockHelpTaskRepository: MockHelpTaskRepository!
@@ -20,7 +20,7 @@ final class MonthlyRetrospectiveViewModelTests: XCTestCase {
 
         child = Child(id: UUID(), name: "さくら", themeColor: "#FF6B6B")
 
-        viewModel = MonthlyRetrospectiveViewModel(
+        viewModel = MonthlySummaryViewModel(
             child: child,
             helpRecordRepository: mockHelpRecordRepository,
             helpTaskRepository: mockHelpTaskRepository,
@@ -39,11 +39,11 @@ final class MonthlyRetrospectiveViewModelTests: XCTestCase {
     }
 
     // #54: init 終端で isLoading=true を defensive に立てる。
-    // sheet 表示直後の empty state（「データがありません」）gap を避けるため。
-    // actual load の kick 責務は HomeView.prepareRetrospectiveViewModel 側に集中（二重起動回避）。
+    // 画面表示直後の empty state（「データがありません」）gap を避けるため。
+    // actual load の kick 責務は HomeView.monthlySummaryView(for:) の .onAppear に集中（二重起動回避）。
     @MainActor
     func testInitSetsIsLoadingDefensively() {
-        let freshViewModel = MonthlyRetrospectiveViewModel(
+        let freshViewModel = MonthlySummaryViewModel(
             child: child,
             helpRecordRepository: mockHelpRecordRepository,
             helpTaskRepository: mockHelpTaskRepository,
@@ -176,5 +176,87 @@ final class MonthlyRetrospectiveViewModelTests: XCTestCase {
         await viewModel.loadMonth()
 
         XCTAssertEqual(viewModel.snapshot?.paymentStatus, .paid)
+    }
+
+    @MainActor
+    func testPayCurrentMonthSavesPaymentAndMarksPaid() async {
+        let cal = Calendar.current
+        let thisMonth = cal.dateComponents([.year, .month], from: Date())
+
+        let dishesId = UUID()
+        mockHelpTaskRepository.tasks = [HelpTask(id: dishesId, name: "皿洗い", isActive: true, coinRate: 100)]
+
+        var c1 = thisMonth; c1.day = 3; c1.hour = 12
+        var c2 = thisMonth; c2.day = 5; c2.hour = 12
+        mockHelpRecordRepository.records = [
+            HelpRecord(id: UUID(), childId: child.id, helpTaskId: dishesId, recordedAt: cal.date(from: c1)!),
+            HelpRecord(id: UUID(), childId: child.id, helpTaskId: dishesId, recordedAt: cal.date(from: c2)!)
+        ]
+        mockAllowancePaymentRepository.payments = []
+
+        await viewModel.loadMonth()
+        XCTAssertEqual(viewModel.snapshot?.paymentStatus, .unpaid, "前提: 未払い")
+
+        await viewModel.payCurrentMonth()
+
+        XCTAssertEqual(mockAllowancePaymentRepository.payments.count, 1, "支払いが1件保存される")
+        XCTAssertEqual(mockAllowancePaymentRepository.payments.first?.amount, 200, "金額は当月コイン合計")
+        XCTAssertEqual(viewModel.snapshot?.paymentStatus, .paid, "再ロード後は支払い済み")
+    }
+
+    @MainActor
+    func testPayCurrentMonthOnPartiallyPaidPaysOnlyRemainder() async {
+        let cal = Calendar.current
+        let thisMonth = cal.dateComponents([.year, .month], from: Date())
+
+        let dishesId = UUID()
+        mockHelpTaskRepository.tasks = [HelpTask(id: dishesId, name: "皿洗い", isActive: true, coinRate: 100)]
+        var c1 = thisMonth; c1.day = 3; c1.hour = 12
+        var c2 = thisMonth; c2.day = 5; c2.hour = 12
+        mockHelpRecordRepository.records = [
+            HelpRecord(id: UUID(), childId: child.id, helpTaskId: dishesId, recordedAt: cal.date(from: c1)!),
+            HelpRecord(id: UUID(), childId: child.id, helpTaskId: dishesId, recordedAt: cal.date(from: c2)!)
+        ]
+        // 既に 100 だけ支払い済み（期待 200 → 残額 100）
+        mockAllowancePaymentRepository.payments = [
+            AllowancePayment(id: UUID(), childId: child.id, amount: 100, month: thisMonth.month!, year: thisMonth.year!, paidAt: Date())
+        ]
+
+        await viewModel.loadMonth()
+        XCTAssertEqual(viewModel.snapshot?.paymentStatus, .partiallyPaid, "前提: 一部支払い済み")
+
+        await viewModel.payCurrentMonth()
+
+        let saved = mockAllowancePaymentRepository.payments
+        XCTAssertEqual(saved.count, 2, "残額分の payment が1件だけ追加される（全額二重払いしない）")
+        XCTAssertEqual(saved.last?.amount, 100, "追加額は残額(200-100)のみ")
+        XCTAssertEqual(viewModel.snapshot?.paymentStatus, .paid, "完済後は支払い済み")
+    }
+
+    // CLAUDE.md: date-math 反復弱点(#112/#114/#115)への予防線。年境界(Dec→Jan)を必ず1件。
+    // 「前年12月」を起点にすると次月=今年1月で必ず現在月以下 → future-guard を通過し実行日非依存。
+    @MainActor
+    func testGoToNextMonthCrossesYearBoundary() {
+        let cal = Calendar.current
+        let currentYear = cal.component(.year, from: Date())
+        var decComps = DateComponents()
+        decComps.year = currentYear - 1
+        decComps.month = 12
+        decComps.day = 1
+        let december = cal.date(from: decComps)!
+
+        let vm = MonthlySummaryViewModel(
+            child: child,
+            helpRecordRepository: mockHelpRecordRepository,
+            helpTaskRepository: mockHelpTaskRepository,
+            allowancePaymentRepository: mockAllowancePaymentRepository,
+            initialMonth: december
+        )
+
+        vm.goToNextMonth()
+
+        let comps = cal.dateComponents([.year, .month], from: vm.selectedMonth)
+        XCTAssertEqual(comps.month, 1, "12月の次は1月")
+        XCTAssertEqual(comps.year, currentYear, "前年12月 → 今年1月で年が繰り上がる (Dec→Jan)")
     }
 }

@@ -417,6 +417,16 @@
         }
       }
     },
+    "お小遣いを確認" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check allowance"
+          }
+        }
+      }
+    },
     "お小遣い支払い確認" : {
       "localizations" : {
         "en" : {
@@ -739,6 +749,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Coin rate must be 1 or more"
+          }
+        }
+      }
+    },
+    "この月のお小遣いを支払う" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pay this month's allowance"
           }
         }
       }
@@ -1748,6 +1768,16 @@
         }
       }
     },
+    "月のまとめ" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly Summary"
+          }
+        }
+      }
+    },
     "月別履歴" : {
       "localizations" : {
         "en" : {
@@ -2182,6 +2212,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pay the additional allowance?\nAmount: %lld Coins"
+          }
+        }
+      }
+    },
+    "追加分のお小遣いを支払う" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pay additional allowance"
           }
         }
       }

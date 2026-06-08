@@ -2,7 +2,7 @@ import Foundation
 
 @MainActor
 @Observable
-class MonthlyRetrospectiveViewModel {
+class MonthlySummaryViewModel {
 
     // MARK: - State
 
@@ -30,7 +30,8 @@ class MonthlyRetrospectiveViewModel {
         child: Child,
         helpRecordRepository: HelpRecordRepository,
         helpTaskRepository: HelpTaskRepository,
-        allowancePaymentRepository: AllowancePaymentRepository
+        allowancePaymentRepository: AllowancePaymentRepository,
+        initialMonth: Date? = nil
     ) {
         self.child = child
         self.helpRecordRepository = helpRecordRepository
@@ -38,12 +39,11 @@ class MonthlyRetrospectiveViewModel {
         self.allowancePaymentRepository = allowancePaymentRepository
 
         let cal = Calendar.current
-        let comps = cal.dateComponents([.year, .month], from: Date())
-        self.selectedMonth = cal.date(from: comps) ?? Date()
+        let anchor = initialMonth ?? Date()
+        let comps = cal.dateComponents([.year, .month], from: anchor)
+        self.selectedMonth = cal.date(from: comps) ?? anchor
 
-        // #54: sheet 表示直後の empty state（「データがありません」）gap を避けるため、
-        // init で defensive に isLoading=true を立てる。
-        // actual load の kick は HomeView.prepareRetrospectiveViewModel 側で行う設計（責務分離）。
+        // #54: sheet/遷移直後の empty state gap を避けるため init で isLoading=true。
         self.isLoading = true
     }
 
@@ -67,6 +67,42 @@ class MonthlyRetrospectiveViewModel {
         if candidate > currentMonthStart() { return }
 
         selectedMonth = candidate
+    }
+
+    // MARK: - Payment
+
+    /// 表示中の月の「未払い残額」を支払う。完済済みなら no-op。
+    /// 既払いがある月（.partiallyPaid）は残額のみを新規 payment として保存する（全額二重払いを防ぐ）。
+    /// 残額は新規の payment 行として保存するが、computePaymentStatus が当月の全 payment 行を
+    /// 合算して判定するため、残額行を別途追加しても合計が totalCoins に達し .paid と判定される。
+    /// 保存後 loadMonth で paidAmount / paymentStatus を再評価する。
+    /// isLoading を in-flight ガードに用い、CTA の double-tap による二重 save（全額過払い）を防ぐ。
+    func payCurrentMonth() async {
+        guard !isLoading else { return }
+        isLoading = true
+        defer { isLoading = false }
+        guard let snap = snapshot, snap.paymentStatus != .paid else { return }
+        let remainder = snap.totalCoins - snap.paidAmount
+        guard remainder > 0 else { return }
+        let cal = Calendar.current
+        let comps = cal.dateComponents([.year, .month], from: selectedMonth)
+        guard let year = comps.year, let month = comps.month else { return }
+        do {
+            let payment = AllowancePayment(
+                id: UUID(),
+                childId: child.id,
+                amount: remainder,
+                month: month,
+                year: year,
+                paidAt: Date(),
+                note: "\(year)年\(month)月のお小遣い支払い"
+            )
+            try await allowancePaymentRepository.save(payment)
+            await loadMonth()   // paidAmount/paymentStatus を再評価（loadMonth が isLoading を管理）
+        } catch {
+            // 保存失敗時は snapshot を維持（paymentStatus は変わらない）
+            DebugLogger.error("payCurrentMonth failed: \(error)")
+        }
     }
 
     // MARK: - Loading
@@ -103,6 +139,9 @@ class MonthlyRetrospectiveViewModel {
 
             let calendarDays = computeCalendarDays(records: monthRecords, year: year, month: month)
 
+            let monthPayments = allPayments.filter { $0.year == year && $0.month == month }
+            let paidAmount = monthPayments.reduce(0) { $0 + $1.amount }
+
             let paymentStatus = computePaymentStatus(
                 payments: allPayments,
                 year: year,
@@ -116,6 +155,7 @@ class MonthlyRetrospectiveViewModel {
                 monthLabel: monthLabel,
                 totalCount: totalCount,
                 totalCoins: totalCoins,
+                paidAmount: paidAmount,
                 taskBreakdown: breakdown,
                 highlights: highlights,
                 calendar: calendarDays,
@@ -187,6 +227,7 @@ struct MonthSnapshot: Equatable {
     let monthLabel: String
     let totalCount: Int
     let totalCoins: Int
+    let paidAmount: Int          // 当月に既に支払い済みの合計
     let taskBreakdown: [TaskBreakdownItem]
     let highlights: Highlights
     let calendar: [DailyActivity]
