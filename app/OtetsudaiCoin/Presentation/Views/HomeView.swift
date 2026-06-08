@@ -3,17 +3,7 @@ import UIKit
 
 struct HomeView: View {
     @Bindable var viewModel: HomeViewModel
-    @State private var showingMonthlyHistory = false
-    @State private var showingPaymentConfirmation = false
-    
-    // ViewModelのキャッシュ化
-    @State private var monthlyHistoryViewModel: MonthlyHistoryViewModel?
-    @State private var showingRetrospective = false
-    @State private var retrospectiveViewModel: MonthlySummaryViewModel?
-    
-    // レスポンシブレイアウト用
-    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
-    
+
     var body: some View {
         NavigationStack {
             VStack {
@@ -87,33 +77,11 @@ struct HomeView: View {
         } message: {
             Text(viewModel.successMessage ?? "")
         }
-        .sheet(isPresented: $showingMonthlyHistory) {
-            if let monthlyViewModel = monthlyHistoryViewModel {
-                MonthlyHistoryView(viewModel: monthlyViewModel)
-            }
-        }
-        .sheet(isPresented: $showingRetrospective) {
-            if let retroViewModel = retrospectiveViewModel {
-                MonthlySummaryView(viewModel: retroViewModel)
-            }
-        }
-        .alert("支払い確認", isPresented: $showingPaymentConfirmation) {
-            Button("キャンセル", role: .cancel) { }
-            Button("支払う") {
-                viewModel.payMonthlyAllowance()
-            }
-        } message: {
-            if viewModel.isCurrentMonthPaid {
-                Text("追加分のお小遣いを支払いますか？\n金額: \(viewModel.currentMonthEarnings - viewModel.monthlyAllowance)コイン")
-            } else {
-                Text("今月のお小遣いを支払いますか？\n金額: \(viewModel.currentMonthEarnings)コイン")
-            }
-        }
     }
-    
+
     private func childStatsView(for child: Child) -> some View {
         VStack(spacing: 20) {
-            // 子供のアバター
+            // 子供のアバター + 名前
             VStack(spacing: 12) {
                 Circle()
                     .fill(
@@ -130,70 +98,27 @@ struct HomeView: View {
                             .foregroundColor(.white)
                     )
                     .shadow(color: (Color(hex: child.themeColor) ?? .blue).opacity(0.3), radius: 8, x: 0, y: 4)
-                
-                HStack(spacing: 8) {
-                    Text("\(child.name)ちゃんの記録")
-                        .appFont(.sectionHeader)
-                        .foregroundColor(AccessibilityColors.textPrimary)
-                    
-                    NavigationLink(destination: getHelpHistoryView(for: child)) {
-                        Image(systemName: "list.clipboard")
-                            .font(.title3)
-                            .foregroundColor(Color(hex: child.themeColor) ?? .blue)
-                    }
-                    
-                    Button(action: {
-                        // 非同期でViewModel準備を実行
-                        DispatchQueue.main.async {
-                            prepareMonthlyHistoryViewModel(for: child)
-                            showingMonthlyHistory = true
-                        }
-                    }) {
-                        Image(systemName: "calendar.badge.clock")
-                            .font(.title3)
-                            .foregroundColor(Color(hex: child.themeColor) ?? .blue)
-                    }
 
-                    Button(action: {
-                        DispatchQueue.main.async {
-                            prepareRetrospectiveViewModel(for: child)
-                            showingRetrospective = true
-                        }
-                    }) {
-                        Image(systemName: "sparkles")
-                            .font(.title3)
-                            .foregroundColor(Color(hex: child.themeColor) ?? .blue)
-                    }
-                    .accessibilityIdentifier("home_retrospective_button")
-                }
+                Text("\(child.name)ちゃんの記録")
+                    .appFont(.sectionHeader)
+                    .foregroundColor(AccessibilityColors.textPrimary)
             }
-            
-            // 統計カード
-            LazyVGrid(
-                columns: Array(
-                    repeating: GridItem(.flexible()), 
-                    count: DeviceInfo.statisticsCardColumns(for: horizontalSizeClass)
-                ), 
-                spacing: DeviceInfo.statisticsCardSpacing
-            ) {
-                StatisticsCard(
-                    icon: "star.fill",
-                    title: "今月の実績",
-                    value: "\(viewModel.totalRecordsThisMonth)",
-                    subtitle: "回がんばった！",
-                    color: Color(hex: child.themeColor) ?? .blue,
-                    style: .large
-                )
-                
-                StatisticsCard(
-                    icon: "flame.fill",
-                    title: "連続記録",
-                    value: "\(viewModel.consecutiveDays)",
-                    subtitle: "日連続！",
-                    color: .orange,
-                    style: .large
-                )
-                
+
+            // 入口2つ（旧: 無地アイコン3つ）
+            VStack(spacing: 8) {
+                NavigationLink(destination: monthlySummaryView(for: child)) {
+                    entryRow(icon: "chart.bar.doc.horizontal", title: "月のまとめ", color: Color(hex: child.themeColor) ?? .blue)
+                }
+                .accessibilityIdentifier("home_monthly_summary_entry")
+
+                NavigationLink(destination: getHelpHistoryView(for: child)) {
+                    entryRow(icon: "list.clipboard", title: "お手伝い履歴", color: Color(hex: child.themeColor) ?? .blue)
+                }
+                .accessibilityIdentifier("home_help_history_entry")
+            }
+
+            // 統計（今月のコイン + 連続記録）
+            HStack(spacing: DeviceInfo.statisticsCardSpacing) {
                 StatisticsCard(
                     icon: "dollarsign.circle.fill",
                     title: "今月のコイン",
@@ -202,93 +127,14 @@ struct HomeView: View {
                     color: .green,
                     style: .large
                 )
-                
                 StatisticsCard(
-                    icon: "calendar",
-                    title: "今月のお手伝い",
-                    value: "\(viewModel.totalRecordsThisMonth)",
-                    subtitle: "回",
-                    color: .purple,
+                    icon: "flame.fill",
+                    title: "連続記録",
+                    value: "\(viewModel.consecutiveDays)",
+                    subtitle: "日連続！",
+                    color: .orange,
                     style: .large
                 )
-            }
-            
-            // お小遣い支払いセクション
-            VStack(spacing: 16) {
-                Divider()
-                    .padding(.vertical, 8)
-                
-                if viewModel.isCurrentMonthPaid {
-                    VStack(spacing: 8) {
-                        HStack {
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundColor(AccessibilityColors.successGreen)
-                            Text("今月のお小遣いは支払い済みです")
-                                .foregroundColor(AccessibilityColors.textSecondary)
-                            Spacer()
-                            Text("\(viewModel.monthlyAllowance)コイン")
-                                .font(.caption)
-                                .foregroundColor(AccessibilityColors.successGreen)
-                                .fontWeight(.medium)
-                        }
-                        
-                        if viewModel.monthlyAllowance < viewModel.currentMonthEarnings {
-                            VStack(spacing: 4) {
-                                HStack {
-                                    Image(systemName: "exclamationmark.triangle.fill")
-                                        .foregroundColor(AccessibilityColors.warningOrange)
-                                        .font(.caption)
-                                    Text("支払い後の追加獲得分")
-                                        .font(.caption)
-                                        .foregroundColor(AccessibilityColors.warningOrange)
-                                    Spacer()
-                                    Text("\(viewModel.currentMonthEarnings - viewModel.monthlyAllowance)コイン")
-                                        .font(.caption)
-                                        .foregroundColor(AccessibilityColors.warningOrange)
-                                        .fontWeight(.medium)
-                                }
-                                
-                                Button(action: {
-                                    showingPaymentConfirmation = true
-                                }) {
-                                    Text("追加分を支払う")
-                                        .font(.caption)
-                                        .foregroundColor(.white)
-                                        .padding(.horizontal, 12)
-                                        .padding(.vertical, 6)
-                                        .background(Color.orange)
-                                        .cornerRadius(8)
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    VStack(spacing: 12) {
-                        Text("今月のお小遣い")
-                            .font(.headline)
-                            .foregroundColor(.primary)
-                        
-                        Button(action: {
-                            showingPaymentConfirmation = true
-                        }) {
-                            HStack {
-                                Image(systemName: "creditcard.fill")
-                                Text("今月のお小遣いを支払う")
-                                Spacer()
-                                Text("\(viewModel.monthlyAllowance)コイン")
-                                    .fontWeight(.bold)
-                            }
-                        }
-                        .primaryGradientButton()
-                        .disabled(viewModel.monthlyAllowance == 0)
-                        
-                        if viewModel.monthlyAllowance == 0 {
-                            Text("今月のお手伝い記録がありません")
-                                .font(.caption)
-                                .foregroundColor(AccessibilityColors.textSecondary)
-                        }
-                    }
-                }
             }
         }
         .adaptivePadding()
@@ -312,29 +158,37 @@ struct HomeView: View {
             }
     }
     
-    private func prepareMonthlyHistoryViewModel(for child: Child) {
+    private func monthlySummaryView(for child: Child, initialMonth: Date? = nil) -> some View {
         let context = PersistenceController.shared.container.viewContext
         let repositoryFactory = RepositoryFactory(context: context)
-        let viewModelFactory = ViewModelFactory(repositoryFactory: repositoryFactory)
-        monthlyHistoryViewModel = viewModelFactory.createMonthlyHistoryViewModel()
-        monthlyHistoryViewModel?.selectChild(child)
-    }
-
-    private func prepareRetrospectiveViewModel(for child: Child) {
-        let context = PersistenceController.shared.container.viewContext
-        let repositoryFactory = RepositoryFactory(context: context)
-        let newViewModel = MonthlySummaryViewModel(
+        let vm = MonthlySummaryViewModel(
             child: child,
             helpRecordRepository: repositoryFactory.createHelpRecordRepository(),
             helpTaskRepository: repositoryFactory.createHelpTaskRepository(),
-            allowancePaymentRepository: repositoryFactory.createAllowancePaymentRepository()
+            allowancePaymentRepository: repositoryFactory.createAllowancePaymentRepository(),
+            initialMonth: initialMonth
         )
-        retrospectiveViewModel = newViewModel
-        // #54: load の kick はここに集中（init は defensive isLoading=true のみ）。
-        // sheet 表示時点で load が in-flight になり、empty state gap を回避する。
-        Task { await newViewModel.loadMonth() }
+        return MonthlySummaryView(viewModel: vm)
+            .onAppear { Task { await vm.loadMonth() } }
     }
-    
+
+    @ViewBuilder
+    private func entryRow(icon: String, title: LocalizedStringKey, color: Color) -> some View {
+        HStack {
+            Image(systemName: icon).foregroundColor(color)
+            Text(title).appFont(.sectionHeader).foregroundColor(AccessibilityColors.textPrimary)
+            Spacer()
+            Image(systemName: "chevron.right").font(.caption).foregroundColor(AccessibilityColors.textSecondary)
+        }
+        .padding(.vertical, 12)
+        .padding(.horizontal, 16)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color(.systemBackground))
+                .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
+        )
+    }
+
     private var childrenListView: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("お子様を選択")
@@ -428,36 +282,29 @@ struct HomeView: View {
             
             HStack {
                 Spacer()
-                
-                Button(action: {
-                    // 未支払い対象の子供を特定して遷移
-                    let targetChild = viewModel.selectedChild
-                        ?? viewModel.unpaidPeriods.first.flatMap { period in
-                            viewModel.children.first { $0.id == period.childId }
+
+                if let targetChild = viewModel.selectedChild
+                    ?? viewModel.unpaidPeriods.first.flatMap({ period in
+                        viewModel.children.first { $0.id == period.childId }
+                    }) {
+                    let initialMonth = (viewModel.unpaidPeriods.first { $0.childId == targetChild.id }?.date) ?? Date()
+                    NavigationLink(destination: monthlySummaryView(for: targetChild, initialMonth: initialMonth)) {
+                        HStack(spacing: 6) {
+                            Text("お小遣いを確認")
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                            Image(systemName: "arrow.right").font(.caption)
                         }
-                    if let child = targetChild {
-                        DispatchQueue.main.async {
-                            prepareMonthlyHistoryViewModel(for: child)
-                            showingMonthlyHistory = true
-                        }
+                        .foregroundColor(AccessibilityColors.warningOrange)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(AccessibilityColors.warningOrange.opacity(0.15))
+                        )
                     }
-                }) {
-                    HStack(spacing: 6) {
-                        Text("支払い履歴を確認")
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-                        Image(systemName: "arrow.right")
-                            .font(.caption)
-                    }
-                    .foregroundColor(AccessibilityColors.warningOrange)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
-                    .background(
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(AccessibilityColors.warningOrange.opacity(0.15))
-                    )
+                    .accessibilityIdentifier("home_unpaid_summary_link")
                 }
-                .buttonStyle(PlainButtonStyle())
             }
         }
         .padding(14)

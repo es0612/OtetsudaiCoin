@@ -137,7 +137,7 @@ final class HomeViewTests: XCTestCase {
         // 未支払い警告バナーの表示をテスト
         XCTAssertNoThrow(try view.inspect().find(text: "未支払いのお小遣いがあります", locale: Locale(identifier: "ja")))
         XCTAssertNoThrow(try view.inspect().find(text: "500コイン", locale: Locale(identifier: "ja")))
-        XCTAssertNoThrow(try view.inspect().find(text: "支払い履歴を確認", locale: Locale(identifier: "ja")))
+        XCTAssertNoThrow(try view.inspect().find(text: "お小遣いを確認", locale: Locale(identifier: "ja")))
     }
     
     @MainActor
@@ -159,7 +159,7 @@ final class HomeViewTests: XCTestCase {
         // バナーが表示されること
         XCTAssertNoThrow(try view.inspect().find(text: "未支払いのお小遣いがあります", locale: Locale(identifier: "ja")))
         XCTAssertNoThrow(try view.inspect().find(text: "500コイン", locale: Locale(identifier: "ja")))
-        XCTAssertNoThrow(try view.inspect().find(text: "支払い履歴を確認", locale: Locale(identifier: "ja")))
+        XCTAssertNoThrow(try view.inspect().find(text: "お小遣いを確認", locale: Locale(identifier: "ja")))
     }
 
     @MainActor
