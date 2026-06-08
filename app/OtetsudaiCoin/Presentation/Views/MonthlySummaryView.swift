@@ -1,90 +1,81 @@
 import SwiftUI
 
-struct MonthlyRetrospectiveView: View {
+struct MonthlySummaryView: View {
     @Bindable var viewModel: MonthlySummaryViewModel
-    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 20) {
-                    monthHeader
-                    if let snap = viewModel.snapshot {
-                        heroSection(snap: snap)
-                        highlightBadges(snap: snap)
-                        taskBreakdownChart(snap: snap)
-                        monthCalendarHeatmap(snap: snap)
-                        if snap.paymentStatus != .paid {
-                            paymentCTA(snap: snap)
-                        }
-                    } else if viewModel.isLoading {
-                        ProgressView("読み込み中...")
-                            .frame(maxWidth: .infinity, minHeight: 200)
-                    } else {
-                        Text("データがありません")
-                            .appFont(.secondaryInfo)
-                            .foregroundColor(AccessibilityColors.textSecondary)
-                            .frame(maxWidth: .infinity, minHeight: 200)
+        ScrollView {
+            VStack(spacing: 20) {
+                if let snap = viewModel.snapshot {
+                    heroSection(snap: snap)
+                    highlightBadges(snap: snap)
+                    taskBreakdownChart(snap: snap)
+                    recordCalendarSection(snap: snap)
+                    if snap.paymentStatus != .paid {
+                        paymentCTA(snap: snap)
                     }
-                }
-                .padding()
-            }
-            .navigationTitle(viewModel.snapshot?.monthLabel ?? "振り返り")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("閉じる") { dismiss() }
+                } else if viewModel.isLoading {
+                    ProgressView("読み込み中...")
+                        .frame(maxWidth: .infinity, minHeight: 200)
+                } else {
+                    Text("データがありません")
+                        .appFont(.secondaryInfo)
+                        .foregroundColor(AccessibilityColors.textSecondary)
+                        .frame(maxWidth: .infinity, minHeight: 200)
                 }
             }
-            .gesture(
-                DragGesture(minimumDistance: 50)
-                    .onEnded { value in
-                        if value.translation.width < -50 {
-                            viewModel.goToPreviousMonth()
-                            Task { await viewModel.loadMonth() }
-                        } else if value.translation.width > 50 {
-                            viewModel.goToNextMonth()
-                            Task { await viewModel.loadMonth() }
-                        }
-                    }
-            )
-            .animation(.easeInOut, value: viewModel.selectedMonth)
+            .padding()
         }
+        .navigationTitle("月のまとめ")
+        .navigationBarTitleDisplayMode(.inline)
+        .safeAreaInset(edge: .top) { monthNavBar }
+        .gesture(
+            DragGesture(minimumDistance: 50)
+                .onEnded { value in
+                    if value.translation.width < -50 {
+                        viewModel.goToPreviousMonth()
+                        Task { await viewModel.loadMonth() }
+                    } else if value.translation.width > 50 {
+                        viewModel.goToNextMonth()
+                        Task { await viewModel.loadMonth() }
+                    }
+                }
+        )
+        .animation(.easeInOut, value: viewModel.selectedMonth)
     }
 
-    // MARK: - Sections
+    // MARK: - Navigation Bar
 
-    private var monthHeader: some View {
+    private var monthNavBar: some View {
         HStack {
             Button {
                 viewModel.goToPreviousMonth()
                 Task { await viewModel.loadMonth() }
             } label: {
-                Image(systemName: "chevron.left")
-                    .font(.title3)
-                    .foregroundColor(AccessibilityColors.primaryBlue)
+                Text("‹").font(.title2).frame(width: 44, height: 32)
             }
-            .accessibilityIdentifier("retrospective_prev_month")
+            .accessibilityIdentifier("summary_prev_month")
+            .accessibilityLabel(Text(String(localized: "前の月")))
 
             Spacer()
-
-            Text("\(viewModel.child.name)ちゃんの記録")
-                .appFont(.sectionHeader)
-                .foregroundColor(AccessibilityColors.textPrimary)
-
+            Text(viewModel.snapshot?.monthLabel ?? "").appFont(.sectionHeader)
             Spacer()
 
             Button {
                 viewModel.goToNextMonth()
                 Task { await viewModel.loadMonth() }
             } label: {
-                Image(systemName: "chevron.right")
-                    .font(.title3)
-                    .foregroundColor(AccessibilityColors.primaryBlue)
+                Text("›").font(.title2).frame(width: 44, height: 32)
             }
-            .accessibilityIdentifier("retrospective_next_month")
+            .accessibilityIdentifier("summary_next_month")
+            .accessibilityLabel(Text(String(localized: "次の月")))
         }
+        .padding(.horizontal)
+        .padding(.vertical, 8)
+        .background(.bar)
     }
+
+    // MARK: - Sections
 
     private func heroSection(snap: MonthSnapshot) -> some View {
         VStack(spacing: 8) {
@@ -196,43 +187,38 @@ struct MonthlyRetrospectiveView: View {
         }
     }
 
-    private func monthCalendarHeatmap(snap: MonthSnapshot) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+    private func recordCalendarSection(snap: MonthSnapshot) -> some View {
+        let recordedDays = Set(snap.calendar.filter { $0.count > 0 }.map { $0.day })
+        return VStack(alignment: .leading, spacing: 8) {
             Text("\(snap.monthLabel)のカレンダー")
                 .appFont(.sectionHeader)
-            let columns = Array(repeating: GridItem(.flexible(), spacing: 4), count: 7)
-            LazyVGrid(columns: columns, spacing: 4) {
-                ForEach(snap.calendar, id: \.day) { day in
-                    let intensity = min(Double(day.count) / 5.0, 1.0)
-                    Rectangle()
-                        .fill(
-                            day.count == 0
-                                ? AccessibilityColors.textSecondary.opacity(0.1)
-                                : AccessibilityColors.primaryBlue.opacity(0.3 + 0.7 * intensity)
-                        )
-                        .frame(height: 24)
-                        .cornerRadius(4)
-                        .overlay(
-                            Text("\(day.day)")
-                                .font(.system(size: 9))
-                                .foregroundColor(day.count == 0 ? AccessibilityColors.textSecondary : .white)
-                        )
-                }
-            }
+            RecordCalendarView(
+                displayedMonth: viewModel.selectedMonth,
+                selectedDate: Date.distantPast,
+                recordedDays: recordedDays,
+                today: Date(),
+                canGoNextMonth: false,
+                showHeader: false,
+                onSelectDay: { _ in },
+                onPrevMonth: {},
+                onNextMonth: {}
+            )
         }
     }
 
     private func paymentCTA(snap: MonthSnapshot) -> some View {
-        // 実際の支払い実行は HomeView 側に集約。本イシューのスコープでは表示のみ。
-        Button {
-            // 将来 HomeView との統合で対応（YAGNI）
+        let remainder = snap.totalCoins - snap.paidAmount
+        return Button {
+            Task { await viewModel.payCurrentMonth() }
         } label: {
             HStack {
                 Image(systemName: "yensign.circle.fill")
-                Text("お小遣いを渡す")
+                Text(snap.paidAmount > 0 ? "追加分のお小遣いを支払う" : "この月のお小遣いを支払う")
+                Spacer()
+                Text("¥\(remainder)").fontWeight(.bold)
             }
         }
         .primaryGradientButton()
-        .accessibilityIdentifier("retrospective_payment_cta")
+        .accessibilityIdentifier("summary_payment_cta")
     }
 }

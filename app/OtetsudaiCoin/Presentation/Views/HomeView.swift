@@ -94,7 +94,7 @@ struct HomeView: View {
         }
         .sheet(isPresented: $showingRetrospective) {
             if let retroViewModel = retrospectiveViewModel {
-                MonthlyRetrospectiveView(viewModel: retroViewModel)
+                MonthlySummaryView(viewModel: retroViewModel)
             }
         }
         .alert("支払い確認", isPresented: $showingPaymentConfirmation) {
