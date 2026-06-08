@@ -259,4 +259,69 @@ final class MonthlySummaryViewModelTests: XCTestCase {
         XCTAssertEqual(comps.month, 1, "12月の次は1月")
         XCTAssertEqual(comps.year, currentYear, "前年12月 → 今年1月で年が繰り上がる (Dec→Jan)")
     }
+
+    // MARK: - #125 M-1: 水平スワイプの方向（iOS 慣習に合わせる）
+
+    // 起点を「前月」にし、左スワイプ→当月（== currentMonthStart で future-guard を通過）を期待。
+    // 当月/前月の相対起点に限定することで実行日・年境界に依存しない（#112/#114/#115 の date-math 弱点予防）。
+    @MainActor
+    func testSwipeLeftAdvancesToNextMonth() {
+        let cal = Calendar.current
+        let currentStart = cal.date(from: cal.dateComponents([.year, .month], from: Date()))!
+        let lastMonth = cal.date(byAdding: .month, value: -1, to: currentStart)!
+
+        let vm = MonthlySummaryViewModel(
+            child: child,
+            helpRecordRepository: mockHelpRecordRepository,
+            helpTaskRepository: mockHelpTaskRepository,
+            allowancePaymentRepository: mockAllowancePaymentRepository,
+            initialMonth: lastMonth
+        )
+
+        vm.handleHorizontalSwipe(translationWidth: -60)
+
+        let comps = cal.dateComponents([.year, .month], from: vm.selectedMonth)
+        let expected = cal.dateComponents([.year, .month], from: currentStart)
+        XCTAssertEqual(comps.year, expected.year, "左スワイプ（width<0）は次の月（当月）へ進むべき")
+        XCTAssertEqual(comps.month, expected.month, "左スワイプ（width<0）は次の月（当月）へ進むべき")
+    }
+
+    // 起点を「当月」にし、右スワイプ→前月を期待。buggy 方向だと goToNextMonth が future-guard で no-op になり当月のまま fail する。
+    @MainActor
+    func testSwipeRightGoesToPreviousMonth() {
+        let cal = Calendar.current
+        let currentStart = cal.date(from: cal.dateComponents([.year, .month], from: Date()))!
+
+        let vm = MonthlySummaryViewModel(
+            child: child,
+            helpRecordRepository: mockHelpRecordRepository,
+            helpTaskRepository: mockHelpTaskRepository,
+            allowancePaymentRepository: mockAllowancePaymentRepository,
+            initialMonth: currentStart
+        )
+
+        vm.handleHorizontalSwipe(translationWidth: 60)
+
+        let comps = cal.dateComponents([.year, .month], from: vm.selectedMonth)
+        let expected = cal.dateComponents([.year, .month], from: cal.date(byAdding: .month, value: -1, to: currentStart)!)
+        XCTAssertEqual(comps.year, expected.year, "右スワイプ（width>0）は前の月へ戻るべき")
+        XCTAssertEqual(comps.month, expected.month, "右スワイプ（width>0）は前の月へ戻るべき")
+    }
+
+    // MARK: - #125 M-2: 記録ゼロの月は ¥0 支払い CTA を出さない
+
+    @MainActor
+    func testEmptyMonthIsPaidSoNoCTA() async {
+        mockHelpTaskRepository.tasks = []
+        mockHelpRecordRepository.records = []
+        mockAllowancePaymentRepository.payments = []
+
+        await viewModel.loadMonth()
+
+        XCTAssertEqual(viewModel.snapshot?.totalCoins, 0, "前提: 記録ゼロで獲得コインは 0")
+        XCTAssertEqual(
+            viewModel.snapshot?.paymentStatus, .paid,
+            "獲得 0 の月は支払い対象なし → .paid（CTA 非表示）。空月で ¥0 CTA が出る回帰を防ぐ"
+        )
+    }
 }

@@ -32,11 +32,7 @@ struct MonthlySummaryView: View {
         .gesture(
             DragGesture(minimumDistance: 50)
                 .onEnded { value in
-                    if value.translation.width < -50 {
-                        viewModel.goToPreviousMonth()
-                        Task { await viewModel.loadMonth() }
-                    } else if value.translation.width > 50 {
-                        viewModel.goToNextMonth()
+                    if viewModel.handleHorizontalSwipe(translationWidth: value.translation.width) {
                         Task { await viewModel.loadMonth() }
                     }
                 }
