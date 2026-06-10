@@ -86,7 +86,7 @@ class MockHelpTaskRepository: HelpTaskRepository {
         if shouldThrowError {
             throw errorToThrow
         }
-        return tasks
+        return tasks.sorted { ($0.sortOrder, $0.name) < ($1.sortOrder, $1.name) }
     }
     
     func resetCallCount() {
@@ -97,7 +97,7 @@ class MockHelpTaskRepository: HelpTaskRepository {
         if shouldThrowError {
             throw errorToThrow
         }
-        return tasks.filter { $0.isActive }
+        return tasks.filter { $0.isActive }.sorted { ($0.sortOrder, $0.name) < ($1.sortOrder, $1.name) }
     }
     
     func delete(_ id: UUID) async throws {
@@ -130,7 +130,7 @@ class MockHelpTaskRepository: HelpTaskRepository {
         tasks = tasks.map { task in
             guard let index = position[task.id] else { return task }
             return task.updatingSortOrder(index)
-        }.sorted { $0.sortOrder < $1.sortOrder }
+        }
     }
 }
 

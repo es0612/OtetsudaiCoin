@@ -214,7 +214,7 @@ class CoreDataHelpTaskRepository: HelpTaskRepository {
                 do {
                     let request: NSFetchRequest<CDHelpTask> = CDHelpTask.fetchRequest()
                     let results = try backgroundContext.fetch(request)
-                    let byId = Dictionary(uniqueKeysWithValues: results.compactMap { cd in cd.id.map { ($0, cd) } })
+                    let byId = Dictionary(results.compactMap { cd in cd.id.map { ($0, cd) } }, uniquingKeysWith: { first, _ in first })
 
                     for (index, id) in orderedIds.enumerated() {
                         byId[id]?.sortOrder = Int32(index)
