@@ -69,6 +69,21 @@ class MonthlySummaryViewModel {
         selectedMonth = candidate
     }
 
+    /// 水平スワイプの translation 幅から月ナビを行う（View の DragGesture から呼ぶ）。
+    /// iOS 慣習: 左スワイプ（width < 0）= 次の月へ進む / 右スワイプ（width > 0）= 前の月へ戻る。
+    /// 月が移動したら true を返し、呼び出し側が loadMonth を kick する。
+    @discardableResult
+    func handleHorizontalSwipe(translationWidth: CGFloat) -> Bool {
+        if translationWidth < -50 {
+            goToNextMonth()
+            return true
+        } else if translationWidth > 50 {
+            goToPreviousMonth()
+            return true
+        }
+        return false
+    }
+
     // MARK: - Payment
 
     /// 表示中の月の「未払い残額」を支払う。完済済みなら no-op。
@@ -204,6 +219,9 @@ class MonthlySummaryViewModel {
         month: Int,
         expected: Int
     ) -> MonthSnapshot.PaymentStatus {
+        // M-2(#125): 獲得 0 の月は支払い対象なし → .paid 扱い（空月で ¥0 支払い CTA を出さない）。
+        if expected <= 0 { return .paid }
+
         let monthPayments = payments.filter { $0.year == year && $0.month == month }
         let totalPaid = monthPayments.reduce(0) { $0 + $1.amount }
 
