@@ -111,10 +111,26 @@ class MockHelpTaskRepository: HelpTaskRepository {
         if shouldThrowError {
             throw errorToThrow
         }
-        
+
         if let index = tasks.firstIndex(where: { $0.id == task.id }) {
             tasks[index] = task
         }
+    }
+
+    var updateSortOrdersCallCount = 0
+    var lastOrderedIds: [UUID]?
+
+    func updateSortOrders(_ orderedIds: [UUID]) async throws {
+        updateSortOrdersCallCount += 1
+        if shouldThrowError {
+            throw errorToThrow
+        }
+        lastOrderedIds = orderedIds
+        let position = Dictionary(uniqueKeysWithValues: orderedIds.enumerated().map { ($1, $0) })
+        tasks = tasks.map { task in
+            guard let index = position[task.id] else { return task }
+            return task.updatingSortOrder(index)
+        }.sorted { $0.sortOrder < $1.sortOrder }
     }
 }
 
