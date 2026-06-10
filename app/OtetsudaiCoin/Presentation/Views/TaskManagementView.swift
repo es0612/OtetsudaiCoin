@@ -230,12 +230,13 @@ struct TaskFormView: View {
     
     private func updateTask() {
         guard let editingTask = editingTask else { return }
-        
+
         let updatedTask = HelpTask(
             id: editingTask.id,
             name: HelpTask.resolvePersistedName(editedText: taskName, original: editingTask),
             isActive: isActive,
-            coinRate: coinRate
+            coinRate: coinRate,
+            sortOrder: editingTask.sortOrder
         )
         
         Task {
@@ -252,5 +253,6 @@ extension HelpTask: Identifiable {}
 #Preview {
     let context = PersistenceController.preview.container.viewContext
     let repository = CoreDataHelpTaskRepository(context: context)
-    TaskManagementView(viewModel: TaskManagementViewModel(helpTaskRepository: repository))
+    let recordRepository = CoreDataHelpRecordRepository(context: context)
+    TaskManagementView(viewModel: TaskManagementViewModel(helpTaskRepository: repository, helpRecordRepository: recordRepository))
 }

@@ -61,7 +61,7 @@ final class BannerAdViewTests: XCTestCase {
     func testTaskManagementViewContainsBannerAdView() throws {
         // Given: TaskManagementView のための依存を準備
         let mockRepository = MockHelpTaskRepository()
-        let viewModel = TaskManagementViewModel(helpTaskRepository: mockRepository)
+        let viewModel = TaskManagementViewModel(helpTaskRepository: mockRepository, helpRecordRepository: MockHelpRecordRepository())
 
         // When: TaskManagementView を生成
         let view = TaskManagementView(viewModel: viewModel)
@@ -77,7 +77,7 @@ final class BannerAdViewTests: XCTestCase {
         mockRepository.tasks = [
             HelpTask(id: UUID(), name: "お皿洗い", isActive: true, coinRate: 10)
         ]
-        let viewModel = TaskManagementViewModel(helpTaskRepository: mockRepository)
+        let viewModel = TaskManagementViewModel(helpTaskRepository: mockRepository, helpRecordRepository: MockHelpRecordRepository())
         viewModel.tasks = mockRepository.tasks
 
         // When: TaskManagementView を生成
@@ -92,7 +92,7 @@ final class BannerAdViewTests: XCTestCase {
     func testTaskManagementViewShowsBannerAdDuringLoadingState() throws {
         // Given: ローディング中の状態
         let mockRepository = MockHelpTaskRepository()
-        let viewModel = TaskManagementViewModel(helpTaskRepository: mockRepository)
+        let viewModel = TaskManagementViewModel(helpTaskRepository: mockRepository, helpRecordRepository: MockHelpRecordRepository())
         viewModel.isLoading = true
 
         // When: TaskManagementView を生成
