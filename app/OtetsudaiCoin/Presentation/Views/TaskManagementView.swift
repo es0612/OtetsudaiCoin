@@ -69,7 +69,7 @@ struct TaskManagementView: View {
                     EditButton()
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("完了") {
+                    Button("閉じる") {
                         dismiss()
                     }
                 }
