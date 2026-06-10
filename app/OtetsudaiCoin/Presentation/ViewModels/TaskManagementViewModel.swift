@@ -110,12 +110,18 @@ class TaskManagementViewModel {
     }
 
     func moveTasks(from source: IndexSet, to destination: Int) async {
+        // in-flight な loadTasks の stale 結果が楽観的更新を上書きしないようキャンセル
+        loadTasksTask?.cancel()
+
         var reordered = tasks
         reordered.move(fromOffsets: source, toOffset: destination)
         tasks = reordered
 
         do {
             try await helpTaskRepository.updateSortOrders(reordered.map(\.id))
+            // DB の再採番 (0..n-1) を in-memory にもミラーし、後続の toggle/編集が
+            // stale な sortOrder を書き戻すのを防ぐ
+            tasks = reordered.enumerated().map { $1.updatingSortOrder($0) }
         } catch {
             let message = ErrorMessageConverter.convertToUserFriendlyMessage(error)
             await loadTasks() // DB の状態に巻き戻す
@@ -128,25 +134,38 @@ class TaskManagementViewModel {
             return
         }
 
+        // in-flight な loadTasks の stale 結果が並べ替え結果を上書きしないようキャンセル
+        loadTasksTask?.cancel()
+
+        let records: [HelpRecord]
         do {
-            let records = try await helpRecordRepository.findByDateRange(from: windowStart, to: now)
-            // 全子ども合算で件数集計
-            let counts = Dictionary(grouping: records, by: { $0.helpTaskId }).mapValues { $0.count }
-
-            let sorted = tasks.sorted { lhs, rhs in
-                let lhsCount = counts[lhs.id] ?? 0
-                let rhsCount = counts[rhs.id] ?? 0
-                if lhsCount != rhsCount {
-                    return lhsCount > rhsCount
-                }
-                return lhs.name < rhs.name
-            }
-
-            tasks = sorted
-            try await helpTaskRepository.updateSortOrders(sorted.map(\.id))
-            successMessage = String(localized: "よく使う順に並べ替えました")
+            records = try await helpRecordRepository.findByDateRange(from: windowStart, to: now)
         } catch {
             errorMessage = ErrorMessageConverter.convertToUserFriendlyMessage(error)
+            return
+        }
+
+        // 全子ども合算で件数集計
+        let counts = Dictionary(grouping: records, by: { $0.helpTaskId }).mapValues { $0.count }
+
+        let sorted = tasks.sorted { lhs, rhs in
+            let lhsCount = counts[lhs.id] ?? 0
+            let rhsCount = counts[rhs.id] ?? 0
+            if lhsCount != rhsCount {
+                return lhsCount > rhsCount
+            }
+            return lhs.name < rhs.name
+        }
+
+        do {
+            try await helpTaskRepository.updateSortOrders(sorted.map(\.id))
+            // DB の再採番 (0..n-1) を in-memory にもミラー（moveTasks と同様）
+            tasks = sorted.enumerated().map { $1.updatingSortOrder($0) }
+            successMessage = String(localized: "よく使う順に並べ替えました")
+        } catch {
+            let message = ErrorMessageConverter.convertToUserFriendlyMessage(error)
+            await loadTasks() // DB の状態に巻き戻す
+            errorMessage = message // loadTasks 冒頭の errorMessage=nil に消されないよう reload 後にセット
         }
     }
 

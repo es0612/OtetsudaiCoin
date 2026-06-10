@@ -84,6 +84,22 @@ final class TaskManagementViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.tasks.map(\.name), ["A", "B"]) // DB 状態へ巻き戻し
     }
 
+    func testToggleAfterMoveDoesNotResurrectStaleSortOrder() async {
+        let taskA = makeTask(name: "A", sortOrder: 0)
+        let taskB = makeTask(name: "B", sortOrder: 1)
+        let taskC = makeTask(name: "C", sortOrder: 2)
+        mockTaskRepository.tasks = [taskA, taskB, taskC]
+        await viewModel.loadTasks()
+
+        await viewModel.moveTasks(from: IndexSet(integer: 2), to: 0) // C を先頭へ
+        guard let movedC = viewModel.tasks.first else { return XCTFail("tasks empty") }
+        await viewModel.toggleTaskStatus(movedC) // 直後のトグルが stale sortOrder を書き戻さないこと
+
+        await viewModel.loadTasks()
+        XCTAssertEqual(viewModel.tasks.map(\.name), ["C", "A", "B"],
+                       "rendered: \(viewModel.tasks.map { ($0.name, $0.sortOrder) })")
+    }
+
     // MARK: - sortByFrequency (#123)
 
     func testSortByFrequencyOrdersByRecentRecordCountDescending() async {
@@ -145,6 +161,19 @@ final class TaskManagementViewModelTests: XCTestCase {
 
         XCTAssertNotNil(viewModel.errorMessage)
         XCTAssertEqual(mockTaskRepository.updateSortOrdersCallCount, 0)
+    }
+
+    func testSortByFrequencyOnPersistErrorRollsBackAndSetsError() async {
+        let nameB = makeTask(name: "B", sortOrder: 0)
+        let nameA = makeTask(name: "A", sortOrder: 1)
+        mockTaskRepository.tasks = [nameB, nameA]
+        await viewModel.loadTasks()
+        mockTaskRepository.shouldThrowErrorOnUpdateSortOrders = true
+
+        await viewModel.sortByFrequency(now: fixedNow)
+
+        XCTAssertNotNil(viewModel.errorMessage)
+        XCTAssertEqual(viewModel.tasks.map(\.name), ["B", "A"]) // DB 状態へ巻き戻し
     }
 
     // MARK: - sortOrder 保持/採番
