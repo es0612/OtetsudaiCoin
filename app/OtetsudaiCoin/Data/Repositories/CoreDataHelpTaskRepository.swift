@@ -33,6 +33,7 @@ class CoreDataHelpTaskRepository: HelpTaskRepository {
                     cdHelpTask.name = helpTask.name
                     cdHelpTask.isActive = helpTask.isActive
                     cdHelpTask.coinRate = Int32(helpTask.coinRate)
+                    cdHelpTask.sortOrder = Int32(helpTask.sortOrder)
                     
                     DebugLogger.logCoreDataOperation("Saving context")
                     try backgroundContext.save()
@@ -86,6 +87,10 @@ class CoreDataHelpTaskRepository: HelpTaskRepository {
                 do {
                     DebugLogger.logCoreDataOperation("Fetching all HelpTasks")
                     let request: NSFetchRequest<CDHelpTask> = CDHelpTask.fetchRequest()
+                    request.sortDescriptors = [
+                        NSSortDescriptor(key: "sortOrder", ascending: true),
+                        NSSortDescriptor(key: "name", ascending: true)
+                    ]
                     let results = try backgroundContext.fetch(request)
                     let helpTasks = results.compactMap { $0.toDomain() }
                     
@@ -112,6 +117,10 @@ class CoreDataHelpTaskRepository: HelpTaskRepository {
                     DebugLogger.logCoreDataOperation("Fetching active HelpTasks")
                     let request: NSFetchRequest<CDHelpTask> = CDHelpTask.fetchRequest()
                     request.predicate = NSPredicate(format: "isActive == YES")
+                    request.sortDescriptors = [
+                        NSSortDescriptor(key: "sortOrder", ascending: true),
+                        NSSortDescriptor(key: "name", ascending: true)
+                    ]
                     let results = try backgroundContext.fetch(request)
                     let helpTasks = results.compactMap { $0.toDomain() }
                     
@@ -177,6 +186,7 @@ class CoreDataHelpTaskRepository: HelpTaskRepository {
                         cdHelpTask.name = helpTask.name
                         cdHelpTask.isActive = helpTask.isActive
                         cdHelpTask.coinRate = Int32(helpTask.coinRate)
+                        cdHelpTask.sortOrder = Int32(helpTask.sortOrder)
                         try backgroundContext.save()
                         
                         DebugLogger.logCoreDataOperation("update completed", context: "Updated task: \(helpTask.name)", success: true)
@@ -193,6 +203,35 @@ class CoreDataHelpTaskRepository: HelpTaskRepository {
             }
         }
     }
+    func updateSortOrders(_ orderedIds: [UUID]) async throws {
+        DebugLogger.logTaskStart(taskName: "updateSortOrders HelpTasks")
+        let startTime = Date()
+
+        try await withCheckedThrowingContinuation { continuation in
+            let backgroundContext = createBackgroundContext()
+
+            backgroundContext.perform {
+                do {
+                    let request: NSFetchRequest<CDHelpTask> = CDHelpTask.fetchRequest()
+                    let results = try backgroundContext.fetch(request)
+                    let byId = Dictionary(results.compactMap { cd in cd.id.map { ($0, cd) } }, uniquingKeysWith: { first, _ in first })
+
+                    for (index, id) in orderedIds.enumerated() {
+                        byId[id]?.sortOrder = Int32(index)
+                    }
+
+                    try backgroundContext.save()
+
+                    DebugLogger.logCoreDataOperation("updateSortOrders completed", context: "Count: \(orderedIds.count)", success: true)
+                    DebugLogger.logTaskEnd(taskName: "updateSortOrders HelpTasks", duration: Date().timeIntervalSince(startTime), success: true)
+                    continuation.resume()
+                } catch {
+                    DebugLogger.logTaskEnd(taskName: "updateSortOrders HelpTasks", duration: Date().timeIntervalSince(startTime), success: false, error: error)
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+    }
 }
 
 extension CDHelpTask {
@@ -202,6 +241,6 @@ extension CDHelpTask {
             return nil
         }
         
-        return HelpTask(id: id, name: name, isActive: self.isActive, coinRate: Int(self.coinRate))
+        return HelpTask(id: id, name: name, isActive: self.isActive, coinRate: Int(self.coinRate), sortOrder: Int(self.sortOrder))
     }
 }

@@ -2478,6 +2478,26 @@
         }
       }
     },
+    "よく使う順に並べ替え" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sort by Most Used"
+          }
+        }
+      }
+    },
+    "よく使う順に並べ替えました" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sorted by most used"
+          }
+        }
+      }
+    },
     "%@のカレンダー" : {
       "extractionState" : "manual",
       "localizations" : {

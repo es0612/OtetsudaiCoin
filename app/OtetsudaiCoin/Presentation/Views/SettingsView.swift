@@ -26,7 +26,11 @@ struct SettingsView: View {
         self.viewModel = viewModel
         let context = PersistenceController.shared.container.viewContext
         let taskRepository = CoreDataHelpTaskRepository(context: context)
-        self._taskManagementViewModel = State(wrappedValue: TaskManagementViewModel(helpTaskRepository: taskRepository))
+        let helpRecordRepository = CoreDataHelpRecordRepository(context: context)
+        self._taskManagementViewModel = State(wrappedValue: TaskManagementViewModel(
+            helpTaskRepository: taskRepository,
+            helpRecordRepository: helpRecordRepository
+        ))
         let notificationService = ReminderNotificationService(
             notificationCenter: UNUserNotificationCenter.current(),
             userDefaults: .standard
@@ -34,7 +38,6 @@ struct SettingsView: View {
         self._notificationSettingsViewModel = State(wrappedValue: NotificationSettingsViewModel(service: notificationService))
 
         let childRepository = CoreDataChildRepository(context: context)
-        let helpRecordRepository = CoreDataHelpRecordRepository(context: context)
         let allowancePaymentRepository = InMemoryAllowancePaymentRepository.shared
         let paymentService = PaymentReminderNotificationService(
             notificationCenter: UNUserNotificationCenter.current(),

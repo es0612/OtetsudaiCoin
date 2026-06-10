@@ -82,7 +82,8 @@ class ViewModelFactory {
     
     func createTaskManagementViewModel() -> TaskManagementViewModel {
         TaskManagementViewModel(
-            helpTaskRepository: repositoryFactory.createHelpTaskRepository()
+            helpTaskRepository: repositoryFactory.createHelpTaskRepository(),
+            helpRecordRepository: repositoryFactory.createHelpRecordRepository()
         )
     }
     
