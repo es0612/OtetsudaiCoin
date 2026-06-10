@@ -29,6 +29,11 @@ struct TaskManagementView: View {
                                     showingDeleteAlert = true
                                 }
                             }
+                            .onMove { source, destination in
+                                Task {
+                                    await viewModel.moveTasks(from: source, to: destination)
+                                }
+                            }
 
                             Button(action: {
                                 showingAddTaskForm = true
@@ -39,6 +44,17 @@ struct TaskManagementView: View {
                                 }
                             }
                             .primaryGradientButton()
+
+                            Button(action: {
+                                Task {
+                                    await viewModel.sortByFrequency()
+                                }
+                            }) {
+                                HStack {
+                                    Image(systemName: "arrow.up.arrow.down")
+                                    Text("よく使う順に並べ替え")
+                                }
+                            }
                         }
                     }
                 }
@@ -49,6 +65,9 @@ struct TaskManagementView: View {
             .navigationTitle("お手伝い管理")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    EditButton()
+                }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("完了") {
                         dismiss()
