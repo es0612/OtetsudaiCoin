@@ -621,6 +621,20 @@ final class TaskManagementViewModelTests: XCTestCase {
         XCTAssertEqual(updated?.isActive, false)
         XCTAssertEqual(updated?.sortOrder, 3)
     }
+
+    func testUpdateTaskPreservesSortOrderWhenCallerPassesIt() async {
+        // 編集フォーム経路 (TaskFormView.updateTask 相当) の sortOrder 保持を gate する
+        let task = makeTask(name: "編集前", sortOrder: 4)
+        mockTaskRepository.tasks = [task]
+        await viewModel.loadTasks()
+
+        let edited = HelpTask(id: task.id, name: "編集後", isActive: true, coinRate: 15, sortOrder: task.sortOrder)
+        await viewModel.updateTask(edited)
+
+        let updated = mockTaskRepository.tasks.first { $0.id == task.id }
+        XCTAssertEqual(updated?.sortOrder, 4)
+        XCTAssertEqual(updated?.name, "編集後")
+    }
 }
 ```
 
@@ -773,6 +787,20 @@ git commit -m "feat(#122,#123): TaskManagementViewModel に moveTasks / sortByFr
 **Files:**
 - Modify: `app/OtetsudaiCoin/Presentation/Views/TaskManagementView.swift`
 - Modify: `app/OtetsudaiCoin/Resources/Localizable.xcstrings`
+
+- [ ] **Step 5.0: TaskFormView.updateTask の sortOrder リセットバグを予防**（Task 1 の code-quality レビュー指摘で追加）
+
+`TaskFormView.updateTask()`（TaskManagementView.swift:231-247 付近）の `HelpTask` 再構築に `sortOrder: editingTask.sortOrder` を追加する。これが無いと Task 3 以降、タスクを編集（改名 / coinRate 変更）するだけで sortOrder が 0 に落ちて並び順が先頭に飛ぶ:
+
+```swift
+        let updatedTask = HelpTask(
+            id: editingTask.id,
+            name: HelpTask.resolvePersistedName(editedText: taskName, original: editingTask),
+            isActive: isActive,
+            coinRate: coinRate,
+            sortOrder: editingTask.sortOrder
+        )
+```
 
 - [ ] **Step 5.1: ForEach に onMove を追加**
 
