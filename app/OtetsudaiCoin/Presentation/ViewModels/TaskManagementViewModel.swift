@@ -117,8 +117,9 @@ class TaskManagementViewModel {
         do {
             try await helpTaskRepository.updateSortOrders(reordered.map(\.id))
         } catch {
-            errorMessage = ErrorMessageConverter.convertToUserFriendlyMessage(error)
+            let message = ErrorMessageConverter.convertToUserFriendlyMessage(error)
             await loadTasks() // DB の状態に巻き戻す
+            errorMessage = message // loadTasks 冒頭の errorMessage=nil に消されないよう reload 後にセット
         }
     }
 

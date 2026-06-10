@@ -75,11 +75,13 @@ final class TaskManagementViewModelTests: XCTestCase {
         let taskB = makeTask(name: "B", sortOrder: 1)
         mockTaskRepository.tasks = [taskA, taskB]
         await viewModel.loadTasks()
-        mockTaskRepository.shouldThrowError = true
+        // write (updateSortOrders) だけ失敗し read (findAll) は成功する現実的ケース
+        mockTaskRepository.shouldThrowErrorOnUpdateSortOrders = true
 
         await viewModel.moveTasks(from: IndexSet(integer: 1), to: 0)
 
         XCTAssertNotNil(viewModel.errorMessage)
+        XCTAssertEqual(viewModel.tasks.map(\.name), ["A", "B"]) // DB 状態へ巻き戻し
     }
 
     // MARK: - sortByFrequency (#123)

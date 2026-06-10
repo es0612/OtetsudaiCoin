@@ -119,10 +119,12 @@ class MockHelpTaskRepository: HelpTaskRepository {
 
     var updateSortOrdersCallCount = 0
     var lastOrderedIds: [UUID]?
+    // write (updateSortOrders) だけ失敗させ read (findAll) は成功させるための限定フラグ
+    var shouldThrowErrorOnUpdateSortOrders = false
 
     func updateSortOrders(_ orderedIds: [UUID]) async throws {
         updateSortOrdersCallCount += 1
-        if shouldThrowError {
+        if shouldThrowError || shouldThrowErrorOnUpdateSortOrders {
             throw errorToThrow
         }
         lastOrderedIds = orderedIds
