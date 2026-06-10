@@ -102,4 +102,35 @@ final class HelpTaskTests: XCTestCase {
         let original = HelpTask(id: UUID(), name: "お片付けする", isActive: true)
         XCTAssertEqual(HelpTask.resolvePersistedName(editedText: "  片付け  ", original: original), "片付け")
     }
+
+    // MARK: - sortOrder (#122/#123)
+
+    func testSortOrderDefaultsToZero() {
+        let task = HelpTask(id: UUID(), name: "食器を片付ける", isActive: true)
+        XCTAssertEqual(task.sortOrder, 0)
+    }
+
+    func testSortOrderIsPreservedByActivateDeactivateAndUpdateCoinRate() {
+        let task = HelpTask(id: UUID(), name: "食器を片付ける", isActive: true, coinRate: 10, sortOrder: 5)
+
+        XCTAssertEqual(task.deactivate().sortOrder, 5)
+        XCTAssertEqual(task.activate().sortOrder, 5)
+        XCTAssertEqual(task.updateCoinRate(20).sortOrder, 5)
+    }
+
+    func testUpdatingSortOrderReturnsCopyWithNewOrder() {
+        let task = HelpTask(id: UUID(), name: "食器を片付ける", isActive: true, coinRate: 10, sortOrder: 1)
+        let moved = task.updatingSortOrder(3)
+
+        XCTAssertEqual(moved.sortOrder, 3)
+        XCTAssertEqual(moved.id, task.id)
+        XCTAssertEqual(moved.name, task.name)
+        XCTAssertEqual(moved.isActive, task.isActive)
+        XCTAssertEqual(moved.coinRate, task.coinRate)
+    }
+
+    func testDefaultTasksHaveSequentialSortOrder() {
+        let tasks = HelpTask.defaultTasks()
+        XCTAssertEqual(tasks.map(\.sortOrder), Array(0..<HelpTask.defaultTaskNames.count))
+    }
 }
