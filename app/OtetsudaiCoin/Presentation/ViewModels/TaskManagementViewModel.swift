@@ -7,29 +7,32 @@ class TaskManagementViewModel {
     var isLoading: Bool = false
     var errorMessage: String?
     var successMessage: String?
-    
+
     private let helpTaskRepository: HelpTaskRepository
+    private let helpRecordRepository: HelpRecordRepository
     private var loadTasksTask: Task<Void, Never>?
-    
-    init(helpTaskRepository: HelpTaskRepository) {
+
+    init(helpTaskRepository: HelpTaskRepository, helpRecordRepository: HelpRecordRepository) {
         self.helpTaskRepository = helpTaskRepository
+        self.helpRecordRepository = helpRecordRepository
     }
-    
+
     func loadTasks() async {
         // 実行中のタスクをキャンセル
         loadTasksTask?.cancel()
-        
+
         isLoading = true
         errorMessage = nil
-        
+
         loadTasksTask = Task {
             do {
                 let allTasks = try await helpTaskRepository.findAll()
-                
+
                 // タスクがキャンセルされていないか確認
                 guard !Task.isCancelled else { return }
-                
-                tasks = allTasks.sorted { $0.name < $1.name }
+
+                // repository が (sortOrder, name) ソート済みを返す契約のため再ソート不要
+                tasks = allTasks
                 isLoading = false
             } catch {
                 guard !Task.isCancelled else { return }
@@ -37,11 +40,11 @@ class TaskManagementViewModel {
                 isLoading = false
             }
         }
-        
+
         // タスクの完了を待つ
         await loadTasksTask?.value
     }
-    
+
     func addTask(name: String, coinRate: Int = 10) async {
         guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             errorMessage = String(localized: "タスク名を入力してください")
@@ -52,22 +55,25 @@ class TaskManagementViewModel {
             errorMessage = String(localized: "コイン単価は1以上で入力してください")
             return
         }
-        
+
         let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        
+
         // 重複チェック
         if tasks.contains(where: { $0.name == trimmedName }) {
             errorMessage = String(localized: "同じ名前のタスクが既に存在します")
             return
         }
-        
+
+        // 末尾追加: 現在の最大 sortOrder + 1
+        let nextSortOrder = (tasks.map(\.sortOrder).max() ?? -1) + 1
         let newTask = HelpTask(
             id: UUID(),
             name: trimmedName,
             isActive: true,
-            coinRate: coinRate
+            coinRate: coinRate,
+            sortOrder: nextSortOrder
         )
-        
+
         do {
             try await helpTaskRepository.save(newTask)
             successMessage = String(localized: "タスクを追加しました")
@@ -76,7 +82,7 @@ class TaskManagementViewModel {
             errorMessage = ErrorMessageConverter.convertToUserFriendlyMessage(error)
         }
     }
-    
+
     func updateTask(_ task: HelpTask) async {
         do {
             try await helpTaskRepository.update(task)
@@ -86,7 +92,7 @@ class TaskManagementViewModel {
             errorMessage = ErrorMessageConverter.convertToUserFriendlyMessage(error)
         }
     }
-    
+
     func deleteTask(id: UUID) async {
         do {
             try await helpTaskRepository.delete(id)
@@ -96,17 +102,73 @@ class TaskManagementViewModel {
             errorMessage = ErrorMessageConverter.convertToUserFriendlyMessage(error)
         }
     }
-    
+
     func toggleTaskStatus(_ task: HelpTask) async {
-        let updatedTask = HelpTask(
-            id: task.id,
-            name: task.name,
-            isActive: !task.isActive,
-            coinRate: task.coinRate
-        )
+        // activate()/deactivate() は sortOrder を保持するため、手動再構築より安全
+        let updatedTask = task.isActive ? task.deactivate() : task.activate()
         await updateTask(updatedTask)
     }
-    
+
+    func moveTasks(from source: IndexSet, to destination: Int) async {
+        // in-flight な loadTasks の stale 結果が楽観的更新を上書きしないようキャンセル
+        loadTasksTask?.cancel()
+
+        var reordered = tasks
+        reordered.move(fromOffsets: source, toOffset: destination)
+        tasks = reordered
+
+        do {
+            try await helpTaskRepository.updateSortOrders(reordered.map(\.id))
+            // DB の再採番 (0..n-1) を in-memory にもミラーし、後続の toggle/編集が
+            // stale な sortOrder を書き戻すのを防ぐ
+            tasks = reordered.enumerated().map { $1.updatingSortOrder($0) }
+        } catch {
+            let message = ErrorMessageConverter.convertToUserFriendlyMessage(error)
+            await loadTasks() // DB の状態に巻き戻す
+            errorMessage = message // loadTasks 冒頭の errorMessage=nil に消されないよう reload 後にセット
+        }
+    }
+
+    func sortByFrequency(now: Date = Date()) async {
+        guard let windowStart = Calendar.current.date(byAdding: .day, value: -90, to: now) else {
+            return
+        }
+
+        // in-flight な loadTasks の stale 結果が並べ替え結果を上書きしないようキャンセル
+        loadTasksTask?.cancel()
+
+        let records: [HelpRecord]
+        do {
+            records = try await helpRecordRepository.findByDateRange(from: windowStart, to: now)
+        } catch {
+            errorMessage = ErrorMessageConverter.convertToUserFriendlyMessage(error)
+            return
+        }
+
+        // 全子ども合算で件数集計
+        let counts = Dictionary(grouping: records, by: { $0.helpTaskId }).mapValues { $0.count }
+
+        let sorted = tasks.sorted { lhs, rhs in
+            let lhsCount = counts[lhs.id] ?? 0
+            let rhsCount = counts[rhs.id] ?? 0
+            if lhsCount != rhsCount {
+                return lhsCount > rhsCount
+            }
+            return lhs.name < rhs.name
+        }
+
+        do {
+            try await helpTaskRepository.updateSortOrders(sorted.map(\.id))
+            // DB の再採番 (0..n-1) を in-memory にもミラー（moveTasks と同様）
+            tasks = sorted.enumerated().map { $1.updatingSortOrder($0) }
+            successMessage = String(localized: "よく使う順に並べ替えました")
+        } catch {
+            let message = ErrorMessageConverter.convertToUserFriendlyMessage(error)
+            await loadTasks() // DB の状態に巻き戻す
+            errorMessage = message // loadTasks 冒頭の errorMessage=nil に消されないよう reload 後にセット
+        }
+    }
+
     func clearMessages() {
         errorMessage = nil
         successMessage = nil

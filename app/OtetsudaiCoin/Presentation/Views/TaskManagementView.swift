@@ -29,6 +29,11 @@ struct TaskManagementView: View {
                                     showingDeleteAlert = true
                                 }
                             }
+                            .onMove { source, destination in
+                                Task {
+                                    await viewModel.moveTasks(from: source, to: destination)
+                                }
+                            }
 
                             Button(action: {
                                 showingAddTaskForm = true
@@ -39,6 +44,17 @@ struct TaskManagementView: View {
                                 }
                             }
                             .primaryGradientButton()
+
+                            Button(action: {
+                                Task {
+                                    await viewModel.sortByFrequency()
+                                }
+                            }) {
+                                HStack {
+                                    Image(systemName: "arrow.up.arrow.down")
+                                    Text("よく使う順に並べ替え")
+                                }
+                            }
                         }
                     }
                 }
@@ -49,8 +65,11 @@ struct TaskManagementView: View {
             .navigationTitle("お手伝い管理")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    EditButton()
+                }
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("完了") {
+                    Button("閉じる") {
                         dismiss()
                     }
                 }
@@ -230,12 +249,13 @@ struct TaskFormView: View {
     
     private func updateTask() {
         guard let editingTask = editingTask else { return }
-        
+
         let updatedTask = HelpTask(
             id: editingTask.id,
             name: HelpTask.resolvePersistedName(editedText: taskName, original: editingTask),
             isActive: isActive,
-            coinRate: coinRate
+            coinRate: coinRate,
+            sortOrder: editingTask.sortOrder
         )
         
         Task {
@@ -252,5 +272,6 @@ extension HelpTask: Identifiable {}
 #Preview {
     let context = PersistenceController.preview.container.viewContext
     let repository = CoreDataHelpTaskRepository(context: context)
-    TaskManagementView(viewModel: TaskManagementViewModel(helpTaskRepository: repository))
+    let recordRepository = CoreDataHelpRecordRepository(context: context)
+    TaskManagementView(viewModel: TaskManagementViewModel(helpTaskRepository: repository, helpRecordRepository: recordRepository))
 }

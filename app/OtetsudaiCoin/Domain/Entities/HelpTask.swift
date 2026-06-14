@@ -5,12 +5,14 @@ struct HelpTask: Equatable {
     let name: String
     let isActive: Bool
     let coinRate: Int
-    
-    init(id: UUID, name: String, isActive: Bool, coinRate: Int = 10) {
+    let sortOrder: Int
+
+    init(id: UUID, name: String, isActive: Bool, coinRate: Int = 10, sortOrder: Int = 0) {
         self.id = id
         self.name = name
         self.isActive = isActive
         self.coinRate = coinRate
+        self.sortOrder = sortOrder
     }
     
     static func == (lhs: HelpTask, rhs: HelpTask) -> Bool {
@@ -18,15 +20,19 @@ struct HelpTask: Equatable {
     }
     
     func deactivate() -> HelpTask {
-        return HelpTask(id: id, name: name, isActive: false, coinRate: coinRate)
+        return HelpTask(id: id, name: name, isActive: false, coinRate: coinRate, sortOrder: sortOrder)
     }
-    
+
     func activate() -> HelpTask {
-        return HelpTask(id: id, name: name, isActive: true, coinRate: coinRate)
+        return HelpTask(id: id, name: name, isActive: true, coinRate: coinRate, sortOrder: sortOrder)
     }
-    
+
     func updateCoinRate(_ newRate: Int) -> HelpTask {
-        return HelpTask(id: id, name: name, isActive: isActive, coinRate: newRate)
+        return HelpTask(id: id, name: name, isActive: isActive, coinRate: newRate, sortOrder: sortOrder)
+    }
+
+    func updatingSortOrder(_ newOrder: Int) -> HelpTask {
+        return HelpTask(id: id, name: name, isActive: isActive, coinRate: coinRate, sortOrder: newOrder)
     }
 
     static let defaultTaskNames: [String] = [
@@ -76,8 +82,8 @@ struct HelpTask: Equatable {
     }
 
     static func defaultTasks() -> [HelpTask] {
-        return defaultTaskNames.map { name in
-            HelpTask(id: UUID(), name: name, isActive: true, coinRate: 10)
+        return defaultTaskNames.enumerated().map { index, name in
+            HelpTask(id: UUID(), name: name, isActive: true, coinRate: 10, sortOrder: index)
         }
     }
 }

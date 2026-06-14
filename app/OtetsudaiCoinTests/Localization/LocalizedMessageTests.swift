@@ -352,7 +352,7 @@ final class LocalizedMessageTests: XCTestCase {
     @MainActor
     func testTaskManagementViewModelEmptyNameError() async {
         // Given: TaskManagementViewModel
-        let viewModel = TaskManagementViewModel(helpTaskRepository: MockHelpTaskRepository())
+        let viewModel = TaskManagementViewModel(helpTaskRepository: MockHelpTaskRepository(), helpRecordRepository: MockHelpRecordRepository())
 
         // When: 空の名前でタスクを追加する
         await viewModel.addTask(name: "  ")
@@ -364,7 +364,7 @@ final class LocalizedMessageTests: XCTestCase {
     @MainActor
     func testTaskManagementViewModelInvalidCoinRateError() async {
         // Given: TaskManagementViewModel
-        let viewModel = TaskManagementViewModel(helpTaskRepository: MockHelpTaskRepository())
+        let viewModel = TaskManagementViewModel(helpTaskRepository: MockHelpTaskRepository(), helpRecordRepository: MockHelpRecordRepository())
 
         // When: 0以下のコイン単価でタスクを追加する
         await viewModel.addTask(name: "テストタスク", coinRate: 0)
@@ -380,7 +380,7 @@ final class LocalizedMessageTests: XCTestCase {
         let existingTask = HelpTask(id: UUID(), name: "洗い物", isActive: true)
         mockRepo.tasks = [existingTask]
 
-        let viewModel = TaskManagementViewModel(helpTaskRepository: mockRepo)
+        let viewModel = TaskManagementViewModel(helpTaskRepository: mockRepo, helpRecordRepository: MockHelpRecordRepository())
         await viewModel.loadTasks()
 
         // When: 同じ名前のタスクを追加する
