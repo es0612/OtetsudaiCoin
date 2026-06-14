@@ -1,6 +1,26 @@
 {
   "sourceLanguage" : "ja",
   "strings" : {
+    "アプリをいったん完全に終了してから、もう一度開いてください。問題が解決しない場合は、お手数ですがサポートまでご連絡ください。" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Please quit the app completely and reopen it. If the problem persists, please contact support."
+          }
+        }
+      }
+    },
+    "データを読み込めませんでした" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't load your data"
+          }
+        }
+      }
+    },
     "「%@」の記録を削除しますか？この操作は取り消せません。" : {
       "localizations" : {
         "en" : {
