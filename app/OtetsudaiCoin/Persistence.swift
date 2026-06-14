@@ -58,41 +58,73 @@ struct PersistenceController {
 
     let container: NSPersistentContainer
 
-    nonisolated init(inMemory: Bool = false) {
-        container = NSPersistentContainer(name: "OtetsudaiCoin")
-        if inMemory {
-            guard let storeDescription = container.persistentStoreDescriptions.first else {
-                Self.logger.error("永続ストア記述子が見つかりません")
-                return
-            }
-            storeDescription.url = URL(fileURLWithPath: "/dev/null")
-        }
-        container.loadPersistentStores(completionHandler: { (storeDescription, error) in
-            if let error = error {
-                // エラーログの出力
-                Self.logger.error("Core Dataストアの読み込みに失敗しました: \(error.localizedDescription)")
+    /// ストア読み込みに失敗した場合のエラー（成功時は nil）。
+    /// 失敗時はストアが attach されず全リポジトリが空返し / write 失敗になるため、
+    /// アプリ root でこの値を見てエラー画面へ切り替える（Issue #131）。
+    let storeLoadError: Error?
 
-                /*
-                 本番環境では以下のような対応を検討:
-                 * ストアファイルの削除と再作成
-                 * ユーザーへのエラーメッセージ表示
-                 * 代替データストアの使用
-                 * エラー報告機能の活用
-                 */
-                
-                // デバッグ環境では詳細なエラー情報を表示
+    nonisolated init(inMemory: Bool = false) {
+        let storeURLOverride: URL?
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("--force-store-load-failure") {
+            // 視覚確認用: store URL を開けない URL に向けて load を故意に失敗させる
+            storeURLOverride = Self.unopenableStoreURL()
+        } else {
+            storeURLOverride = inMemory ? URL(fileURLWithPath: "/dev/null") : nil
+        }
+        #else
+        storeURLOverride = inMemory ? URL(fileURLWithPath: "/dev/null") : nil
+        #endif
+        self.init(storeURLOverride: storeURLOverride)
+    }
+
+    /// 指定イニシャライザ兼テスト seam。`storeURLOverride` に開けない URL（既存ディレクトリ等）を
+    /// 渡すと load 失敗経路を決定的に再現できる。`nil` なら既定のストア記述子をそのまま使う。
+    nonisolated init(storeURLOverride: URL?) {
+        let container = NSPersistentContainer(name: "OtetsudaiCoin")
+        if let storeURLOverride {
+            if let storeDescription = container.persistentStoreDescriptions.first {
+                // OtetsudaiCoin モデルは永続ストアが 1 つのため .first のみ書き換える。
+                storeDescription.url = storeURLOverride
+            } else {
+                // モデル名が有効なら記述子は必ず 1 つ以上ある。空なら override が無視され
+                // test seam / DEBUG visual-check の前提（指定 URL で load 失敗）が崩れるため、
+                // 黙ってフォールバックせず気づけるようにする（early-return は不可: stored property 未初期化になる）。
+                assertionFailure("persistentStoreDescriptions が空のため storeURLOverride を適用できません")
+                Self.logger.error("persistentStoreDescriptions が空のため storeURLOverride を適用できません")
+            }
+        }
+
+        var loadError: Error?
+        container.loadPersistentStores { _, error in
+            if let error = error {
+                // ストア読み込み失敗。ログを残しつつエラーを捕捉して上位（root view）へ伝える。
+                // local SQLite store は同期ロードのため、この closure は
+                // loadPersistentStores の return 前に同期実行される（PersistenceControllerTests で実証）。
+                Self.logger.error("Core Dataストアの読み込みに失敗しました: \(error.localizedDescription)")
+                loadError = error
                 #if DEBUG
                 let nsError = error as NSError
                 print("Core Data エラー詳細: \(nsError), \(nsError.userInfo)")
                 #endif
             }
-        })
-        container.viewContext.automaticallyMergesChangesFromParent = true
-        
-        // Core Dataのコンテキストがメインスレッドで動作することを保証
+        }
+
+        self.container = container
+        self.storeLoadError = loadError
         container.viewContext.automaticallyMergesChangesFromParent = true
         container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
     }
+
+    #if DEBUG
+    /// `--force-store-load-failure` 用: SQLite が開けない URL（既存ディレクトリ）を返す。
+    private nonisolated static func unopenableStoreURL() -> URL {
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("force-store-load-failure", isDirectory: true)
+        try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+        return url
+    }
+    #endif
     
     /// メインスレッドでのコンテキスト保存
     func saveContext() throws {
