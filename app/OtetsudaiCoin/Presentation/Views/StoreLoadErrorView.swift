@@ -18,6 +18,7 @@ struct StoreLoadErrorView: View {
                 .font(.headline)
                 .foregroundColor(AccessibilityColors.textPrimary)
                 .multilineTextAlignment(.center)
+                .accessibilityAddTraits(.isHeader)  // VoiceOver の見出しナビでタイトルへ飛べるようにする
 
             Text("アプリをいったん完全に終了してから、もう一度開いてください。問題が解決しない場合は、お手数ですがサポートまでご連絡ください。")
                 .font(.subheadline)
