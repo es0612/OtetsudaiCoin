@@ -412,7 +412,7 @@ final class RecordViewModelTests: XCTestCase {
 
         // When
         viewModel.recordBulkHelp()
-        try? await Task.sleep(nanoseconds: 200_000_000)
+        await waitUntil(timeout: 2.0) { !self.viewModel.isLoading }
 
         // Then: 2 件保存、失敗 1 件のみ selectedTaskIds に残る、合計コイン 40
         XCTAssertEqual(mockHelpRecordRepository.records.count, 2)
@@ -436,7 +436,7 @@ final class RecordViewModelTests: XCTestCase {
 
         // When
         viewModel.recordBulkHelp()
-        try? await Task.sleep(nanoseconds: 200_000_000)
+        await waitUntil(timeout: 2.0) { !self.viewModel.isLoading }
 
         // Then: 0 件保存、選択は全て残る、error メッセージ
         XCTAssertEqual(mockHelpRecordRepository.records.count, 0)
@@ -459,7 +459,7 @@ final class RecordViewModelTests: XCTestCase {
 
         // When
         viewModel.recordBulkHelp()
-        try? await Task.sleep(nanoseconds: 200_000_000)
+        await waitUntil(timeout: 2.0) { !self.viewModel.isLoading }
 
         // Then: success message に count=1 が反映され、ja sourceLanguage のため
         // "1 件記録しました！" (variations 未定義のため interpolation 経由でも他キーは使われる)
@@ -483,7 +483,7 @@ final class RecordViewModelTests: XCTestCase {
 
         // When
         viewModel.recordBulkHelp()
-        try? await Task.sleep(nanoseconds: 200_000_000)
+        await waitUntil(timeout: 2.0) { !self.viewModel.isLoading }
 
         // Then
         XCTAssertNotNil(viewModel.warningMessage)
@@ -505,7 +505,7 @@ final class RecordViewModelTests: XCTestCase {
 
         // When
         viewModel.recordBulkHelp()
-        try? await Task.sleep(nanoseconds: 200_000_000)
+        await waitUntil(timeout: 2.0) { !self.viewModel.isLoading }
 
         // Then: 3 件保存、selectedTaskIds 空、合計 60 コイン、success メッセージ
         XCTAssertEqual(mockHelpRecordRepository.records.count, 3)
