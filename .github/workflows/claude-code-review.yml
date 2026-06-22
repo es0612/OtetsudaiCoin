@@ -37,9 +37,12 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
-          # Optional: Specify model (defaults to Claude Sonnet 4, uncomment for Claude Opus 4)
-          # model: "claude-opus-4-20250514"
-          
+          # Pin a current model. The action's implicit default (claude-sonnet-4-20250514)
+          # was retired 2026-06-15 and now returns "API Error: 404 not_found_error",
+          # which made this check fail on every PR. Use a current model ID instead;
+          # do NOT uncomment a dated Opus 4 ID — claude-opus-4-20250514 retired the same day.
+          model: "claude-sonnet-4-6"
+
           # Direct prompt for automated review (no @claude mention needed)
           direct_prompt: |
             Please review this pull request and provide feedback on:
