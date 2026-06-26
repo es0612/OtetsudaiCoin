@@ -128,7 +128,10 @@ class MockHelpTaskRepository: HelpTaskRepository {
             throw errorToThrow
         }
         lastOrderedIds = orderedIds
-        let position = Dictionary(uniqueKeysWithValues: orderedIds.enumerated().map { ($1, $0) })
+        let position = Dictionary(
+            orderedIds.enumerated().map { ($1, $0) },
+            uniquingKeysWith: { first, _ in first }
+        )
         tasks = tasks.map { task in
             guard let index = position[task.id] else { return task }
             return task.updatingSortOrder(index)
