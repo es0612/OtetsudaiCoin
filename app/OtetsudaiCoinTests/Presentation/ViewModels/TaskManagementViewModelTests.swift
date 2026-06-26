@@ -100,6 +100,21 @@ final class TaskManagementViewModelTests: XCTestCase {
                        "rendered: \(viewModel.tasks.map { ($0.name, $0.sortOrder) })")
     }
 
+    func testReorderTasksUpdatesInMemoryOrderSynchronouslyWithoutPersisting() async {
+        // onMove 経路: 同期 reorder のみ呼ぶと、永続化前に即座に tasks が並べ替わる (#130-②)
+        let taskA = makeTask(name: "A", sortOrder: 0)
+        let taskB = makeTask(name: "B", sortOrder: 1)
+        let taskC = makeTask(name: "C", sortOrder: 2)
+        mockTaskRepository.tasks = [taskA, taskB, taskC]
+        await viewModel.loadTasks()
+
+        let reordered = viewModel.reorderTasks(from: IndexSet(integer: 2), to: 0)
+
+        XCTAssertEqual(viewModel.tasks.map(\.name), ["C", "A", "B"], "reorderTasks は同期で in-memory 順序を更新すべき")
+        XCTAssertEqual(reordered.map(\.name), ["C", "A", "B"])
+        XCTAssertEqual(mockTaskRepository.updateSortOrdersCallCount, 0, "reorderTasks 単独では永続化しない")
+    }
+
     // MARK: - sortByFrequency (#123)
 
     func testSortByFrequencyOrdersByRecentRecordCountDescending() async {

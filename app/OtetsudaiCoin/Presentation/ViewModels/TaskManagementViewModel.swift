@@ -109,14 +109,21 @@ class TaskManagementViewModel {
         await updateTask(updatedTask)
     }
 
-    func moveTasks(from source: IndexSet, to destination: Int) async {
+    /// in-memory の並べ替えを同期適用し、並べ替え後配列を返す。
+    /// onMove から同期呼び出しすることで、SwiftUI List が同一 runloop で並べ替え後配列を
+    /// 反映し、行が一瞬元位置へ戻る snap-back glitch を防ぐ (#130-②)。
+    @discardableResult
+    func reorderTasks(from source: IndexSet, to destination: Int) -> [HelpTask] {
         // in-flight な loadTasks の stale 結果が楽観的更新を上書きしないようキャンセル
         loadTasksTask?.cancel()
-
         var reordered = tasks
         reordered.move(fromOffsets: source, toOffset: destination)
         tasks = reordered
+        return reordered
+    }
 
+    /// 並べ替え結果を永続化する。失敗時は DB 状態へ巻き戻す。
+    func persistReorder(_ reordered: [HelpTask]) async {
         do {
             try await helpTaskRepository.updateSortOrders(reordered.map(\.id))
             // DB の再採番 (0..n-1) を in-memory にもミラーし、後続の toggle/編集が
@@ -127,6 +134,12 @@ class TaskManagementViewModel {
             await loadTasks() // DB の状態に巻き戻す
             errorMessage = message // loadTasks 冒頭の errorMessage=nil に消されないよう reload 後にセット
         }
+    }
+
+    /// 同期 reorder + 永続化をまとめた従来 API（テスト/プログラム経路用）。
+    func moveTasks(from source: IndexSet, to destination: Int) async {
+        let reordered = reorderTasks(from: source, to: destination)
+        await persistReorder(reordered)
     }
 
     func sortByFrequency(now: Date = Date()) async {

@@ -30,8 +30,10 @@ struct TaskManagementView: View {
                                 }
                             }
                             .onMove { source, destination in
+                                // 同期 reorder で snap-back を防ぎ、永続化のみ非同期へ
+                                let reordered = viewModel.reorderTasks(from: source, to: destination)
                                 Task {
-                                    await viewModel.moveTasks(from: source, to: destination)
+                                    await viewModel.persistReorder(reordered)
                                 }
                             }
 
