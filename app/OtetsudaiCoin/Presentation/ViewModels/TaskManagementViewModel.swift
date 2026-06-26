@@ -11,6 +11,7 @@ class TaskManagementViewModel {
     private let helpTaskRepository: HelpTaskRepository
     private let helpRecordRepository: HelpRecordRepository
     private var loadTasksTask: Task<Void, Never>?
+    private var sortPersistChain: Task<Void, Never>?
 
     init(helpTaskRepository: HelpTaskRepository, helpRecordRepository: HelpRecordRepository) {
         self.helpTaskRepository = helpTaskRepository
@@ -122,17 +123,32 @@ class TaskManagementViewModel {
         return reordered
     }
 
+    /// 並べ替え永続化を直列化する。前の永続化が完了してから次を開始することで、
+    /// moveTasks 同士 / moveTasks vs sortByFrequency が別 background context で走った際の
+    /// 完了順逆転による DB/in-memory 不整合を防ぐ (#130-①)。
+    private func enqueueSortPersist(_ body: @escaping () async -> Void) async {
+        let previous = sortPersistChain
+        let task = Task { @MainActor in
+            await previous?.value
+            await body()
+        }
+        sortPersistChain = task
+        await task.value
+    }
+
     /// 並べ替え結果を永続化する。失敗時は DB 状態へ巻き戻す。
     func persistReorder(_ reordered: [HelpTask]) async {
-        do {
-            try await helpTaskRepository.updateSortOrders(reordered.map(\.id))
-            // DB の再採番 (0..n-1) を in-memory にもミラーし、後続の toggle/編集が
-            // stale な sortOrder を書き戻すのを防ぐ
-            tasks = reordered.enumerated().map { $1.updatingSortOrder($0) }
-        } catch {
-            let message = ErrorMessageConverter.convertToUserFriendlyMessage(error)
-            await loadTasks() // DB の状態に巻き戻す
-            errorMessage = message // loadTasks 冒頭の errorMessage=nil に消されないよう reload 後にセット
+        await enqueueSortPersist { [self] in
+            do {
+                try await helpTaskRepository.updateSortOrders(reordered.map(\.id))
+                // DB の再採番 (0..n-1) を in-memory にもミラーし、後続の toggle/編集が
+                // stale な sortOrder を書き戻すのを防ぐ
+                tasks = reordered.enumerated().map { $1.updatingSortOrder($0) }
+            } catch {
+                let message = ErrorMessageConverter.convertToUserFriendlyMessage(error)
+                await loadTasks() // DB の状態に巻き戻す
+                errorMessage = message // loadTasks 冒頭の errorMessage=nil に消されないよう reload 後にセット
+            }
         }
     }
 
@@ -170,15 +186,17 @@ class TaskManagementViewModel {
             return lhs.name < rhs.name
         }
 
-        do {
-            try await helpTaskRepository.updateSortOrders(sorted.map(\.id))
-            // DB の再採番 (0..n-1) を in-memory にもミラー（moveTasks と同様）
-            tasks = sorted.enumerated().map { $1.updatingSortOrder($0) }
-            successMessage = String(localized: "よく使う順に並べ替えました")
-        } catch {
-            let message = ErrorMessageConverter.convertToUserFriendlyMessage(error)
-            await loadTasks() // DB の状態に巻き戻す
-            errorMessage = message // loadTasks 冒頭の errorMessage=nil に消されないよう reload 後にセット
+        await enqueueSortPersist { [self] in
+            do {
+                try await helpTaskRepository.updateSortOrders(sorted.map(\.id))
+                // DB の再採番 (0..n-1) を in-memory にもミラー（moveTasks と同様）
+                tasks = sorted.enumerated().map { $1.updatingSortOrder($0) }
+                successMessage = String(localized: "よく使う順に並べ替えました")
+            } catch {
+                let message = ErrorMessageConverter.convertToUserFriendlyMessage(error)
+                await loadTasks() // DB の状態に巻き戻す
+                errorMessage = message // loadTasks 冒頭の errorMessage=nil に消されないよう reload 後にセット
+            }
         }
     }
 

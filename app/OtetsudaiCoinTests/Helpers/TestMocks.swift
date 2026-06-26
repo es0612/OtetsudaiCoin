@@ -121,9 +121,16 @@ class MockHelpTaskRepository: HelpTaskRepository {
     var lastOrderedIds: [UUID]?
     // write (updateSortOrders) だけ失敗させ read (findAll) は成功させるための限定フラグ
     var shouldThrowErrorOnUpdateSortOrders = false
+    var concurrentUpdateSortOrdersCount = 0
+    var maxConcurrentUpdateSortOrders = 0
 
     func updateSortOrders(_ orderedIds: [UUID]) async throws {
         updateSortOrdersCallCount += 1
+        concurrentUpdateSortOrdersCount += 1
+        maxConcurrentUpdateSortOrders = max(maxConcurrentUpdateSortOrders, concurrentUpdateSortOrdersCount)
+        defer { concurrentUpdateSortOrdersCount -= 1 }
+        // 直列化されていなければ 2 つ目の呼び出しがこの中断点で割り込み max が 2 になる
+        await Task.yield()
         if shouldThrowError || shouldThrowErrorOnUpdateSortOrders {
             throw errorToThrow
         }

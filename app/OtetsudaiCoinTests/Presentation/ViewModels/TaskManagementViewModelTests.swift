@@ -191,6 +191,28 @@ final class TaskManagementViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.tasks.map(\.name), ["B", "A"]) // DB 状態へ巻き戻し
     }
 
+    // MARK: - 並列化直列化 (#130-①)
+
+    func testConcurrentReordersAreSerialized() async {
+        let taskA = makeTask(name: "A", sortOrder: 0)
+        let taskB = makeTask(name: "B", sortOrder: 1)
+        let taskC = makeTask(name: "C", sortOrder: 2)
+        mockTaskRepository.tasks = [taskA, taskB, taskC]
+        await viewModel.loadTasks()
+
+        // 2 つの並べ替えをほぼ同時に発火。直列化されていれば updateSortOrders は
+        // 同時に 1 つしか走らない (#130-①)。
+        async let first: Void = viewModel.moveTasks(from: IndexSet(integer: 2), to: 0)
+        async let second: Void = viewModel.moveTasks(from: IndexSet(integer: 0), to: 2)
+        _ = await (first, second)
+
+        XCTAssertLessThanOrEqual(
+            mockTaskRepository.maxConcurrentUpdateSortOrders, 1,
+            "並べ替え永続化は直列化されるべき（observed max concurrent: \(mockTaskRepository.maxConcurrentUpdateSortOrders), calls: \(mockTaskRepository.updateSortOrdersCallCount)）"
+        )
+        XCTAssertEqual(mockTaskRepository.updateSortOrdersCallCount, 2, "両方の永続化が実行されるべき")
+    }
+
     // MARK: - sortOrder 保持/採番
 
     func testAddTaskAppendsToEndWithMaxSortOrderPlusOne() async {
