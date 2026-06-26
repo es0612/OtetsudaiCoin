@@ -37,26 +37,15 @@ struct TaskManagementView: View {
                                 }
                             }
 
-                            Button(action: {
-                                showingAddTaskForm = true
-                            }) {
-                                HStack {
-                                    Image(systemName: "plus.circle.fill")
-                                    Text("新しいタスクを追加")
+                            TaskListActionButtons(
+                                canSortByFrequency: viewModel.canSortByFrequency,
+                                onAdd: { showingAddTaskForm = true },
+                                onSortByFrequency: {
+                                    Task {
+                                        await viewModel.sortByFrequency()
+                                    }
                                 }
-                            }
-                            .primaryGradientButton()
-
-                            Button(action: {
-                                Task {
-                                    await viewModel.sortByFrequency()
-                                }
-                            }) {
-                                HStack {
-                                    Image(systemName: "arrow.up.arrow.down")
-                                    Text("よく使う順に並べ替え")
-                                }
-                            }
+                            )
                         }
                     }
                 }
