@@ -8,6 +8,11 @@ class TaskManagementViewModel {
     var errorMessage: String?
     var successMessage: String?
 
+    /// 「よく使う順に並べ替え」が意味を持つか。0/1 件では並べ替え不要 (#130-③)。
+    var canSortByFrequency: Bool {
+        tasks.count > 1
+    }
+
     private let helpTaskRepository: HelpTaskRepository
     private let helpRecordRepository: HelpRecordRepository
     private var loadTasksTask: Task<Void, Never>?
@@ -159,6 +164,7 @@ class TaskManagementViewModel {
     }
 
     func sortByFrequency(now: Date = Date()) async {
+        guard canSortByFrequency else { return }
         guard let windowStart = Calendar.current.date(byAdding: .day, value: -90, to: now) else {
             return
         }

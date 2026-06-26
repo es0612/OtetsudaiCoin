@@ -167,8 +167,34 @@ final class TaskManagementViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.tasks.map(\.name), ["A", "B"])
     }
 
-    func testSortByFrequencyOnFetchErrorSetsErrorAndDoesNotPersist() async {
+    func testCanSortByFrequencyReflectsTaskCount() async {
+        XCTAssertFalse(viewModel.canSortByFrequency, "0 件では並べ替え不可")
+
         mockTaskRepository.tasks = [makeTask(name: "A", sortOrder: 0)]
+        await viewModel.loadTasks()
+        XCTAssertFalse(viewModel.canSortByFrequency, "1 件では並べ替え不可")
+
+        mockTaskRepository.tasks = [
+            makeTask(name: "A", sortOrder: 0),
+            makeTask(name: "B", sortOrder: 1)
+        ]
+        await viewModel.loadTasks()
+        XCTAssertTrue(viewModel.canSortByFrequency, "2 件以上で並べ替え可")
+    }
+
+    func testSortByFrequencyIsNoOpWhenSingleTask() async {
+        mockTaskRepository.tasks = [makeTask(name: "A", sortOrder: 0)]
+        await viewModel.loadTasks()
+
+        await viewModel.sortByFrequency(now: fixedNow)
+
+        XCTAssertEqual(mockTaskRepository.updateSortOrdersCallCount, 0, "1 件では永続化しない")
+        XCTAssertNil(viewModel.successMessage, "1 件では成功メッセージを出さない")
+    }
+
+    func testSortByFrequencyOnFetchErrorSetsErrorAndDoesNotPersist() async {
+        // 2 件以上で canSortByFrequency=true にしてからフェッチエラーを注入する
+        mockTaskRepository.tasks = [makeTask(name: "A", sortOrder: 0), makeTask(name: "B", sortOrder: 1)]
         await viewModel.loadTasks()
         mockRecordRepository.shouldThrowError = true
 
