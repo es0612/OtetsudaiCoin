@@ -33,6 +33,6 @@ final class TaskListActionButtonsTests: XCTestCase {
     func testSortButtonEnabledWhenCanSort() throws {
         let found = try buttons(canSort: true)
         XCTAssertEqual(found.count, 2, "found: \(found.count)")
-        XCTAssertFalse(try found[1].isDisabled(), "2 件以上ではよく使う順は有効")
+        XCTAssertFalse(try found[1].isDisabled(), "2 件以上ではよく使う順は有効（index1 disabled=\(String(describing: try? found[1].isDisabled()))）")
     }
 }

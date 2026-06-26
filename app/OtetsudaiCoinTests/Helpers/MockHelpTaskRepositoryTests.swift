@@ -20,6 +20,6 @@ final class MockHelpTaskRepositoryTests: XCTestCase {
         let a = mock.tasks.first { $0.id == idA }
         let b = mock.tasks.first { $0.id == idB }
         XCTAssertEqual(a?.sortOrder, 0, "重複 id は最初の位置 (0) を採用すべき")
-        XCTAssertEqual(b?.sortOrder, 1)
+        XCTAssertEqual(b?.sortOrder, 1, "重複しない id は位置を保持すべき")
     }
 }

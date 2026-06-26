@@ -192,6 +192,14 @@ final class TaskManagementViewModelTests: XCTestCase {
         XCTAssertNil(viewModel.successMessage, "1 件では成功メッセージを出さない")
     }
 
+    func testSortByFrequencyIsNoOpWhenNoTasks() async {
+        // 0 件 (loadTasks せず空のまま) でも guard で短絡し副作用なし
+        await viewModel.sortByFrequency(now: fixedNow)
+
+        XCTAssertEqual(mockTaskRepository.updateSortOrdersCallCount, 0, "0 件では永続化しない")
+        XCTAssertNil(viewModel.successMessage, "0 件では成功メッセージを出さない")
+    }
+
     func testSortByFrequencyOnFetchErrorSetsErrorAndDoesNotPersist() async {
         // 2 件以上で canSortByFrequency=true にしてからフェッチエラーを注入する
         mockTaskRepository.tasks = [makeTask(name: "A", sortOrder: 0), makeTask(name: "B", sortOrder: 1)]
@@ -217,7 +225,7 @@ final class TaskManagementViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.tasks.map(\.name), ["B", "A"]) // DB 状態へ巻き戻し
     }
 
-    // MARK: - 並列化直列化 (#130-①)
+    // MARK: - 直列化 (#130-①)
 
     func testConcurrentReordersAreSerialized() async {
         let taskA = makeTask(name: "A", sortOrder: 0)

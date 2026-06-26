@@ -132,6 +132,7 @@ class TaskManagementViewModel {
     /// moveTasks 同士 / moveTasks vs sortByFrequency が別 background context で走った際の
     /// 完了順逆転による DB/in-memory 不整合を防ぐ (#130-①)。
     private func enqueueSortPersist(_ body: @escaping () async -> Void) async {
+        // 注: body 内から persistReorder/sortByFrequency を呼ばないこと（chain 自己待ちで deadlock）
         let previous = sortPersistChain
         let task = Task { @MainActor in
             await previous?.value
