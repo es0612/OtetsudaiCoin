@@ -30,31 +30,22 @@ struct TaskManagementView: View {
                                 }
                             }
                             .onMove { source, destination in
+                                // 同期 reorder で snap-back を防ぎ、永続化のみ非同期へ
+                                let reordered = viewModel.reorderTasks(from: source, to: destination)
                                 Task {
-                                    await viewModel.moveTasks(from: source, to: destination)
+                                    await viewModel.persistReorder(reordered)
                                 }
                             }
 
-                            Button(action: {
-                                showingAddTaskForm = true
-                            }) {
-                                HStack {
-                                    Image(systemName: "plus.circle.fill")
-                                    Text("新しいタスクを追加")
+                            TaskListActionButtons(
+                                canSortByFrequency: viewModel.canSortByFrequency,
+                                onAdd: { showingAddTaskForm = true },
+                                onSortByFrequency: {
+                                    Task {
+                                        await viewModel.sortByFrequency()
+                                    }
                                 }
-                            }
-                            .primaryGradientButton()
-
-                            Button(action: {
-                                Task {
-                                    await viewModel.sortByFrequency()
-                                }
-                            }) {
-                                HStack {
-                                    Image(systemName: "arrow.up.arrow.down")
-                                    Text("よく使う順に並べ替え")
-                                }
-                            }
+                            )
                         }
                     }
                 }

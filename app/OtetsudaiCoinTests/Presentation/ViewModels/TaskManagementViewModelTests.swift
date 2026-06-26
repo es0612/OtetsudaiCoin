@@ -100,6 +100,21 @@ final class TaskManagementViewModelTests: XCTestCase {
                        "rendered: \(viewModel.tasks.map { ($0.name, $0.sortOrder) })")
     }
 
+    func testReorderTasksUpdatesInMemoryOrderSynchronouslyWithoutPersisting() async {
+        // onMove 経路: 同期 reorder のみ呼ぶと、永続化前に即座に tasks が並べ替わる (#130-②)
+        let taskA = makeTask(name: "A", sortOrder: 0)
+        let taskB = makeTask(name: "B", sortOrder: 1)
+        let taskC = makeTask(name: "C", sortOrder: 2)
+        mockTaskRepository.tasks = [taskA, taskB, taskC]
+        await viewModel.loadTasks()
+
+        let reordered = viewModel.reorderTasks(from: IndexSet(integer: 2), to: 0)
+
+        XCTAssertEqual(viewModel.tasks.map(\.name), ["C", "A", "B"], "reorderTasks は同期で in-memory 順序を更新すべき")
+        XCTAssertEqual(reordered.map(\.name), ["C", "A", "B"])
+        XCTAssertEqual(mockTaskRepository.updateSortOrdersCallCount, 0, "reorderTasks 単独では永続化しない")
+    }
+
     // MARK: - sortByFrequency (#123)
 
     func testSortByFrequencyOrdersByRecentRecordCountDescending() async {
@@ -152,8 +167,42 @@ final class TaskManagementViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.tasks.map(\.name), ["A", "B"])
     }
 
-    func testSortByFrequencyOnFetchErrorSetsErrorAndDoesNotPersist() async {
+    func testCanSortByFrequencyReflectsTaskCount() async {
+        XCTAssertFalse(viewModel.canSortByFrequency, "0 件では並べ替え不可")
+
         mockTaskRepository.tasks = [makeTask(name: "A", sortOrder: 0)]
+        await viewModel.loadTasks()
+        XCTAssertFalse(viewModel.canSortByFrequency, "1 件では並べ替え不可")
+
+        mockTaskRepository.tasks = [
+            makeTask(name: "A", sortOrder: 0),
+            makeTask(name: "B", sortOrder: 1)
+        ]
+        await viewModel.loadTasks()
+        XCTAssertTrue(viewModel.canSortByFrequency, "2 件以上で並べ替え可")
+    }
+
+    func testSortByFrequencyIsNoOpWhenSingleTask() async {
+        mockTaskRepository.tasks = [makeTask(name: "A", sortOrder: 0)]
+        await viewModel.loadTasks()
+
+        await viewModel.sortByFrequency(now: fixedNow)
+
+        XCTAssertEqual(mockTaskRepository.updateSortOrdersCallCount, 0, "1 件では永続化しない")
+        XCTAssertNil(viewModel.successMessage, "1 件では成功メッセージを出さない")
+    }
+
+    func testSortByFrequencyIsNoOpWhenNoTasks() async {
+        // 0 件 (loadTasks せず空のまま) でも guard で短絡し副作用なし
+        await viewModel.sortByFrequency(now: fixedNow)
+
+        XCTAssertEqual(mockTaskRepository.updateSortOrdersCallCount, 0, "0 件では永続化しない")
+        XCTAssertNil(viewModel.successMessage, "0 件では成功メッセージを出さない")
+    }
+
+    func testSortByFrequencyOnFetchErrorSetsErrorAndDoesNotPersist() async {
+        // 2 件以上で canSortByFrequency=true にしてからフェッチエラーを注入する
+        mockTaskRepository.tasks = [makeTask(name: "A", sortOrder: 0), makeTask(name: "B", sortOrder: 1)]
         await viewModel.loadTasks()
         mockRecordRepository.shouldThrowError = true
 
@@ -174,6 +223,28 @@ final class TaskManagementViewModelTests: XCTestCase {
 
         XCTAssertNotNil(viewModel.errorMessage)
         XCTAssertEqual(viewModel.tasks.map(\.name), ["B", "A"]) // DB 状態へ巻き戻し
+    }
+
+    // MARK: - 直列化 (#130-①)
+
+    func testConcurrentReordersAreSerialized() async {
+        let taskA = makeTask(name: "A", sortOrder: 0)
+        let taskB = makeTask(name: "B", sortOrder: 1)
+        let taskC = makeTask(name: "C", sortOrder: 2)
+        mockTaskRepository.tasks = [taskA, taskB, taskC]
+        await viewModel.loadTasks()
+
+        // 2 つの並べ替えをほぼ同時に発火。直列化されていれば updateSortOrders は
+        // 同時に 1 つしか走らない (#130-①)。
+        async let first: Void = viewModel.moveTasks(from: IndexSet(integer: 2), to: 0)
+        async let second: Void = viewModel.moveTasks(from: IndexSet(integer: 0), to: 2)
+        _ = await (first, second)
+
+        XCTAssertLessThanOrEqual(
+            mockTaskRepository.maxConcurrentUpdateSortOrders, 1,
+            "並べ替え永続化は直列化されるべき（observed max concurrent: \(mockTaskRepository.maxConcurrentUpdateSortOrders), calls: \(mockTaskRepository.updateSortOrdersCallCount)）"
+        )
+        XCTAssertEqual(mockTaskRepository.updateSortOrdersCallCount, 2, "両方の永続化が実行されるべき")
     }
 
     // MARK: - sortOrder 保持/採番
