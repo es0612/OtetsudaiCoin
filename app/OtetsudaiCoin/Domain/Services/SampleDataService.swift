@@ -26,15 +26,8 @@ class SampleDataService {
             Child(id: UUID(), name: "花子", themeColor: "#33FF57")
         ]
         
-        // サンプルタスクデータ
-        let helpTasks = [
-            HelpTask(id: UUID(), name: "洗い物", isActive: true, coinRate: 10),
-            HelpTask(id: UUID(), name: "洗濯物たたみ", isActive: true, coinRate: 15),
-            HelpTask(id: UUID(), name: "掃除機かけ", isActive: true, coinRate: 20),
-            HelpTask(id: UUID(), name: "おもちゃの片付け", isActive: true, coinRate: 5),
-            HelpTask(id: UUID(), name: "お風呂掃除", isActive: true, coinRate: 25),
-            HelpTask(id: UUID(), name: "ゴミ出し", isActive: true, coinRate: 10)
-        ]
+        // サンプルタスクデータ（sortOrder 連番付き）
+        let helpTasks = Self.sampleHelpTasks()
         
         // 子供を保存
         for child in children {
@@ -128,8 +121,24 @@ class SampleDataService {
         for record in allRecords {
             try await helpRecordRepository.delete(record.id)
         }
-        
+
         print("🗑️ 記録データのみ削除しました（\(allRecords.count)件）")
+    }
+
+    /// サンプルタスク定義。sortOrder を 0 始まりの連番で付与し、
+    /// 並べ替え機能の DEBUG 検証時に決定的な初期順序を保証する (#130-⑥)。
+    static func sampleHelpTasks() -> [HelpTask] {
+        let specs: [(name: String, coinRate: Int)] = [
+            ("洗い物", 10),
+            ("洗濯物たたみ", 15),
+            ("掃除機かけ", 20),
+            ("おもちゃの片付け", 5),
+            ("お風呂掃除", 25),
+            ("ゴミ出し", 10)
+        ]
+        return specs.enumerated().map { index, spec in
+            HelpTask(id: UUID(), name: spec.name, isActive: true, coinRate: spec.coinRate, sortOrder: index)
+        }
     }
 }
 #endif
