@@ -247,6 +247,51 @@ final class TaskManagementViewModelTests: XCTestCase {
         XCTAssertEqual(mockTaskRepository.updateSortOrdersCallCount, 2, "両方の永続化が実行されるべき")
     }
 
+    // MARK: - errorMessage 残留の解消 (#136)
+
+    func testSuccessfulSortClearsStaleErrorFromPriorFailedPersist() async {
+        // 失敗した永続化が errorMessage をセットしたまま、後続の成功永続化が走っても
+        // errorMessage が残るケースを潰す (#136 副次所見)。永続化は直列化されるため、
+        // 「敗北した失敗 persist の後に成功 persist が走る」並行ケースは、enqueue 順に並べた
+        // この逐次ケースに帰着する。最後に成功した永続化の結末が最終状態であるべき。
+        let taskA = makeTask(name: "A", sortOrder: 0)
+        let taskB = makeTask(name: "B", sortOrder: 1)
+        mockTaskRepository.tasks = [taskA, taskB]
+        await viewModel.loadTasks()
+
+        // 1) まず永続化を失敗させて errorMessage をセット
+        mockTaskRepository.shouldThrowErrorOnUpdateSortOrders = true
+        await viewModel.sortByFrequency(now: fixedNow)
+        XCTAssertNotNil(viewModel.errorMessage, "失敗永続化で errorMessage がセットされるべき")
+
+        // 2) 次の永続化を成功させると、前回の errorMessage はクリアされるべき
+        mockTaskRepository.shouldThrowErrorOnUpdateSortOrders = false
+        await viewModel.sortByFrequency(now: fixedNow)
+
+        XCTAssertNil(viewModel.errorMessage,
+                     "後続の成功永続化は古い errorMessage をクリアすべき（残: \(String(describing: viewModel.errorMessage))）")
+        XCTAssertNotNil(viewModel.successMessage, "成功永続化では successMessage がセットされるべき")
+    }
+
+    func testSuccessfulReorderClearsStaleErrorFromPriorFailedPersist() async {
+        // 上と同じ不変条件を reorder 経路 (persistReorder) でも担保する。
+        let taskA = makeTask(name: "A", sortOrder: 0)
+        let taskB = makeTask(name: "B", sortOrder: 1)
+        let taskC = makeTask(name: "C", sortOrder: 2)
+        mockTaskRepository.tasks = [taskA, taskB, taskC]
+        await viewModel.loadTasks()
+
+        mockTaskRepository.shouldThrowErrorOnUpdateSortOrders = true
+        await viewModel.moveTasks(from: IndexSet(integer: 2), to: 0)
+        XCTAssertNotNil(viewModel.errorMessage, "失敗した並べ替え永続化で errorMessage がセットされるべき")
+
+        mockTaskRepository.shouldThrowErrorOnUpdateSortOrders = false
+        await viewModel.moveTasks(from: IndexSet(integer: 2), to: 0)
+
+        XCTAssertNil(viewModel.errorMessage,
+                     "後続の成功した並べ替え永続化は古い errorMessage をクリアすべき（残: \(String(describing: viewModel.errorMessage))）")
+    }
+
     // MARK: - sortOrder 保持/採番
 
     func testAddTaskAppendsToEndWithMaxSortOrderPlusOne() async {

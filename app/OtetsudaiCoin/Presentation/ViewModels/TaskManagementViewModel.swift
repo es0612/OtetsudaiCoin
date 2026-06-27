@@ -150,6 +150,7 @@ class TaskManagementViewModel {
                 // DB の再採番 (0..n-1) を in-memory にもミラーし、後続の toggle/編集が
                 // stale な sortOrder を書き戻すのを防ぐ
                 tasks = reordered.enumerated().map { $1.updatingSortOrder($0) }
+                errorMessage = nil // 先行する失敗永続化が残した errorMessage をクリア (#136)
             } catch {
                 let message = ErrorMessageConverter.convertToUserFriendlyMessage(error)
                 await loadTasks() // DB の状態に巻き戻す
@@ -181,24 +182,26 @@ class TaskManagementViewModel {
             return
         }
 
-        // 全子ども合算で件数集計
+        // 全子ども合算で件数集計（records 由来で reorder 非依存なので body 外で確定してよい）
         let counts = Dictionary(grouping: records, by: { $0.helpTaskId }).mapValues { $0.count }
 
-        let sorted = tasks.sorted { lhs, rhs in
-            let lhsCount = counts[lhs.id] ?? 0
-            let rhsCount = counts[rhs.id] ?? 0
-            if lhsCount != rhsCount {
-                return lhsCount > rhsCount
-            }
-            return lhs.name < rhs.name
-        }
-
         await enqueueSortPersist { [self] in
+            // 並べ替え結果は永続化 body の実行時点の tasks から計算する。呼び出し時に capture すると、
+            // 先行する永続化の完了待ち中に tasks の集合が変わった場合に stale な並びを書きうる (#136)。
+            let sorted = tasks.sorted { lhs, rhs in
+                let lhsCount = counts[lhs.id] ?? 0
+                let rhsCount = counts[rhs.id] ?? 0
+                if lhsCount != rhsCount {
+                    return lhsCount > rhsCount
+                }
+                return lhs.name < rhs.name
+            }
             do {
                 try await helpTaskRepository.updateSortOrders(sorted.map(\.id))
                 // DB の再採番 (0..n-1) を in-memory にもミラー（moveTasks と同様）
                 tasks = sorted.enumerated().map { $1.updatingSortOrder($0) }
                 successMessage = String(localized: "よく使う順に並べ替えました")
+                errorMessage = nil // 先行する失敗永続化が残した errorMessage をクリア (#136)
             } catch {
                 let message = ErrorMessageConverter.convertToUserFriendlyMessage(error)
                 await loadTasks() // DB の状態に巻き戻す
