@@ -7,22 +7,29 @@ class TutorialService {
     var hasCompletedRecordTutorial: Bool = false
     var showTutorial: Bool = false
     
-    private let userDefaults = UserDefaults.standard
-    
+    private let userDefaults: UserDefaults
+
     private enum Keys: String {
         case hasLaunchedBefore = "hasLaunchedBefore"
         case hasCompletedChildTutorial = "hasCompletedChildTutorial"
         case hasCompletedRecordTutorial = "hasCompletedRecordTutorial"
     }
-    
-    init() {
+
+    init(userDefaults: UserDefaults = .standard) {
+        self.userDefaults = userDefaults
         loadTutorialState()
         checkFirstLaunch()
     }
-    
+
+    /// UIテスト起動時（`--uitesting` フラグ）かどうかを判定する pure helper。
+    /// 判定ロジックを注入可能にして unit test で担保する。
+    static func isUITesting(arguments: [String] = ProcessInfo.processInfo.arguments) -> Bool {
+        arguments.contains("--uitesting")
+    }
+
     func checkFirstLaunch() {
         // UIテスト実行時はチュートリアルをスキップ
-        if ProcessInfo.processInfo.arguments.contains("--uitesting") {
+        if Self.isUITesting() {
             hasCompletedChildTutorial = true
             hasCompletedRecordTutorial = true
             showTutorial = false
