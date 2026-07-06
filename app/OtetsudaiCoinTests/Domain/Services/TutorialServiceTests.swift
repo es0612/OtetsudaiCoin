@@ -36,6 +36,17 @@ final class TutorialServiceTests: XCTestCase {
         XCTAssertFalse(TutorialService.isUITesting(arguments: []))
     }
 
+    func testCheckFirstLaunch_whenUITesting_skipsTutorial() {
+        // 初回起動状態から --uitesting 相当で再判定 → スキップ分岐（完了扱い・非表示）の効果を検証
+        let service = TutorialService(userDefaults: userDefaults)
+
+        service.checkFirstLaunch(isUITesting: true)
+
+        XCTAssertTrue(service.hasCompletedChildTutorial, "--uitesting では子供チュートリアルは完了扱い")
+        XCTAssertTrue(service.hasCompletedRecordTutorial, "--uitesting では記録チュートリアルは完了扱い")
+        XCTAssertFalse(service.showTutorial, "--uitesting ではチュートリアルを表示しない")
+    }
+
     // MARK: - 初回起動判定
 
     func testFirstLaunch_freshDefaults_showsTutorialAndMarksLaunched() {

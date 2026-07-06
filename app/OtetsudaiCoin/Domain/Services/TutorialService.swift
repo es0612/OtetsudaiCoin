@@ -27,9 +27,9 @@ class TutorialService {
         arguments.contains("--uitesting")
     }
 
-    func checkFirstLaunch() {
+    func checkFirstLaunch(isUITesting: Bool = TutorialService.isUITesting()) {
         // UIテスト実行時はチュートリアルをスキップ
-        if Self.isUITesting() {
+        if isUITesting {
             hasCompletedChildTutorial = true
             hasCompletedRecordTutorial = true
             showTutorial = false
