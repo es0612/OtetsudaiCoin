@@ -24,6 +24,7 @@ struct ContentView: View {
     
     @State private var childManagementViewModel: ChildManagementViewModel
     @State private var homeViewModel: HomeViewModel
+    @State private var recordViewModel: RecordViewModel
     @State private var paymentReminderService: PaymentReminderNotificationService
 
     @MainActor
@@ -34,6 +35,9 @@ struct ContentView: View {
 
         _childManagementViewModel = State(wrappedValue: viewModelFactory.createChildManagementViewModel())
         _homeViewModel = State(wrappedValue: viewModelFactory.createHomeViewModel())
+        // body 再評価のたびに生成すると記録途中の選択状態が失われるため、
+        // 他の ViewModel と同様に @State で一度だけ生成する (Issue #152)
+        _recordViewModel = State(wrappedValue: viewModelFactory.createRecordViewModel())
 
         let paymentService = PaymentReminderNotificationService(
             notificationCenter: UNUserNotificationCenter.current(),
@@ -75,7 +79,7 @@ struct ContentView: View {
                 }
                 .tag(0)
             
-            RecordView(viewModel: viewModelFactory.createRecordViewModel())
+            RecordView(viewModel: recordViewModel)
                 .tabItem {
                     Image(systemName: "plus.circle.fill")
                     Text("記録")

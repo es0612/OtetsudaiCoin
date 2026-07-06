@@ -115,8 +115,44 @@ final class OtetsudaiCoinUITests: XCTestCase {
         let childSelectionText = app.staticTexts["お手伝いする人を選んでください"]
         XCTAssertTrue(childSelectionText.waitForExistence(timeout: 5), "子供選択エリアが表示されていません")
     }
-    
-    
+
+
+    // MARK: - Issue #152: タブ切替で記録画面の選択状態が保持されること
+
+    func testRecordTab_ChildSelectionPersistsAcrossTabSwitch() throws {
+        // 前提: loadChildren は未選択時に先頭の子を自動選択するため、
+        // 先頭の子では VM 再生成によるリセットが隠蔽される。
+        // 2 人目 (花子) を選択してタブ往復し、選択が先頭 (太郎) に戻らないことを検証する。
+
+        // 記録タブに移動
+        app.tabBars.buttons["記録"].tap()
+
+        // 2 人目の子供カード (花子) の表示を待ってタップ
+        // (Button は子 Text をラベルに統合するため label で判定)
+        let hanakoButton = app.buttons.matching(
+            NSPredicate(format: "identifier == 'child_button' AND label CONTAINS '花子'")
+        ).firstMatch
+        XCTAssertTrue(hanakoButton.waitForExistence(timeout: 5), "花子の子供カードが表示されていません")
+        hanakoButton.tap()
+
+        // 花子が選択状態になったことを確認
+        let selectedHanako = app.buttons.matching(
+            NSPredicate(format: "identifier == 'child_button' AND label CONTAINS '花子' AND label CONTAINS '選択中'")
+        ).firstMatch
+        XCTAssertTrue(selectedHanako.waitForExistence(timeout: 3), "花子が選択状態になっていません")
+
+        // ホームタブへ移動して記録タブへ戻る
+        app.tabBars.buttons["ホーム"].tap()
+        sleep(1)
+        app.tabBars.buttons["記録"].tap()
+
+        // 花子の選択が保持されていること（RecordViewModel が再生成されると先頭の子に戻る）
+        XCTAssertTrue(
+            selectedHanako.waitForExistence(timeout: 3),
+            "タブ切替後に花子の選択状態が失われました (Issue #152)"
+        )
+    }
+
     // MARK: - パフォーマンステスト
     
     func testPerformance_AppLaunch() throws {
