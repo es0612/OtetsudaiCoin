@@ -11,8 +11,6 @@ OtetsudaiCoin/
 │   └── specs/              # 仕様ドキュメント
 ├── .claude/                # Claude Code設定
 │   └── commands/           # カスタムコマンド
-├── .serena/                # Serena MCP メモリ
-│   └── memories/           # プロジェクトメモリ
 ├── README.md               # プロジェクトREADME
 ├── CLAUDE.md               # Claude開発ガイド
 ├── PRIVACY_POLICY.md       # プライバシーポリシー
@@ -114,8 +112,7 @@ app/
 ```
 scripts/
 ├── prepare-simulator.sh            # シミュレータ事前起動
-├── benchmark-tests.sh              # パフォーマンスベンチマーク
-└── test-performance-report.md      # パフォーマンスレポート
+└── benchmark-tests.sh              # パフォーマンスベンチマーク
 ```
 
 ## レイヤー別の責務
