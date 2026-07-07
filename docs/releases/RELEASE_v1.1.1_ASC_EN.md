@@ -162,9 +162,9 @@ This is the work the **author/PO must do in the ASC UI** to finish Phase 1 (#50 
 - [ ] Save the English locale (no version resubmission needed — locale add is metadata)
 - [ ] Capture English-locale screenshots and upload to ASC
   - Source PNGs (撮影済み、Issue #50 Phase 1 § 1.5):
-    - [`docs/screenshots/asc/v1.1.x/en/01-home.png`](./docs/screenshots/asc/v1.1.x/en/01-home.png)
-    - [`docs/screenshots/asc/v1.1.x/en/02-record.png`](./docs/screenshots/asc/v1.1.x/en/02-record.png)
-    - [`docs/screenshots/asc/v1.1.x/en/03-settings.png`](./docs/screenshots/asc/v1.1.x/en/03-settings.png)
+    - [`docs/screenshots/asc/v1.1.x/en/01-home.png`](../screenshots/asc/v1.1.x/en/01-home.png)
+    - [`docs/screenshots/asc/v1.1.x/en/02-record.png`](../screenshots/asc/v1.1.x/en/02-record.png)
+    - [`docs/screenshots/asc/v1.1.x/en/03-settings.png`](../screenshots/asc/v1.1.x/en/03-settings.png)
   - Reference (ja 同条件撮影): `docs/screenshots/asc/v1.1.x/ja/` 配下 3 枚
   - 撮影手順: `./scripts/capture-asc-screenshots.sh` (再撮影時)
 
