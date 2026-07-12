@@ -20,7 +20,7 @@ struct SkeletonViews {
         
         @State private var isAnimating = false
         
-        init(width: CGFloat? = nil, height: CGFloat, cornerRadius: CGFloat = 8) {
+        init(width: CGFloat? = nil, height: CGFloat, cornerRadius: CGFloat = AppRadius.small) {
             self.width = width
             self.height = height
             self.cornerRadius = cornerRadius
@@ -120,9 +120,9 @@ struct SkeletonViews {
             }
             .padding()
             .background(
-                RoundedRectangle(cornerRadius: 16)
+                RoundedRectangle(cornerRadius: AppRadius.large)
                     .fill(Color(.systemBackground))
-                    .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+                    .appShadow(AppShadow.cardElevated)
             )
         }
     }
@@ -140,14 +140,14 @@ struct SkeletonViews {
                 
                 Spacer()
                 
-                SkeletonBox(width: 24, height: 24, cornerRadius: 12)
+                SkeletonBox(width: 24, height: 24, cornerRadius: AppRadius.medium)
             }
             .padding(.vertical, 12)
             .padding(.horizontal, 16)
             .background(
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: AppRadius.medium)
                     .fill(Color(.systemBackground))
-                    .shadow(color: .black.opacity(0.03), radius: 2, x: 0, y: 1)
+                    .appShadow(AppShadow.card)
             )
         }
     }
@@ -177,9 +177,9 @@ struct SkeletonViews {
                     }
                     .padding()
                     .background(
-                        RoundedRectangle(cornerRadius: 20)
+                        RoundedRectangle(cornerRadius: AppRadius.xLarge)
                             .fill(Color(.systemBackground))
-                            .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 5)
+                            .appShadow(AppShadow.floating)
                     )
                     .padding(.horizontal)
                     

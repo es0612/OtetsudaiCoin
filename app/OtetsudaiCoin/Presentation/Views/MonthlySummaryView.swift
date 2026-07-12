@@ -105,7 +105,7 @@ struct MonthlySummaryView: View {
                     endPoint: .bottomTrailing
                 )
             )
-            .cornerRadius(16)
+            .cornerRadius(AppRadius.large)
         }
     }
 
@@ -144,7 +144,7 @@ struct MonthlySummaryView: View {
         .frame(maxWidth: .infinity, minHeight: 80)
         .padding(.vertical, 8)
         .background(color.opacity(0.1))
-        .cornerRadius(12)
+        .cornerRadius(AppRadius.medium)
     }
 
     private func taskBreakdownChart(snap: MonthSnapshot) -> some View {
@@ -171,7 +171,7 @@ struct MonthlySummaryView: View {
                                     .fill(AccessibilityColors.primaryBlue)
                                     .frame(width: geo.size.width * CGFloat(item.count) / CGFloat(maxCount))
                             }
-                            .cornerRadius(4)
+                            .cornerRadius(AppRadius.xSmall)
                         }
                         .frame(height: 16)
                         Text("\(item.count)回")

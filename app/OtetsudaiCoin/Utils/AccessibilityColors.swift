@@ -156,7 +156,7 @@ extension View {
         self
             .foregroundColor(isEnabled ? .white : AccessibilityColors.buttonDisabledText)
             .background(
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: AppRadius.medium)
                     .fill(isEnabled ? AccessibilityColors.primaryBlue : AccessibilityColors.buttonDisabled)
             )
             .opacity(isEnabled ? 1.0 : 0.6)
@@ -168,7 +168,7 @@ extension View {
     func accessibleCardBackground(isHighlighted: Bool = false) -> some View {
         self
             .background(
-                RoundedRectangle(cornerRadius: 16)
+                RoundedRectangle(cornerRadius: AppRadius.large)
                     .fill(isHighlighted ? AccessibilityColors.primaryBlueLight : AccessibilityColors.backgroundCard)
                     .stroke(isHighlighted ? AccessibilityColors.primaryBlue : AccessibilityColors.border, lineWidth: isHighlighted ? 2 : 1)
             )

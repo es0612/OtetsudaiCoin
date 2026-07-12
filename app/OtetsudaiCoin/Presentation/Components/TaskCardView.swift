@@ -125,10 +125,10 @@ struct TaskCardView: View {
     }
 
     private var cardBackground: some View {
-        RoundedRectangle(cornerRadius: 16)
+        RoundedRectangle(cornerRadius: AppRadius.large)
             .fill(isSelected ? Color.blue.opacity(0.1) : Color.gray.opacity(0.05))
             .overlay(
-                RoundedRectangle(cornerRadius: 16)
+                RoundedRectangle(cornerRadius: AppRadius.large)
                     .stroke(isSelected ? Color.blue : Color.clear, lineWidth: 2)
             )
     }

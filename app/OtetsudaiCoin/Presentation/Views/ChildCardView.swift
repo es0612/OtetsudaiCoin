@@ -43,10 +43,10 @@ struct ChildCardView: View {
             .padding()
             .frame(width: 120)
             .background(
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: AppRadius.medium)
                     .fill(isSelected ? themeColor.opacity(0.1) : Color.gray.opacity(0.05))
                     .overlay(
-                        RoundedRectangle(cornerRadius: 12)
+                        RoundedRectangle(cornerRadius: AppRadius.medium)
                             .stroke(isSelected ? themeColor : Color.clear, lineWidth: 2)
                     )
             )
