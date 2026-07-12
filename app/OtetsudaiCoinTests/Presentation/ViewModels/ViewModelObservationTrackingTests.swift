@@ -78,4 +78,28 @@ final class ViewModelObservationTrackingTests: XCTestCase {
             "RecordViewModel.selectedChild（@Observable 再付与済みサブクラス）が追跡されていない。"
         )
     }
+
+    // MARK: - HomeViewModel（#145 で BaseViewModel 継承へ移行した VM）
+
+    /// 移行後の VM でもサブクラス宣言プロパティ `children` が追跡されることを回帰ガードとして固定する。
+    func testHomeViewModelSubclassPropertyIsObservable() {
+        let viewModel = HomeViewModel(
+            childRepository: MockChildRepository(),
+            helpRecordRepository: MockHelpRecordRepository(),
+            helpTaskRepository: MockHelpTaskRepository(),
+            allowanceCalculator: MockAllowanceCalculator(),
+            allowancePaymentRepository: MockAllowancePaymentRepository()
+        )
+        let child = Child(id: UUID(), name: "次郎", themeColor: "#3357FF")
+
+        let fired = assertTracksMutation(
+            access: { _ = viewModel.children },
+            mutate: { viewModel.children = [child] }
+        )
+
+        XCTAssertTrue(
+            fired,
+            "HomeViewModel.children（BaseViewModel 継承へ移行後）が追跡されていない。"
+        )
+    }
 }
