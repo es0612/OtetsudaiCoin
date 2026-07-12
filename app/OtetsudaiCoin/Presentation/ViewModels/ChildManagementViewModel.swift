@@ -1,8 +1,7 @@
 import Foundation
-import Combine
-
 
 @MainActor
+@Observable
 class ChildManagementViewModel: BaseViewModel {
     var children: [Child] = []
     
