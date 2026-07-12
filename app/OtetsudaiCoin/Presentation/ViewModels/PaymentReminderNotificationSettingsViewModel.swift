@@ -6,7 +6,12 @@ class PaymentReminderNotificationSettingsViewModel {
 
     var isEnabled: Bool
     var reminderTime: Date
-    var scheduleError: Error?
+
+    /// スケジュール失敗時のユーザー向けメッセージ（Issue #144）。
+    /// 従来は `Error` をそのまま保持していたが、どの View からも読まれておらず
+    /// 支払いリマインドの失敗がユーザーに一切伝わらない silent failure になっていた。
+    /// `ErrorMessageConverter` で変換済みの文言を保持し、View 側で `.commonAlerts` から表示する。
+    var errorMessage: String?
 
     private let service: PaymentReminderNotificationServiceProtocol
 
@@ -24,9 +29,9 @@ class PaymentReminderNotificationSettingsViewModel {
                 isEnabled = true
                 do {
                     try await service.reschedule()
-                    scheduleError = nil
+                    errorMessage = nil
                 } catch {
-                    scheduleError = error
+                    errorMessage = ErrorMessageConverter.convertToUserFriendlyMessage(error)
                     service.isEnabled = false
                     isEnabled = false
                     service.cancelAll()
@@ -54,11 +59,16 @@ class PaymentReminderNotificationSettingsViewModel {
         if service.isEnabled {
             do {
                 try await service.reschedule()
-                scheduleError = nil
+                errorMessage = nil
             } catch {
-                scheduleError = error
+                errorMessage = ErrorMessageConverter.convertToUserFriendlyMessage(error)
             }
         }
+    }
+
+    /// View の alert dismiss から呼ばれる想定。
+    func clearErrorMessage() {
+        errorMessage = nil
     }
 
     private static func dateFrom(hour: Int, minute: Int) -> Date {

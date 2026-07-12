@@ -62,14 +62,48 @@ final class PaymentReminderNotificationSettingsViewModelTests: XCTestCase {
     @MainActor
     func testToggleOnRescheduleErrorRevertsState() async {
         mockService.authorizationResult = true
-        mockService.rescheduleError = NSError(domain: "test", code: 1)
+        let underlyingError = NSError(domain: "test", code: 1)
+        mockService.rescheduleError = underlyingError
         let vm = PaymentReminderNotificationSettingsViewModel(service: mockService)
 
         await vm.toggleNotification(enabled: true)
 
         XCTAssertFalse(vm.isEnabled)
         XCTAssertFalse(mockService.isEnabled)
-        XCTAssertNotNil(vm.scheduleError)
+        // Issue #144: scheduleError (Error) はどの View からも読まれておらず、
+        // 支払いリマインドのスケジュール失敗がユーザーに一切伝わらない silent failure だった。
+        // ユーザー向け文言 (ErrorMessageConverter 変換済み) を errorMessage に保持する。
+        XCTAssertEqual(
+            vm.errorMessage,
+            ErrorMessageConverter.convertToUserFriendlyMessage(underlyingError)
+        )
+    }
+
+    @MainActor
+    func testToggleOnSuccessClearsPreviousErrorMessage() async {
+        mockService.authorizationResult = true
+        mockService.rescheduleError = NSError(domain: "test", code: 1)
+        let vm = PaymentReminderNotificationSettingsViewModel(service: mockService)
+        await vm.toggleNotification(enabled: true)
+        XCTAssertNotNil(vm.errorMessage)
+
+        mockService.rescheduleError = nil
+        await vm.toggleNotification(enabled: true)
+
+        XCTAssertNil(vm.errorMessage)
+    }
+
+    @MainActor
+    func testClearErrorMessageResetsErrorMessage() async {
+        mockService.authorizationResult = true
+        mockService.rescheduleError = NSError(domain: "test", code: 1)
+        let vm = PaymentReminderNotificationSettingsViewModel(service: mockService)
+        await vm.toggleNotification(enabled: true)
+        XCTAssertNotNil(vm.errorMessage)
+
+        vm.clearErrorMessage()
+
+        XCTAssertNil(vm.errorMessage)
     }
 
     @MainActor
@@ -98,6 +132,25 @@ final class PaymentReminderNotificationSettingsViewModelTests: XCTestCase {
         XCTAssertEqual(mockService.reminderHour, 7)
         XCTAssertEqual(mockService.reminderMinute, 45)
         XCTAssertEqual(mockService.rescheduleCallCount, 1)
+    }
+
+    @MainActor
+    func testUpdateReminderTimeRescheduleErrorSetsUserFriendlyErrorMessage() async {
+        mockService.isEnabled = true
+        let underlyingError = NSError(domain: "test", code: 2)
+        mockService.rescheduleError = underlyingError
+        let vm = PaymentReminderNotificationSettingsViewModel(service: mockService)
+
+        var comps = DateComponents()
+        comps.hour = 7
+        comps.minute = 45
+        let newTime = Calendar.current.date(from: comps)!
+        await vm.updateReminderTime(newTime)
+
+        XCTAssertEqual(
+            vm.errorMessage,
+            ErrorMessageConverter.convertToUserFriendlyMessage(underlyingError)
+        )
     }
 
     @MainActor

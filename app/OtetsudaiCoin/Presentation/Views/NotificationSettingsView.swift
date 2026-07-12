@@ -51,5 +51,15 @@ struct NotificationSettingsView: View {
             }
         }
         .navigationTitle("通知設定")
+        .commonAlerts(
+            errorMessage: viewModel.errorMessage,
+            successMessage: nil,
+            onErrorDismiss: { viewModel.clearErrorMessage() }
+        )
+        .commonAlerts(
+            errorMessage: paymentViewModel.errorMessage,
+            successMessage: nil,
+            onErrorDismiss: { paymentViewModel.clearErrorMessage() }
+        )
     }
 }

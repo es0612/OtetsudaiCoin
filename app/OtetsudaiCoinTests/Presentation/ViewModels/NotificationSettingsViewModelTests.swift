@@ -115,7 +115,8 @@ final class NotificationSettingsViewModelTests: XCTestCase {
     func testToggleOnWithScheduleErrorRevertsState() async {
         // Given: 権限は許可されるがスケジュールが失敗する
         mockService.authorizationResult = true
-        mockService.scheduleDailyError = NSError(domain: "test", code: 1)
+        let underlyingError = NSError(domain: "test", code: 1)
+        mockService.scheduleDailyError = underlyingError
 
         // When: 通知を有効にしようとする
         await viewModel.toggleNotification(enabled: true)
@@ -123,7 +124,44 @@ final class NotificationSettingsViewModelTests: XCTestCase {
         // Then: エラーにより無効状態に戻る
         XCTAssertFalse(viewModel.isEnabled)
         XCTAssertFalse(mockService.isEnabled)
-        XCTAssertNotNil(viewModel.scheduleError)
+        // Issue #144: scheduleError (Error) はどの View からも読まれておらず、
+        // スケジュール失敗がユーザーに一切伝わらない silent failure だった。
+        // ユーザー向け文言 (ErrorMessageConverter 変換済み) を errorMessage に保持する。
+        XCTAssertEqual(
+            viewModel.errorMessage,
+            ErrorMessageConverter.convertToUserFriendlyMessage(underlyingError)
+        )
+    }
+
+    @MainActor
+    func testToggleOnSuccessClearsPreviousErrorMessage() async {
+        // Given: 直前のスケジュール失敗で errorMessage がセットされている
+        mockService.authorizationResult = true
+        mockService.scheduleDailyError = NSError(domain: "test", code: 1)
+        await viewModel.toggleNotification(enabled: true)
+        XCTAssertNotNil(viewModel.errorMessage)
+
+        // When: 再度有効化し、今度は成功する
+        mockService.scheduleDailyError = nil
+        await viewModel.toggleNotification(enabled: true)
+
+        // Then: errorMessage がクリアされる
+        XCTAssertNil(viewModel.errorMessage)
+    }
+
+    @MainActor
+    func testClearErrorMessageResetsErrorMessage() async {
+        // Given: スケジュール失敗で errorMessage がセットされている
+        mockService.authorizationResult = true
+        mockService.scheduleDailyError = NSError(domain: "test", code: 1)
+        await viewModel.toggleNotification(enabled: true)
+        XCTAssertNotNil(viewModel.errorMessage)
+
+        // When: errorMessage をクリアする（View の alert dismiss から呼ばれる想定）
+        viewModel.clearErrorMessage()
+
+        // Then: errorMessage が nil に戻る
+        XCTAssertNil(viewModel.errorMessage)
     }
 
     // MARK: - 通知トグル OFF
@@ -190,6 +228,29 @@ final class NotificationSettingsViewModelTests: XCTestCase {
 
         // Then: リスケジュールが呼ばれる
         XCTAssertEqual(mockService.rescheduleCallCount, 1)
+    }
+
+    @MainActor
+    func testUpdateReminderTimeRescheduleErrorSetsUserFriendlyErrorMessage() async {
+        // Given: 通知が有効な状態で、リスケジュールが失敗する
+        mockService.isEnabled = true
+        let underlyingError = NSError(domain: "test", code: 2)
+        mockService.rescheduleError = underlyingError
+        let vm = NotificationSettingsViewModel(service: mockService)
+
+        var components = DateComponents()
+        components.hour = 7
+        components.minute = 0
+        let newTime = Calendar.current.date(from: components)!
+
+        // When: 時間を変更する
+        await vm.updateReminderTime(newTime)
+
+        // Then: ユーザー向けエラーメッセージがセットされる（silent failure 修正）
+        XCTAssertEqual(
+            vm.errorMessage,
+            ErrorMessageConverter.convertToUserFriendlyMessage(underlyingError)
+        )
     }
 
     @MainActor
