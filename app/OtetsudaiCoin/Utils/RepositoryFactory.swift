@@ -32,8 +32,7 @@ class RepositoryFactory {
     }
     
     func createAllowancePaymentRepository() -> AllowancePaymentRepository {
-        // TODO: 本格運用時はCoreDataベースの実装に変更を検討
-        InMemoryAllowancePaymentRepository.shared
+        CoreDataAllowancePaymentRepository(context: context)
     }
 }
 

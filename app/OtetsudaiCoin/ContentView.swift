@@ -126,6 +126,18 @@ struct ContentView: View {
         
         Task {
             do {
+                // 支払い履歴の UserDefaults → Core Data one-shot 移行 (Issue #142)。
+                // store のロード失敗時に走らせると移行が空振りしてフラグだけ立つ事故に
+                // なり得るため、storeLoadError == nil を確認してから実行する
+                // (フラグ自体も移行成功時のみ立つ二重ガード)。後続の
+                // paymentReminderService.reschedule() が支払い履歴を読むため先頭で行う。
+                if PersistenceController.shared.storeLoadError == nil {
+                    let migrationService = AllowancePaymentMigrationService(
+                        repository: repositoryFactory.createAllowancePaymentRepository()
+                    )
+                    await migrationService.migrateIfNeeded()
+                }
+
                 // 既存データがあるかチェック
                 let existingChildren = try await childRepository.findAll()
                 let existingTasks = try await helpTaskRepository.findAll()
