@@ -139,9 +139,9 @@ struct HomeView: View {
         }
         .adaptivePadding()
         .background(
-            RoundedRectangle(cornerRadius: 20)
+            RoundedRectangle(cornerRadius: AppRadius.xLarge)
                 .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
+                .appShadow(AppShadow.floating)
         )
         .padding(.horizontal, DeviceInfo.contentPadding)
     }
@@ -183,9 +183,9 @@ struct HomeView: View {
         .padding(.vertical, 12)
         .padding(.horizontal, 16)
         .background(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: AppRadius.medium)
                 .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
+                .appShadow(AppShadow.card)
         )
     }
 
@@ -224,9 +224,9 @@ struct HomeView: View {
                         .padding(.vertical, 12)
                         .padding(.horizontal, 16)
                         .background(
-                            RoundedRectangle(cornerRadius: 12)
+                            RoundedRectangle(cornerRadius: AppRadius.medium)
                                 .fill(Color(.systemBackground))
-                                .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
+                                .appShadow(AppShadow.card)
                         )
                     }
                     .buttonStyle(PlainButtonStyle())
@@ -299,7 +299,7 @@ struct HomeView: View {
                         .padding(.horizontal, 16)
                         .padding(.vertical, 8)
                         .background(
-                            RoundedRectangle(cornerRadius: 8)
+                            RoundedRectangle(cornerRadius: AppRadius.small)
                                 .fill(AccessibilityColors.warningOrange.opacity(0.15))
                         )
                     }
@@ -309,12 +309,12 @@ struct HomeView: View {
         }
         .padding(14)
         .background(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: AppRadius.medium)
                 .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.08), radius: 4, x: 0, y: 2)
+                .appShadow(AppShadow.cardElevated)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: AppRadius.medium)
                 .stroke(AccessibilityColors.warningOrange.opacity(0.3), lineWidth: 1)
         )
         .padding(.horizontal, DeviceInfo.contentPadding)
