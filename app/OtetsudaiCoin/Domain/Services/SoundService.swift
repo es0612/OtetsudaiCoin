@@ -71,7 +71,7 @@ class SoundService: SoundServiceProtocol {
             try AVAudioSession.sharedInstance().setCategory(.ambient, mode: .default)
             try AVAudioSession.sharedInstance().setActive(true)
         } catch {
-            print("Failed to setup audio session: \(error)")
+            DebugLogger.error("Failed to setup audio session: \(error)")
         }
     }
     
@@ -80,7 +80,7 @@ class SoundService: SoundServiceProtocol {
             do {
                 try loadSound(soundType)
             } catch {
-                print("Failed to preload sound \(soundType): \(error)")
+                DebugLogger.error("Failed to preload sound \(soundType): \(error)")
             }
         }
     }

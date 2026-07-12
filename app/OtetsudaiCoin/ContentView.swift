@@ -170,10 +170,10 @@ struct ContentView: View {
                 do {
                     try await paymentReminderService.reschedule()
                 } catch {
-                    print("支払いリマインド reschedule エラー: \(error)")
+                    DebugLogger.error("支払いリマインド reschedule エラー: \(error)")
                 }
             } catch {
-                print("初期データセットアップエラー: \(error)")
+                DebugLogger.error("初期データセットアップエラー: \(error)")
             }
         }
     }
