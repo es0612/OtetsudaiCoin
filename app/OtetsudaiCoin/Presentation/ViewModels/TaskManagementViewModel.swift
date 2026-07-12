@@ -2,11 +2,9 @@ import Foundation
 
 @MainActor
 @Observable
-class TaskManagementViewModel {
+class TaskManagementViewModel: BaseViewModel {
     var tasks: [HelpTask] = []
-    var isLoading: Bool = false
-    var errorMessage: String?
-    var successMessage: String?
+    // isLoading / errorMessage / successMessage は BaseViewModel から継承
 
     /// 「よく使う順に並べ替え」が意味を持つか。0/1 件では並べ替え不要 (#130-③)。
     var canSortByFrequency: Bool {
@@ -21,14 +19,14 @@ class TaskManagementViewModel {
     init(helpTaskRepository: HelpTaskRepository, helpRecordRepository: HelpRecordRepository) {
         self.helpTaskRepository = helpTaskRepository
         self.helpRecordRepository = helpRecordRepository
+        super.init()
     }
 
     func loadTasks() async {
         // 実行中のタスクをキャンセル
         loadTasksTask?.cancel()
 
-        isLoading = true
-        errorMessage = nil
+        setLoading(true)
 
         loadTasksTask = Task {
             do {
@@ -39,11 +37,10 @@ class TaskManagementViewModel {
 
                 // repository が (sortOrder, name) ソート済みを返す契約のため再ソート不要
                 tasks = allTasks
-                isLoading = false
+                setLoading(false)
             } catch {
                 guard !Task.isCancelled else { return }
-                errorMessage = ErrorMessageConverter.convertToUserFriendlyMessage(error)
-                isLoading = false
+                setUserFriendlyError(error)
             }
         }
 
@@ -53,12 +50,12 @@ class TaskManagementViewModel {
 
     func addTask(name: String, coinRate: Int = 10) async {
         guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            errorMessage = String(localized: "タスク名を入力してください")
+            setError(String(localized: "タスク名を入力してください"))
             return
         }
 
         guard coinRate > 0 else {
-            errorMessage = String(localized: "コイン単価は1以上で入力してください")
+            setError(String(localized: "コイン単価は1以上で入力してください"))
             return
         }
 
@@ -66,7 +63,7 @@ class TaskManagementViewModel {
 
         // 重複チェック
         if tasks.contains(where: { $0.name == trimmedName }) {
-            errorMessage = String(localized: "同じ名前のタスクが既に存在します")
+            setError(String(localized: "同じ名前のタスクが既に存在します"))
             return
         }
 
@@ -82,30 +79,30 @@ class TaskManagementViewModel {
 
         do {
             try await helpTaskRepository.save(newTask)
-            successMessage = String(localized: "タスクを追加しました")
+            setSuccess(String(localized: "タスクを追加しました"))
             await loadTasks()
         } catch {
-            errorMessage = ErrorMessageConverter.convertToUserFriendlyMessage(error)
+            setUserFriendlyError(error)
         }
     }
 
     func updateTask(_ task: HelpTask) async {
         do {
             try await helpTaskRepository.update(task)
-            successMessage = String(localized: "タスクを更新しました")
+            setSuccess(String(localized: "タスクを更新しました"))
             await loadTasks()
         } catch {
-            errorMessage = ErrorMessageConverter.convertToUserFriendlyMessage(error)
+            setUserFriendlyError(error)
         }
     }
 
     func deleteTask(id: UUID) async {
         do {
             try await helpTaskRepository.delete(id)
-            successMessage = String(localized: "タスクを削除しました")
+            setSuccess(String(localized: "タスクを削除しました"))
             await loadTasks()
         } catch {
-            errorMessage = ErrorMessageConverter.convertToUserFriendlyMessage(error)
+            setUserFriendlyError(error)
         }
     }
 
@@ -150,11 +147,11 @@ class TaskManagementViewModel {
                 // DB の再採番 (0..n-1) を in-memory にもミラーし、後続の toggle/編集が
                 // stale な sortOrder を書き戻すのを防ぐ
                 tasks = reordered.enumerated().map { $1.updatingSortOrder($0) }
-                errorMessage = nil // 先行する失敗永続化が残した errorMessage をクリア (#136)
+                clearErrorMessage() // 先行する失敗永続化が残した errorMessage をクリア (#136)
             } catch {
                 let message = ErrorMessageConverter.convertToUserFriendlyMessage(error)
                 await loadTasks() // DB の状態に巻き戻す
-                errorMessage = message // loadTasks 冒頭の errorMessage=nil に消されないよう reload 後にセット
+                setError(message) // loadTasks 冒頭の setLoading(true) による errorMessage クリアに消されないよう reload 後にセット
             }
         }
     }
@@ -178,7 +175,7 @@ class TaskManagementViewModel {
         do {
             records = try await helpRecordRepository.findByDateRange(from: windowStart, to: now)
         } catch {
-            errorMessage = ErrorMessageConverter.convertToUserFriendlyMessage(error)
+            setUserFriendlyError(error)
             return
         }
 
@@ -200,18 +197,14 @@ class TaskManagementViewModel {
                 try await helpTaskRepository.updateSortOrders(sorted.map(\.id))
                 // DB の再採番 (0..n-1) を in-memory にもミラー（moveTasks と同様）
                 tasks = sorted.enumerated().map { $1.updatingSortOrder($0) }
-                successMessage = String(localized: "よく使う順に並べ替えました")
-                errorMessage = nil // 先行する失敗永続化が残した errorMessage をクリア (#136)
+                // setSuccess は errorMessage もクリアするため、先行する失敗永続化が残した
+                // errorMessage の掃除も兼ねる (#136)
+                setSuccess(String(localized: "よく使う順に並べ替えました"))
             } catch {
                 let message = ErrorMessageConverter.convertToUserFriendlyMessage(error)
                 await loadTasks() // DB の状態に巻き戻す
-                errorMessage = message // loadTasks 冒頭の errorMessage=nil に消されないよう reload 後にセット
+                setError(message) // loadTasks 冒頭の setLoading(true) による errorMessage クリアに消されないよう reload 後にセット
             }
         }
-    }
-
-    func clearMessages() {
-        errorMessage = nil
-        successMessage = nil
     }
 }

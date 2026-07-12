@@ -1,9 +1,8 @@
 import Foundation
-import Combine
 
 @MainActor
 @Observable
-class HomeViewModel {
+class HomeViewModel: BaseViewModel {
     var children: [Child] = []
     var selectedChild: Child?
     var monthlyAllowance: Int = 0
@@ -11,26 +10,23 @@ class HomeViewModel {
     var consecutiveDays: Int = 0
     var totalRecordsThisMonth: Int = 0
     var isCurrentMonthPaid: Bool = false
-    var isLoading: Bool = false
-    var errorMessage: String?
-    var successMessage: String?
-    
+    // isLoading / errorMessage / successMessage は BaseViewModel から継承
+
     // 未支払い警告機能
     var unpaidPeriods: [UnpaidPeriod] = []
     var hasUnpaidAllowances: Bool = false
     var showUnpaidWarning: Bool = false
     var unpaidWarningMessage: String?
     var totalUnpaidAmount: Int = 0
-    
+
     private let childRepository: ChildRepository
     private let helpRecordRepository: HelpRecordRepository
     private let helpTaskRepository: HelpTaskRepository
     private let allowanceCalculator: AllowanceCalculator
     private let allowancePaymentRepository: AllowancePaymentRepository
     private let unpaidDetector: UnpaidAllowanceDetectorService
-    private var cancellables: Set<AnyCancellable> = []
     private(set) var refreshDataTask: Task<Void, Never>?
-    
+
     init(
         childRepository: ChildRepository,
         helpRecordRepository: HelpRecordRepository,
@@ -45,8 +41,11 @@ class HomeViewModel {
         self.allowanceCalculator = allowanceCalculator
         self.allowancePaymentRepository = allowancePaymentRepository
         self.unpaidDetector = unpaidDetector
-        
-        // NotificationManagerを使用してデータ更新を自動監視
+        super.init()
+    }
+
+    // NotificationManagerを使用してデータ更新を自動監視（BaseViewModel.init から呼ばれる）
+    override func setupNotificationListeners() {
         NotificationManager.shared.observeHelpRecordUpdates(
             action: { [weak self] in
                 Task { @MainActor in
@@ -55,7 +54,7 @@ class HomeViewModel {
             },
             cancellables: &cancellables
         )
-        
+
         NotificationManager.shared.observeChildrenUpdates(
             action: { [weak self] in
                 Task { @MainActor in
@@ -65,7 +64,7 @@ class HomeViewModel {
             cancellables: &cancellables
         )
     }
-    
+
     // deinitでは@MainActorプロパティにアクセスできないため削除
     // タスクはViewModelのライフサイクルとともに自動的にキャンセルされる
     
@@ -78,8 +77,7 @@ class HomeViewModel {
     // #44: View 側の `.task` から明示的に await できる async 版。
     // 内部の `Task { }` を経由しないため、SwiftUI の `.task` ライフサイクルでキャンセル制御できる。
     func loadChildrenAsync() async {
-        isLoading = true
-        errorMessage = nil
+        setLoading(true)
 
         do {
             let loadedChildren = try await childRepository.findAll()
@@ -90,10 +88,9 @@ class HomeViewModel {
                 await checkUnpaidAllowances()
             }
 
-            isLoading = false
+            setLoading(false)
         } catch {
-            errorMessage = ErrorMessageConverter.convertToUserFriendlyMessage(error)
-            isLoading = false
+            setUserFriendlyError(error)
         }
     }
     
@@ -116,48 +113,46 @@ class HomeViewModel {
         // 実行中のタスクをキャンセル
         refreshDataTask?.cancel()
         
-        isLoading = true
-        errorMessage = nil
-        
+        setLoading(true)
+
         refreshDataTask = Task {
             do {
                 // 処理開始時の選択された子供を保持
                 let processChild = child
-                
+
                 // データ取得を並行処理で高速化
                 async let recordsTask = helpRecordRepository.findByChildIdInCurrentMonth(processChild.id)
                 async let tasksTask = helpTaskRepository.findAll()
                 async let paymentTask = getCurrentMonthPayment(for: processChild.id)
-                
+
                 let records = try await recordsTask
                 let tasks = try await tasksTask
                 let payment = try await paymentTask
-                
+
                 // タスクがキャンセルされていないか、選択された子供が変更されていないか確認
-                guard !Task.isCancelled, selectedChild?.id == processChild.id else { 
-                    isLoading = false
-                    return 
+                guard !Task.isCancelled, selectedChild?.id == processChild.id else {
+                    setLoading(false)
+                    return
                 }
-                
+
                 // プロセスが正常に完了したことを確認
                 guard !records.isEmpty || !tasks.isEmpty else {
                     // データが空の場合でも正常な状態として扱う
                     updateDisplayValues(records: [], tasks: [], payment: payment)
-                    isLoading = false
+                    setLoading(false)
                     return
                 }
-                
+
                 // 計算処理を分離
                 updateDisplayValues(records: records, tasks: tasks, payment: payment)
-                isLoading = false
-                
+                setLoading(false)
+
             } catch {
-                guard !Task.isCancelled else { 
-                    isLoading = false
-                    return 
+                guard !Task.isCancelled else {
+                    setLoading(false)
+                    return
                 }
-                errorMessage = ErrorMessageConverter.convertToUserFriendlyMessage(error)
-                isLoading = false
+                setUserFriendlyError(error)
             }
         }
     }
@@ -199,11 +194,11 @@ class HomeViewModel {
     
     func payMonthlyAllowance() {
         guard selectedChild != nil else {
-            errorMessage = String(localized: "子供が選択されていません")
+            setError(String(localized: "子供が選択されていません"))
             return
         }
-        
-        let amountToPay = isCurrentMonthPaid ? 
+
+        let amountToPay = isCurrentMonthPaid ?
             (currentMonthEarnings - monthlyAllowance) : currentMonthEarnings
         
         recordAllowancePayment(amount: amountToPay)
@@ -211,14 +206,14 @@ class HomeViewModel {
     
     func recordAllowancePayment(amount: Int) {
         guard let child = selectedChild else {
-            errorMessage = String(localized: "子供が選択されていません")
+            setError(String(localized: "子供が選択されていません"))
             return
         }
-        
-        isLoading = true
-        errorMessage = nil
-        successMessage = nil
-        
+
+        // BaseViewModel の setLoading(true) は errorMessage をクリアする（successMessage は保持）。
+        // 移行前は successMessage も明示クリアしていたが、統一のため基底セマンティクスを採用する。
+        setLoading(true)
+
         Task {
             do {
                 // 処理開始時の選択された子供を保持
@@ -245,11 +240,11 @@ class HomeViewModel {
                         
                         // UI更新前に選択された子供が変更されていないか確認
                         guard selectedChild?.id == processChild.id else {
-                            isLoading = false
+                            setLoading(false)
                             return
                         }
-                        
-                        successMessage = "\(processChild.name)に追加で\(amount)コインのお小遣いを渡しました"
+
+                        setSuccess("\(processChild.name)に追加で\(amount)コインのお小遣いを渡しました")
                     }
                 } else {
                     // 新規支払いの場合
@@ -263,37 +258,31 @@ class HomeViewModel {
                     
                     // UI更新前に選択された子供が変更されていないか確認
                     guard selectedChild?.id == processChild.id else {
-                        isLoading = false
+                        setLoading(false)
                         return
                     }
-                    
+
                     isCurrentMonthPaid = true
-                    successMessage = "\(processChild.name)に\(amount)コインのお小遣いを渡しました"
+                    setSuccess("\(processChild.name)に\(amount)コインのお小遣いを渡しました")
                 }
-                isLoading = false
-                
+                setLoading(false)
+
                 // データを再読み込み
                 refreshData()
                 
                 // 他の画面にも通知
                 NotificationManager.shared.notifyHelpRecordUpdated()
-                
+
             } catch {
                 guard !Task.isCancelled else {
-                    isLoading = false
+                    setLoading(false)
                     return
                 }
-                errorMessage = ErrorMessageConverter.convertToUserFriendlyMessage(error)
-                isLoading = false
+                setUserFriendlyError(error)
             }
         }
     }
-    
-    func clearMessages() {
-        errorMessage = nil
-        successMessage = nil
-    }
-    
+
     // MARK: - 未支払い警告機能
     
     func checkUnpaidAllowances() async {
@@ -330,10 +319,10 @@ class HomeViewModel {
             }
 
         } catch {
-            errorMessage = ErrorMessageConverter.convertToUserFriendlyMessage(error)
+            setUserFriendlyError(error)
         }
     }
-    
+
     func dismissUnpaidWarning() {
         showUnpaidWarning = false
     }

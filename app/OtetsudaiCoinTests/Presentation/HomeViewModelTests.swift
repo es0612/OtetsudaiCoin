@@ -240,6 +240,71 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertFalse(viewModel.showUnpaidWarning)
     }
     
+    // MARK: - recordAllowancePayment（#145 移行に伴い最終状態を固定する characterization tests）
+
+    @MainActor
+    func testRecordAllowancePaymentWithoutChildSetsErrorMessage() {
+        // Given: 子供未選択
+
+        // When
+        viewModel.recordAllowancePayment(amount: 100)
+
+        // Then: 同期 guard で即エラー
+        XCTAssertNotNil(viewModel.errorMessage)
+        XCTAssertFalse(viewModel.isLoading)
+        XCTAssertTrue(mockAllowancePaymentRepository.payments.isEmpty)
+    }
+
+    @MainActor
+    func testRecordAllowancePaymentNewPaymentSetsSuccessAndPaidFlag() async {
+        // Given: 子供選択済み・当月支払いなし（新規支払い経路）
+        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+        viewModel.selectedChild = child
+
+        // When
+        viewModel.recordAllowancePayment(amount: 150)
+
+        // 非同期処理の完了を待機
+        let expectation = XCTestExpectation(description: "Record allowance payment")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            expectation.fulfill()
+        }
+        await fulfillment(of: [expectation], timeout: 1.0)
+
+        // Then: 支払いが保存され、成功メッセージと支払い済みフラグが立つ
+        XCTAssertEqual(mockAllowancePaymentRepository.payments.count, 1)
+        XCTAssertEqual(mockAllowancePaymentRepository.payments.first?.amount, 150)
+        XCTAssertTrue(viewModel.isCurrentMonthPaid)
+        XCTAssertNotNil(viewModel.successMessage)
+        XCTAssertTrue(viewModel.successMessage!.contains("太郎"))
+        XCTAssertTrue(viewModel.successMessage!.contains("150"))
+        XCTAssertNil(viewModel.errorMessage)
+    }
+
+    @MainActor
+    func testRecordAllowancePaymentFailureSetsErrorMessageAndStopsLoading() async {
+        // Given: 保存が失敗する
+        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+        viewModel.selectedChild = child
+        mockAllowancePaymentRepository.shouldThrowError = true
+
+        // When
+        viewModel.recordAllowancePayment(amount: 150)
+
+        // 非同期処理の完了を待機
+        let expectation = XCTestExpectation(description: "Record allowance payment failure")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            expectation.fulfill()
+        }
+        await fulfillment(of: [expectation], timeout: 1.0)
+
+        // Then: エラーメッセージがセットされ、ローディングは終了する
+        XCTAssertNotNil(viewModel.errorMessage)
+        XCTAssertFalse(viewModel.isLoading)
+        XCTAssertFalse(viewModel.isCurrentMonthPaid)
+        XCTAssertNil(viewModel.successMessage)
+    }
+
     @MainActor
     private func createViewModelWithUnpaidDetector(unpaidDetector: UnpaidAllowanceDetectorService) -> HomeViewModel {
         return HomeViewModel(

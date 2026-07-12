@@ -1,21 +1,18 @@
 import Foundation
-import Combine
 
 @MainActor
 @Observable
-class HelpHistoryViewModel {
+class HelpHistoryViewModel: BaseViewModel {
     var helpRecords: [HelpRecordWithDetails] = []
     var selectedChild: Child?
     var selectedPeriod: HistoryPeriod = .last3Months
-    var isLoading: Bool = false
-    var errorMessage: String?
-    
+    // isLoading / errorMessage は BaseViewModel から継承（successMessage も継承するが本 VM では未使用）
+
     private let helpRecordRepository: HelpRecordRepository
     private let helpTaskRepository: HelpTaskRepository
     private let childRepository: ChildRepository
-    private var cancellables: Set<AnyCancellable> = []
     private var loadHistoryTask: Task<Void, Never>?
-    
+
     init(
         helpRecordRepository: HelpRecordRepository,
         helpTaskRepository: HelpTaskRepository,
@@ -24,35 +21,32 @@ class HelpHistoryViewModel {
         self.helpRecordRepository = helpRecordRepository
         self.helpTaskRepository = helpTaskRepository
         self.childRepository = childRepository
-        
-        // SwiftUIの宣言的な仕組み：データ更新の自動監視
-        NotificationCenter.default
-            .publisher(for: .helpRecordUpdated)
-            .sink { [weak self] _ in
-                Task { @MainActor in
-                    self?.loadHelpHistory()
-                }
-            }
-            .store(in: &cancellables)
+        super.init()
 
         // 初期データは View 側の .task で loadInitialData() を明示呼び出しする責務に変更（#32）
     }
-    
-    deinit {
-        // 循環参照を避けるため、deinit内では何もしない
-        // タスクは自動的にキャンセルされ、cancellablesは自動的にクリーンアップされる
-        print("HelpHistoryViewModel deinit called")
+
+    // データ更新の自動監視（BaseViewModel.init から呼ばれる）。
+    // 手書きの NotificationCenter 購読を NotificationManager の observe* ヘルパへ統一。
+    override func setupNotificationListeners() {
+        NotificationManager.shared.observeHelpRecordUpdates(
+            action: { [weak self] in
+                Task { @MainActor in
+                    self?.loadHelpHistory()
+                }
+            },
+            cancellables: &cancellables
+        )
     }
-    
+
     func loadHelpHistory() {
         guard let child = selectedChild else { return }
         
         // 実行中のタスクをキャンセル
         loadHistoryTask?.cancel()
-        
-        isLoading = true
-        errorMessage = nil
-        
+
+        setLoading(true)
+
         loadHistoryTask = Task {
             do {
                 let dateRange = selectedPeriod.dateRange
@@ -82,11 +76,10 @@ class HelpHistoryViewModel {
                 guard !Task.isCancelled else { return }
                 
                 helpRecords = recordsWithDetails
-                isLoading = false
+                setLoading(false)
             } catch {
                 guard !Task.isCancelled else { return }
-                errorMessage = ErrorMessageConverter.convertToUserFriendlyMessage(error)
-                isLoading = false
+                setUserFriendlyError(error)
             }
         }
     }
@@ -114,18 +107,14 @@ class HelpHistoryViewModel {
             do {
                 try await helpRecordRepository.delete(recordId)
                 loadHelpHistory()
-                // データ更新通知
-                NotificationCenter.default.post(name: .helpRecordUpdated, object: nil)
+                // データ更新通知（NotificationManager 経由に統一）
+                NotificationManager.shared.notifyHelpRecordUpdated()
             } catch {
-                errorMessage = ErrorMessageConverter.convertToUserFriendlyMessage(error)
+                setUserFriendlyError(error)
             }
         }
     }
-    
-    func clearErrorMessage() {
-        errorMessage = nil
-    }
-    
+
     // MARK: - 初期データ読み込み
     
     /// 初期データの読み込み（最初の子供を自動選択）
@@ -142,7 +131,7 @@ class HelpHistoryViewModel {
                 loadHelpHistory()
             }
         } catch {
-            errorMessage = ErrorMessageConverter.convertToUserFriendlyMessage(error)
+            setUserFriendlyError(error)
         }
     }
 }
