@@ -27,7 +27,7 @@ struct RecordView: View {
                                     }
                                     .padding()
                                     .background(AccessibilityColors.successGreenLight)
-                                    .cornerRadius(8)
+                                    .cornerRadius(AppRadius.small)
                                 }
 
                                 if let warningMessage = viewModel.warningMessage {
@@ -40,7 +40,7 @@ struct RecordView: View {
                                     }
                                     .padding()
                                     .background(Color.orange.opacity(0.15))
-                                    .cornerRadius(8)
+                                    .cornerRadius(AppRadius.small)
                                 }
 
                                 childSelectionView
@@ -166,7 +166,7 @@ struct RecordView: View {
             .padding()
             .frame(maxWidth: .infinity, alignment: .center)
             .background(Color.gray.opacity(0.1))
-            .cornerRadius(12)
+            .cornerRadius(AppRadius.medium)
     }
     
     private var childrenScrollView: some View {
@@ -197,7 +197,7 @@ struct RecordView: View {
                     .padding()
                     .frame(maxWidth: .infinity, alignment: .center)
                     .background(Color.gray.opacity(0.1))
-                    .cornerRadius(12)
+                    .cornerRadius(AppRadius.medium)
                     .padding(.horizontal)
             } else {
                 LazyVGrid(columns: [

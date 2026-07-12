@@ -114,7 +114,7 @@ struct ChildTutorialView: View {
             }
             .padding()
             .background(
-                RoundedRectangle(cornerRadius: 16)
+                RoundedRectangle(cornerRadius: AppRadius.large)
                     .fill(.ultraThinMaterial)
             )
         }
@@ -150,7 +150,7 @@ struct ChildTutorialView: View {
                 }
                 .padding()
                 .background(
-                    RoundedRectangle(cornerRadius: 16)
+                    RoundedRectangle(cornerRadius: AppRadius.large)
                         .fill(Color.green.opacity(0.1))
                 )
             } else {
@@ -209,7 +209,7 @@ struct ChildTutorialView: View {
             }
             .padding()
             .background(
-                RoundedRectangle(cornerRadius: 16)
+                RoundedRectangle(cornerRadius: AppRadius.large)
                     .fill(.ultraThinMaterial)
             )
         }

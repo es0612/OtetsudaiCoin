@@ -109,8 +109,8 @@ private extension StatisticsCardStyle {
     
     var cornerRadius: CGFloat {
         switch self {
-        case .large: return 12
-        case .compact: return 8
+        case .large: return AppRadius.medium
+        case .compact: return AppRadius.small
         }
     }
 }

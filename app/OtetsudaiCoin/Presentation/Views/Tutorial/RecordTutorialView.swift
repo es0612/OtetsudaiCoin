@@ -137,7 +137,7 @@ struct RecordTutorialView: View {
             }
             .padding()
             .background(
-                RoundedRectangle(cornerRadius: 16)
+                RoundedRectangle(cornerRadius: AppRadius.large)
                     .fill(.ultraThinMaterial)
             )
         }
@@ -249,14 +249,14 @@ struct RecordTutorialView: View {
                     }
                     .padding()
                     .background(
-                        RoundedRectangle(cornerRadius: 8)
+                        RoundedRectangle(cornerRadius: AppRadius.small)
                             .fill(Color.green.opacity(0.1))
                     )
                 }
             }
             .padding()
             .background(
-                RoundedRectangle(cornerRadius: 16)
+                RoundedRectangle(cornerRadius: AppRadius.large)
                     .fill(.ultraThinMaterial)
             )
         }
@@ -336,14 +336,14 @@ struct RecordTutorialView: View {
                     }
                     .padding()
                     .background(
-                        RoundedRectangle(cornerRadius: 12)
+                        RoundedRectangle(cornerRadius: AppRadius.medium)
                             .fill(Color.green.opacity(0.1))
                     )
                 }
             }
             .padding()
             .background(
-                RoundedRectangle(cornerRadius: 16)
+                RoundedRectangle(cornerRadius: AppRadius.large)
                     .fill(.ultraThinMaterial)
             )
         }
@@ -379,7 +379,7 @@ struct RecordTutorialView: View {
             }
             .padding()
             .background(
-                RoundedRectangle(cornerRadius: 16)
+                RoundedRectangle(cornerRadius: AppRadius.large)
                     .fill(.ultraThinMaterial)
             )
         }
@@ -462,10 +462,10 @@ struct TutorialTaskCardView: View {
             .padding()
             .frame(height: 120)
             .background(
-                RoundedRectangle(cornerRadius: 16)
+                RoundedRectangle(cornerRadius: AppRadius.large)
                     .fill(isSelected ? Color.blue.opacity(0.1) : Color.gray.opacity(0.05))
                     .overlay(
-                        RoundedRectangle(cornerRadius: 16)
+                        RoundedRectangle(cornerRadius: AppRadius.large)
                             .stroke(isSelected ? Color.blue : Color.clear, lineWidth: 2)
                     )
             )
