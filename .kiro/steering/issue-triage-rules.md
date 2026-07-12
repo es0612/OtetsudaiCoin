@@ -28,7 +28,7 @@ inclusion: manual
 - **MINOR** (例: `1.1.x` → `1.2.0`): 後方互換のある機能追加 / 大きめの改善
 - **MAJOR** (例: `1.x.x` → `2.0.0`): 互換性のない変更 (アプリレベルでは UI/UX フルリニューアル相当)
 
-リリース手順書は `RELEASE_vX.Y.Z.md` を毎リリース新規作成。前バージョンの md は残す。
+リリース手順書は `docs/releases/RELEASE_vX.Y.Z.md` を毎リリース新規作成。前バージョンの md は残す。
 
 **重要**: リリース PR では `MARKETING_VERSION` と `CURRENT_PROJECT_VERSION` の bump を必ず確認。これは `release-version-bump-check` skill の領域。
 
