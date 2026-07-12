@@ -86,10 +86,7 @@ class SampleDataService {
             try await helpRecordRepository.save(record)
         }
         
-        print("📊 サンプルデータを生成しました:")
-        print("  - 子供: \(children.count)人")
-        print("  - タスク: \(helpTasks.count)個")
-        print("  - 記録: \(records.count)件（過去3ヶ月分）")
+        DebugLogger.debug("📊 サンプルデータを生成しました: 子供 \(children.count)人 / タスク \(helpTasks.count)個 / 記録 \(records.count)件（過去3ヶ月分）")
     }
     
     /// 全てのサンプルデータを削除
@@ -112,7 +109,7 @@ class SampleDataService {
             try await childRepository.delete(child.id)
         }
         
-        print("🗑️ 全てのデータを削除しました")
+        DebugLogger.debug("🗑️ 全てのデータを削除しました")
     }
     
     /// 記録のみを削除（子供とタスクは保持）
@@ -122,7 +119,7 @@ class SampleDataService {
             try await helpRecordRepository.delete(record.id)
         }
 
-        print("🗑️ 記録データのみ削除しました（\(allRecords.count)件）")
+        DebugLogger.debug("🗑️ 記録データのみ削除しました（\(allRecords.count)件）")
     }
 
     /// サンプルタスク定義。sortOrder を 0 始まりの連番で付与し、

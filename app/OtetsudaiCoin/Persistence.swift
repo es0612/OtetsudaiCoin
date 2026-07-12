@@ -103,10 +103,8 @@ struct PersistenceController {
                 // loadPersistentStores の return 前に同期実行される（PersistenceControllerTests で実証）。
                 Self.logger.error("Core Dataストアの読み込みに失敗しました: \(error.localizedDescription)")
                 loadError = error
-                #if DEBUG
                 let nsError = error as NSError
-                print("Core Data エラー詳細: \(nsError), \(nsError.userInfo)")
-                #endif
+                DebugLogger.error("Core Data エラー詳細: \(nsError), \(nsError.userInfo)")
             }
         }
 

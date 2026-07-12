@@ -15,7 +15,11 @@ class NotificationSettingsViewModel {
         self.reminderTime = Self.dateFrom(hour: service.reminderHour, minute: service.reminderMinute)
     }
 
-    var scheduleError: Error?
+    /// スケジュール失敗時のユーザー向けメッセージ（Issue #144）。
+    /// 従来は `Error` をそのまま保持していたが、どの View からも読まれておらず
+    /// 通知失敗がユーザーに一切伝わらない silent failure になっていた。
+    /// `ErrorMessageConverter` で変換済みの文言を保持し、View 側で `.commonAlerts` から表示する。
+    var errorMessage: String?
 
     func toggleNotification(enabled: Bool) async {
         if enabled {
@@ -25,9 +29,9 @@ class NotificationSettingsViewModel {
                 isEnabled = true
                 do {
                     try await service.scheduleDaily()
-                    scheduleError = nil
+                    errorMessage = nil
                 } catch {
-                    scheduleError = error
+                    errorMessage = ErrorMessageConverter.convertToUserFriendlyMessage(error)
                     service.isEnabled = false
                     isEnabled = false
                     service.cancelAll()
@@ -55,11 +59,16 @@ class NotificationSettingsViewModel {
         if service.isEnabled {
             do {
                 try await service.reschedule()
-                scheduleError = nil
+                errorMessage = nil
             } catch {
-                scheduleError = error
+                errorMessage = ErrorMessageConverter.convertToUserFriendlyMessage(error)
             }
         }
+    }
+
+    /// View の alert dismiss から呼ばれる想定。
+    func clearErrorMessage() {
+        errorMessage = nil
     }
 
     private static func dateFrom(hour: Int, minute: Int) -> Date {

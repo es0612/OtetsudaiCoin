@@ -159,6 +159,6 @@ struct SplashScreenView: View {
 
 #Preview {
     SplashScreenView {
-        print("Splash completed")
+        DebugLogger.debug("Splash completed")
     }
 }
