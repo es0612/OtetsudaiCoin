@@ -1,5 +1,10 @@
 title: おてつだいコイン
 description: 子供のお手伝いを楽しく記録して、お小遣い管理ができる iOS アプリ
+# 公開ポリシー: Pages で公開するのは index.html / privacy-policy.html / app-ads.txt のみ。
+# 開発文書（superpowers: plans/specs, releases）と ASC スクショ（screenshots）は exclude で非公開にする。
+# docs/ 配下に新しいディレクトリを追加するときは、ここへの exclude 追加を検討すること。
+# 注意: docs/.nojekyll を将来追加すると Jekyll が無効化され、この exclude 設定ごと効かなくなる。
 exclude:
   - superpowers
   - releases
+  - screenshots
