@@ -158,23 +158,6 @@ final class LocalizationStringCatalogTests: XCTestCase {
         }
     }
 
-    // MARK: - NetworkStatusIndicator のキー存在テスト
-
-    func testNetworkStatusIndicatorKeysExist() {
-        let expectedKeys = [
-            "オフライン",
-            "モバイル",
-            "接続中",
-        ]
-
-        for key in expectedKeys {
-            XCTAssertNotNil(
-                strings[key],
-                "ネットワークステータスキー '\(key)' が String Catalog に存在すべき"
-            )
-        }
-    }
-
     // MARK: - MonthlyRecord のキー存在テスト
 
     func testMonthlyRecordPaymentStatusKeysExist() {

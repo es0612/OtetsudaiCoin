@@ -103,16 +103,6 @@ struct SkeletonViews {
     
     // MARK: - Composite Skeleton Components
     
-    /// 子供のアバター用スケルトン
-    struct ChildAvatarSkeleton: View {
-        var body: some View {
-            VStack(spacing: 8) {
-                SkeletonCircle(size: 60)
-                SkeletonTextLine(width: 50, height: 14)
-            }
-        }
-    }
-    
     /// 統計カード用スケルトン
     struct StatsCardSkeleton: View {
         var body: some View {
@@ -133,24 +123,6 @@ struct SkeletonViews {
                 RoundedRectangle(cornerRadius: 16)
                     .fill(Color(.systemBackground))
                     .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
-            )
-        }
-    }
-    
-    /// タスクカード用スケルトン
-    struct TaskCardSkeleton: View {
-        var body: some View {
-            VStack(spacing: 12) {
-                SkeletonCircle(size: 50)
-                SkeletonTextLine(width: 80, height: 14)
-                SkeletonTextLine(width: 60, height: 12)
-            }
-            .padding()
-            .frame(height: 120)
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color(.systemBackground))
-                    .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
             )
         }
     }
@@ -225,85 +197,6 @@ struct SkeletonViews {
                 }
                 .padding()
             }
-        }
-    }
-    
-    /// 記録画面用スケルトン
-    struct RecordViewSkeleton: View {
-        var body: some View {
-            ScrollView {
-                VStack(spacing: 16) {
-                    // 子供選択セクション
-                    VStack(alignment: .leading, spacing: 12) {
-                        SkeletonTextLine(width: 180, height: 18)
-                            .padding(.horizontal)
-                        
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 12) {
-                                ForEach(0..<3, id: \.self) { _ in
-                                    ChildAvatarSkeleton()
-                                }
-                            }
-                            .padding(.horizontal)
-                        }
-                    }
-                    
-                    // タスク選択セクション
-                    VStack(alignment: .leading, spacing: 16) {
-                        SkeletonTextLine(width: 120, height: 18)
-                            .padding(.horizontal)
-                        
-                        LazyVGrid(columns: [
-                            GridItem(.flexible()),
-                            GridItem(.flexible())
-                        ], spacing: 12) {
-                            ForEach(0..<4, id: \.self) { _ in
-                                TaskCardSkeleton()
-                            }
-                        }
-                        .padding(.horizontal)
-                    }
-                    
-                    // 記録ボタン
-                    SkeletonBox(width: nil, height: 50, cornerRadius: 25)
-                        .padding(.horizontal)
-                }
-                .padding()
-            }
-        }
-    }
-}
-
-// MARK: - Skeleton Modifier
-
-extension View {
-    /// ローディング状態に応じてスケルトンビューを表示
-    /// - Parameters:
-    ///   - isLoading: ローディング状態
-    ///   - skeleton: 表示するスケルトンビュー
-    /// - Returns: スケルトン対応View
-    func skeleton<SkeletonContent: View>(
-        isLoading: Bool,
-        @ViewBuilder skeleton: () -> SkeletonContent
-    ) -> some View {
-        ZStack {
-            if isLoading {
-                skeleton()
-                    .transition(.opacity)
-            } else {
-                self
-                    .transition(.opacity)
-            }
-        }
-        .animation(.easeInOut(duration: 0.3), value: isLoading)
-    }
-    
-    /// デフォルトのスケルトンビューを適用
-    /// - Parameter isLoading: ローディング状態
-    /// - Returns: スケルトン対応View
-    func defaultSkeleton(isLoading: Bool) -> some View {
-        skeleton(isLoading: isLoading) {
-            SkeletonViews.SkeletonBox(width: nil, height: 50)
         }
     }
 }
