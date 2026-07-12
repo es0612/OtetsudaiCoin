@@ -38,7 +38,7 @@ struct SettingsView: View {
         self._notificationSettingsViewModel = State(wrappedValue: NotificationSettingsViewModel(service: notificationService))
 
         let childRepository = CoreDataChildRepository(context: context)
-        let allowancePaymentRepository = InMemoryAllowancePaymentRepository.shared
+        let allowancePaymentRepository = RepositoryFactory(context: context).createAllowancePaymentRepository()
         let paymentService = PaymentReminderNotificationService(
             notificationCenter: UNUserNotificationCenter.current(),
             userDefaults: .standard,
