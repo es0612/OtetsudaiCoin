@@ -95,3 +95,6 @@ app/build/
 
 # Claude Code: 個人のローカル設定 (共有しない)
 .claude/settings.local.json
+
+# superpowers brainstorming visual companion
+.superpowers/
