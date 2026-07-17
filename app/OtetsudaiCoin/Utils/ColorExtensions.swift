@@ -36,14 +36,22 @@ extension Color {
         return contrastRatio(with: backgroundColor) >= 4.5
     }
     
-    /// 相対輝度を計算
+    /// 相対輝度を計算(WCAG 2.1 定義)
     private func relativeLuminance() -> Double {
-        // SwiftUIのColorからRGB値を取得するのは複雑なため、
-        // 簡易的な実装として近似値を使用
-        // 実際のプロダクションでは、UIColorを経由してRGB値を取得することを推奨
-        
-        // HEX文字列が利用可能な場合の処理を想定
-        // より正確な実装が必要な場合は、UIColorのconvertion機能を使用
-        return 0.5 // 暫定値 - 実装時に適切な計算に置き換え
+        let uiColor = UIColor(self)
+        var red: CGFloat = 0
+        var green: CGFloat = 0
+        var blue: CGFloat = 0
+        var alpha: CGFloat = 0
+        guard uiColor.getRed(&red, green: &green, blue: &blue, alpha: &alpha) else {
+            return 0.5
+        }
+
+        func linearize(_ component: CGFloat) -> Double {
+            let value = Double(component)
+            return value <= 0.03928 ? value / 12.92 : pow((value + 0.055) / 1.055, 2.4)
+        }
+
+        return 0.2126 * linearize(red) + 0.7152 * linearize(green) + 0.0722 * linearize(blue)
     }
 }
