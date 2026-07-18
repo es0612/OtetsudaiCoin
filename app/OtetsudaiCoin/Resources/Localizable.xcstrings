@@ -183,6 +183,16 @@
         }
       }
     },
+    "アイコン" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Icon"
+          }
+        }
+      }
+    },
     "アプリを評価" : {
       "localizations" : {
         "en" : {
