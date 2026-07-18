@@ -210,7 +210,7 @@ struct TaskSelectionRow: View {
             let helpRecordRepository = CoreDataHelpRecordRepository(context: context)
             let helpTaskRepository = CoreDataHelpTaskRepository(context: context)
             
-            let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+            let child = Child(id: UUID(), name: "太郎", themeColor: "#E8590C")
             let record = HelpRecord(id: UUID(), childId: child.id, helpTaskId: UUID(), recordedAt: Date())
             
             previewViewModel = HelpRecordEditViewModel(

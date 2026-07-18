@@ -22,8 +22,8 @@ class SampleDataService {
     func generateSampleData() async throws {
         // サンプル子供データ
         let children = [
-            Child(id: UUID(), name: "太郎", themeColor: "#FF5733"),
-            Child(id: UUID(), name: "花子", themeColor: "#33FF57")
+            Child(id: UUID(), name: "太郎", themeColor: "#E8590C"),
+            Child(id: UUID(), name: "花子", themeColor: "#099268")
         ]
         
         // サンプルタスクデータ（sortOrder 連番付き）

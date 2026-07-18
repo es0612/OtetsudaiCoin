@@ -7,7 +7,7 @@ struct ChildFormView: View {
     let editingChild: Child?
     
     @State private var name: String = ""
-    @State private var selectedThemeColor: String = "#3357FF"
+    @State private var selectedThemeColor: String = "#E8590C"
     @State private var showingColorPicker = false
     
     private var isEditing: Bool {
