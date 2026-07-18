@@ -86,4 +86,32 @@ final class CoreDataHelpTaskRepositoryTests: XCTestCase {
         XCTAssertEqual(all.map(\.name), ["C", "A", "B"])
         XCTAssertEqual(all.map(\.sortOrder), [0, 1, 2])
     }
+
+    // MARK: - icon roundtrip (#148)
+
+    func testSaveAndFetchPersistsIcon() async throws {
+        let task = HelpTask(id: UUID(), name: "アイコン付き", isActive: true, coinRate: 10, sortOrder: 0, icon: "🧹")
+        try await repository.save(task)
+
+        let fetched = try await repository.findById(task.id)
+        XCTAssertEqual(fetched?.icon, "🧹")
+    }
+
+    func testSaveAndFetchKeepsNilIcon() async throws {
+        let task = HelpTask(id: UUID(), name: "アイコンなし", isActive: true, coinRate: 10, sortOrder: 0)
+        try await repository.save(task)
+
+        let fetched = try await repository.findById(task.id)
+        XCTAssertNil(fetched?.icon)
+    }
+
+    func testUpdatePersistsIconChange() async throws {
+        let task = HelpTask(id: UUID(), name: "更新対象", isActive: true, coinRate: 10, sortOrder: 0)
+        try await repository.save(task)
+
+        try await repository.update(task.updatingIcon("🧺"))
+
+        let fetched = try await repository.findById(task.id)
+        XCTAssertEqual(fetched?.icon, "🧺")
+    }
 }

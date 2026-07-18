@@ -48,7 +48,7 @@ class TaskManagementViewModel: BaseViewModel {
         await loadTasksTask?.value
     }
 
-    func addTask(name: String, coinRate: Int = 10) async {
+    func addTask(name: String, coinRate: Int = 10, icon: String? = nil) async {
         guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             setError(String(localized: "タスク名を入力してください"))
             return
@@ -74,7 +74,8 @@ class TaskManagementViewModel: BaseViewModel {
             name: trimmedName,
             isActive: true,
             coinRate: coinRate,
-            sortOrder: nextSortOrder
+            sortOrder: nextSortOrder,
+            icon: icon
         )
 
         do {

@@ -332,4 +332,25 @@ final class TaskManagementViewModelTests: XCTestCase {
         XCTAssertEqual(updated?.sortOrder, 4)
         XCTAssertEqual(updated?.name, "編集後")
     }
+
+    // MARK: - icon (#148)
+
+    func testAddTaskPersistsSelectedIcon() async {
+        await viewModel.loadTasks()
+
+        await viewModel.addTask(name: "植物の水やり", coinRate: 10, icon: "🌱")
+
+        let saved = mockTaskRepository.tasks.first { $0.name == "植物の水やり" }
+        XCTAssertEqual(saved?.icon, "🌱")
+    }
+
+    func testAddTaskWithoutIconKeepsNil() async {
+        await viewModel.loadTasks()
+
+        await viewModel.addTask(name: "アイコン未選択", coinRate: 10)
+
+        let saved = mockTaskRepository.tasks.first { $0.name == "アイコン未選択" }
+        XCTAssertNotNil(saved)
+        XCTAssertNil(saved?.icon)
+    }
 }

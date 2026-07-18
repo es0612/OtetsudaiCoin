@@ -169,6 +169,7 @@ struct TaskFormView: View {
     @State private var taskName: String = ""
     @State private var isActive: Bool = true
     @State private var coinRate: Int = 10
+    @State private var selectedIcon: String?
     @Environment(\.dismiss) private var dismiss
     
     var isEditing: Bool {
@@ -195,7 +196,29 @@ struct TaskFormView: View {
                     
                     Toggle("有効", isOn: $isActive)
                 }
-                
+
+                Section("アイコン") {
+                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 6), spacing: 10) {
+                        ForEach(TaskIconCatalog.presets, id: \.self) { emoji in
+                            Button {
+                                selectedIcon = emoji
+                            } label: {
+                                Text(emoji)
+                                    .font(.title2)
+                                    .frame(width: 40, height: 40)
+                                    .background(
+                                        Circle()
+                                            .stroke(selectedIcon == emoji ? AccessibilityColors.brandPrimary : Color.clear, lineWidth: 2)
+                                    )
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            .accessibilityLabel(Text(emoji))
+                            .accessibilityAddTraits(selectedIcon == emoji ? .isSelected : [])
+                        }
+                    }
+                    .padding(.vertical, 4)
+                }
+
                 Section {
                     Button(action: {
                         if isEditing {
@@ -224,31 +247,34 @@ struct TaskFormView: View {
                     taskName = task.displayName
                     isActive = task.isActive
                     coinRate = task.coinRate
+                    selectedIcon = task.displayIcon
                 }
             }
         }
     }
-    
+
     private func addTask() {
         Task {
-            await viewModel.addTask(name: taskName, coinRate: coinRate)
+            await viewModel.addTask(name: taskName, coinRate: coinRate, icon: selectedIcon)
             if viewModel.errorMessage == nil {
                 dismiss()
             }
         }
     }
-    
+
     private func updateTask() {
         guard let editingTask = editingTask else { return }
 
+        let resolvedName = HelpTask.resolvePersistedName(editedText: taskName, original: editingTask)
         let updatedTask = HelpTask(
             id: editingTask.id,
-            name: HelpTask.resolvePersistedName(editedText: taskName, original: editingTask),
+            name: resolvedName,
             isActive: isActive,
             coinRate: coinRate,
-            sortOrder: editingTask.sortOrder
+            sortOrder: editingTask.sortOrder,
+            icon: HelpTask.resolvePersistedIcon(selected: selectedIcon, original: editingTask, resolvedName: resolvedName)
         )
-        
+
         Task {
             await viewModel.updateTask(updatedTask)
             if viewModel.errorMessage == nil {

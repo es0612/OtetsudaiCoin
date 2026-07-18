@@ -133,4 +133,71 @@ final class HelpTaskTests: XCTestCase {
         let tasks = HelpTask.defaultTasks()
         XCTAssertEqual(tasks.map(\.sortOrder), Array(0..<HelpTask.defaultTaskNames.count))
     }
+
+    // MARK: - icon (#148)
+
+    func testDisplayIconUsesExplicitIcon() {
+        let task = HelpTask(id: UUID(), name: "お風呂を入れる", isActive: true, icon: "🚿")
+        XCTAssertEqual(task.displayIcon, "🚿")
+    }
+
+    func testDisplayIconFallsBackToDefaultDictionary() {
+        let task = HelpTask(id: UUID(), name: "お風呂を入れる", isActive: true)
+        XCTAssertEqual(task.displayIcon, "🛁")
+    }
+
+    func testDisplayIconFallsBackToSparklesForUnknownName() {
+        let task = HelpTask(id: UUID(), name: "ユーザー作成タスク", isActive: true)
+        XCTAssertEqual(task.displayIcon, "✨")
+    }
+
+    func testCopyMethodsPreserveIcon() {
+        let task = HelpTask(id: UUID(), name: "テスト", isActive: true, icon: "🧹")
+        XCTAssertEqual(task.deactivate().icon, "🧹")
+        XCTAssertEqual(task.activate().icon, "🧹")
+        XCTAssertEqual(task.updateCoinRate(20).icon, "🧹")
+        XCTAssertEqual(task.updatingSortOrder(5).icon, "🧹")
+    }
+
+    func testUpdatingIconReplacesIcon() {
+        let task = HelpTask(id: UUID(), name: "テスト", isActive: true, icon: "🧹")
+        XCTAssertEqual(task.updatingIcon("🧺").icon, "🧺")
+        XCTAssertNil(task.updatingIcon(nil).icon)
+    }
+
+    func testEveryDefaultNameHasIconEntry() {
+        // defaultTaskNames と defaultIconsByName のキー集合が完全一致すること
+        XCTAssertEqual(
+            Set(HelpTask.defaultTaskNames),
+            Set(HelpTask.defaultIconsByName.keys),
+            "keys: \(HelpTask.defaultIconsByName.keys.sorted())"
+        )
+    }
+
+    func testResolvePersistedIconKeepsNilWhenUnchangedDefault() {
+        // icon 未設定のデフォルトタスクで、表示中の絵文字をそのまま選んで保存 → nil 維持
+        // (将来デフォルト絵文字を変えても DB 書き換えなしで追従させるため)
+        let original = HelpTask(id: UUID(), name: "お風呂を入れる", isActive: true)
+        XCTAssertNil(HelpTask.resolvePersistedIcon(selected: "🛁", original: original, resolvedName: original.name))
+    }
+
+    func testResolvePersistedIconStoresExplicitSelection() {
+        let original = HelpTask(id: UUID(), name: "お風呂を入れる", isActive: true)
+        XCTAssertEqual(HelpTask.resolvePersistedIcon(selected: "🧹", original: original, resolvedName: original.name), "🧹")
+        // 明示 icon 済みタスクは同じ絵文字を選び直しても明示のまま維持
+        let explicit = HelpTask(id: UUID(), name: "お風呂を入れる", isActive: true, icon: "🛁")
+        XCTAssertEqual(HelpTask.resolvePersistedIcon(selected: "🛁", original: explicit, resolvedName: explicit.name), "🛁")
+    }
+
+    func testResolvePersistedIconPersistsExplicitlyWhenDefaultTaskRenamed() {
+        // rename でフォールバック先が変わる場合、表示中の絵文字を明示保存する (WYSIWYG)
+        let original = HelpTask(id: UUID(), name: "お風呂を入れる", isActive: true)
+        let resolved = HelpTask.resolvePersistedIcon(selected: "🛁", original: original, resolvedName: "お風呂そうじ")
+        XCTAssertEqual(resolved, "🛁")
+    }
+
+    func testResolvePersistedIconNilSelectionKeepsExistingIcon() {
+        let explicit = HelpTask(id: UUID(), name: "テスト", isActive: true, icon: "🧹")
+        XCTAssertEqual(HelpTask.resolvePersistedIcon(selected: nil, original: explicit, resolvedName: "テスト"), "🧹")
+    }
 }
