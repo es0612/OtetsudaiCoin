@@ -98,11 +98,15 @@ struct HelpTask: Equatable {
         return HelpTask.defaultIconsByName[name] ?? "✨"
     }
 
-    /// ピッカーの保存 icon を解決する。icon 未設定タスクで表示中のフォールバック絵文字を
-    /// そのまま選んだ場合は nil を維持し、将来のデフォルト絵文字変更に追従させる
-    /// (resolvePersistedName と同じ設計判断)。
-    static func resolvePersistedIcon(selected: String?, original: HelpTask) -> String? {
-        if original.icon == nil && selected == original.displayIcon { return nil }
+    /// ピッカーの保存 icon を解決する。icon 未設定タスクで、保存後の名前でも同じ絵文字に
+    /// フォールバックできる場合のみ nil を維持し、将来のデフォルト絵文字変更に追従させる
+    /// (resolvePersistedName と同じ設計判断)。rename でフォールバック先が変わる場合は
+    /// 表示中の絵文字を明示保存する (WYSIWYG)。selected が nil の場合は既存 icon を維持する。
+    static func resolvePersistedIcon(selected: String?, original: HelpTask, resolvedName: String) -> String? {
+        guard let selected else { return original.icon }
+        if original.icon == nil && selected == (defaultIconsByName[resolvedName] ?? "✨") {
+            return nil
+        }
         return selected
     }
 

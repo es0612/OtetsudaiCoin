@@ -265,13 +265,14 @@ struct TaskFormView: View {
     private func updateTask() {
         guard let editingTask = editingTask else { return }
 
+        let resolvedName = HelpTask.resolvePersistedName(editedText: taskName, original: editingTask)
         let updatedTask = HelpTask(
             id: editingTask.id,
-            name: HelpTask.resolvePersistedName(editedText: taskName, original: editingTask),
+            name: resolvedName,
             isActive: isActive,
             coinRate: coinRate,
             sortOrder: editingTask.sortOrder,
-            icon: HelpTask.resolvePersistedIcon(selected: selectedIcon, original: editingTask)
+            icon: HelpTask.resolvePersistedIcon(selected: selectedIcon, original: editingTask, resolvedName: resolvedName)
         )
 
         Task {
