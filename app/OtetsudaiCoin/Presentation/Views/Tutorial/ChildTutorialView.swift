@@ -17,7 +17,7 @@ struct ChildTutorialView: View {
         ZStack {
             // 背景グラデーション
             LinearGradient(
-                colors: [Color.blue.opacity(0.1), Color.purple.opacity(0.1)],
+                colors: [AccessibilityColors.brandPrimary.opacity(0.10), AccessibilityColors.brandAccent.opacity(0.08)],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
@@ -88,10 +88,10 @@ struct ChildTutorialView: View {
             // アニメーションアイコン
             ZStack {
                 Circle()
-                    .fill(LinearGradient(colors: [.blue, .purple], startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .fill(AccessibilityColors.brandPrimary)
                     .frame(width: 120, height: 120)
                     .shadow(radius: 10)
-                
+
                 Image(systemName: "figure.2.and.child.holdinghands")
                     .font(.system(size: 50))
                     .foregroundColor(.white)
@@ -167,7 +167,7 @@ struct ChildTutorialView: View {
                     .padding(.horizontal, 32)
                     .padding(.vertical, 16)
                     .background(
-                        LinearGradient(colors: [.blue, .purple], startPoint: .leading, endPoint: .trailing)
+                        AccessibilityColors.brandPrimary
                     )
                     .clipShape(Capsule())
                     .shadow(radius: 8)
@@ -184,10 +184,10 @@ struct ChildTutorialView: View {
         VStack(spacing: 24) {
             ZStack {
                 Circle()
-                    .fill(LinearGradient(colors: [.green, .blue], startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .fill(AccessibilityColors.brandSecondary)
                     .frame(width: 120, height: 120)
                     .shadow(radius: 10)
-                
+
                 Image(systemName: "star.fill")
                     .font(.system(size: 50))
                     .foregroundColor(.white)
