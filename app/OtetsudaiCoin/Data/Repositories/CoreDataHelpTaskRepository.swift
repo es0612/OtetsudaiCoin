@@ -34,7 +34,8 @@ class CoreDataHelpTaskRepository: HelpTaskRepository {
                     cdHelpTask.isActive = helpTask.isActive
                     cdHelpTask.coinRate = Int32(helpTask.coinRate)
                     cdHelpTask.sortOrder = Int32(helpTask.sortOrder)
-                    
+                    cdHelpTask.icon = helpTask.icon
+
                     DebugLogger.logCoreDataOperation("Saving context")
                     try backgroundContext.save()
                     
@@ -187,6 +188,7 @@ class CoreDataHelpTaskRepository: HelpTaskRepository {
                         cdHelpTask.isActive = helpTask.isActive
                         cdHelpTask.coinRate = Int32(helpTask.coinRate)
                         cdHelpTask.sortOrder = Int32(helpTask.sortOrder)
+                        cdHelpTask.icon = helpTask.icon
                         try backgroundContext.save()
                         
                         DebugLogger.logCoreDataOperation("update completed", context: "Updated task: \(helpTask.name)", success: true)
@@ -241,6 +243,6 @@ extension CDHelpTask {
             return nil
         }
         
-        return HelpTask(id: id, name: name, isActive: self.isActive, coinRate: Int(self.coinRate), sortOrder: Int(self.sortOrder))
+        return HelpTask(id: id, name: name, isActive: self.isActive, coinRate: Int(self.coinRate), sortOrder: Int(self.sortOrder), icon: self.icon)
     }
 }
