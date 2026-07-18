@@ -321,7 +321,7 @@ struct RecordTutorialView: View {
                                 Text("記録する")
                             }
                         }
-                        .successGradientButton(isDisabled: hasRecorded)
+                        .successButton(isDisabled: hasRecorded)
                         .disabled(hasRecorded)
                         
                         if hasRecorded {

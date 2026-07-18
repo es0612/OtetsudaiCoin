@@ -91,7 +91,7 @@ struct SettingsView: View {
                             Text("新しい子供を追加")
                         }
                     }
-                    .primaryGradientButton()
+                    .primaryButton()
                     .accessibilityIdentifier("add_child_button")
                 }
                 

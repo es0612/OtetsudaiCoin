@@ -3,7 +3,7 @@ import SwiftUI
 // MARK: - 単色ソフト角丸ボタンスタイル (Issue #147: 青→紫グラデ廃止)
 
 /// ブランドカラー単色 + ソフト角丸 (AppRadius.xLarge) のボタンスタイル。
-/// 旧 GradientButtonStyle の後継。押下時の縮小アニメーションは踏襲し、グローは廃止。
+/// 旧グラデーションボタンスタイルの後継。押下時の縮小アニメーションは踏襲し、グローは廃止。
 struct SolidButtonStyle: ButtonStyle {
     let backgroundColor: Color
     let isDisabled: Bool

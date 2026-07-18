@@ -190,7 +190,7 @@ struct HelpHistoryView: View {
                         .font(.body)
                         .fontWeight(.semibold)
                 }
-                .primaryGradientButton()
+                .primaryButton()
                 .padding(.top, 8)
             }
         }

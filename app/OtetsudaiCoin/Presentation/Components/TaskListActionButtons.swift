@@ -16,7 +16,7 @@ struct TaskListActionButtons: View {
             Button(action: onAdd) {
                 Label("新しいタスクを追加", systemImage: "plus.circle.fill")
             }
-            .primaryGradientButton()
+            .primaryButton()
 
             Button(action: onSortByFrequency) {
                 Label("よく使う順に並べ替え", systemImage: "arrow.up.arrow.down")
