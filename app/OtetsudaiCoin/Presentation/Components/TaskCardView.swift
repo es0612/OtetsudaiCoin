@@ -14,13 +14,19 @@ struct TaskCardView: View {
                 taskTitle
                 coinInfo
                 existingCountRow
-                selectionIndicator
+                if isBulkMode {
+                    bulkSelectionIndicator
+                }
             }
             .padding()
             .frame(height: 150)
             .background(cardBackground)
+            .overlay(alignment: .topTrailing) {
+                selectionCheckmark
+            }
         }
         .buttonStyle(PlainButtonStyle())
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
         .scaleEffect(isSelected ? 1.05 : 1.0)
         .animation(.easeInOut(duration: 0.2), value: isSelected)
     }
@@ -52,12 +58,13 @@ struct TaskCardView: View {
     private var taskIcon: some View {
         ZStack {
             Circle()
-                .fill(isSelected ? .blue : .gray.opacity(0.2))
+                .fill(isSelected ? AccessibilityColors.brandPrimary.opacity(0.15) : Color.gray.opacity(0.1))
                 .frame(width: 50, height: 50)
 
-            Image(systemName: "hands.sparkles")
+            // 絵文字は装飾。カードの意味は taskTitle が担うため VoiceOver から隠す (#84 パターン)
+            Text(task.displayIcon)
                 .font(.title2)
-                .foregroundColor(isSelected ? .white : .blue)
+                .accessibilityHidden(true)
         }
     }
 
@@ -74,18 +81,18 @@ struct TaskCardView: View {
         Text("\(task.coinRate)コイン")
             .appFont(.captionText)
             .fontWeight(.semibold)
-            .foregroundColor(isSelected ? .blue : .secondary)
+            .foregroundColor(isSelected ? AccessibilityColors.brandPrimary : .secondary)
     }
 
-    private var selectionIndicator: some View {
-        Group {
-            if isBulkMode {
-                bulkSelectionIndicator
-            } else if isSelected {
-                selectedIndicator
-            } else {
-                unselectedIndicator
-            }
+    /// 単独モードの選択表現: 右上チェックマーク (枠線 cardBackground と対で「枠 + チェック」)
+    @ViewBuilder
+    private var selectionCheckmark: some View {
+        if isSelected && !isBulkMode {
+            Image(systemName: "checkmark.circle.fill")
+                .font(.title3)
+                .foregroundColor(AccessibilityColors.brandPrimary)
+                .padding(8)
+                .accessibilityHidden(true)
         }
     }
 
@@ -93,43 +100,20 @@ struct TaskCardView: View {
         HStack(spacing: 4) {
             Image(systemName: isSelected ? "checkmark.square.fill" : "square")
                 .font(.title3)
-                .foregroundColor(isSelected ? .blue : .gray.opacity(0.5))
+                .foregroundColor(isSelected ? AccessibilityColors.brandPrimary : .gray.opacity(0.5))
             Text(isSelected ? "選択中" : "選択")
                 .appFont(.captionText)
                 .fontWeight(isSelected ? .semibold : .regular)
-                .foregroundColor(isSelected ? .blue : .gray.opacity(0.7))
-        }
-    }
-
-    private var selectedIndicator: some View {
-        HStack(spacing: 4) {
-            Image(systemName: "checkmark.circle.fill")
-                .font(.title3)
-                .foregroundColor(.blue)
-            Text("選択中")
-                .appFont(.captionText)
-                .fontWeight(.semibold)
-                .foregroundColor(.blue)
-        }
-    }
-
-    private var unselectedIndicator: some View {
-        HStack(spacing: 4) {
-            Image(systemName: "circle")
-                .font(.title3)
-                .foregroundColor(.gray.opacity(0.5))
-            Text("タップして選択")
-                .appFont(.captionText)
-                .foregroundColor(.gray.opacity(0.7))
+                .foregroundColor(isSelected ? AccessibilityColors.brandPrimary : .gray.opacity(0.7))
         }
     }
 
     private var cardBackground: some View {
         RoundedRectangle(cornerRadius: AppRadius.large)
-            .fill(isSelected ? Color.blue.opacity(0.1) : Color.gray.opacity(0.05))
+            .fill(isSelected ? AccessibilityColors.brandPrimary.opacity(0.1) : Color.gray.opacity(0.05))
             .overlay(
                 RoundedRectangle(cornerRadius: AppRadius.large)
-                    .stroke(isSelected ? Color.blue : Color.clear, lineWidth: 2)
+                    .stroke(isSelected ? AccessibilityColors.brandPrimary : Color.clear, lineWidth: 2)
             )
     }
 }
