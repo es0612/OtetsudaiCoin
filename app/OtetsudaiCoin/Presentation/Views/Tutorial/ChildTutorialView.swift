@@ -26,7 +26,7 @@ struct ChildTutorialView: View {
             VStack(spacing: 0) {
                 // プログレスバー
                 ProgressView(value: Double(currentStep + 1), total: Double(totalSteps))
-                    .progressViewStyle(LinearProgressViewStyle(tint: .blue))
+                    .progressViewStyle(LinearProgressViewStyle(tint: AccessibilityColors.brandPrimary))
                     .padding()
                 
                 Spacer()

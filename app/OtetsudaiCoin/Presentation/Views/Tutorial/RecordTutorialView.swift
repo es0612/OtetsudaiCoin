@@ -35,7 +35,7 @@ struct RecordTutorialView: View {
             VStack(spacing: 0) {
                 // プログレスバー
                 ProgressView(value: Double(currentStep + 1), total: Double(totalSteps))
-                    .progressViewStyle(LinearProgressViewStyle(tint: .green))
+                    .progressViewStyle(LinearProgressViewStyle(tint: AccessibilityColors.brandPrimary))
                     .padding()
                 
                 Spacer()
