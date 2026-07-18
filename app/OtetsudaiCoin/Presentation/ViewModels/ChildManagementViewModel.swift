@@ -9,11 +9,18 @@ class ChildManagementViewModel: BaseViewModel {
     private var loadChildrenTask: Task<Void, Never>?
     
     private let themeColors: [String] = [
-        "#FF5733", "#33FF57", "#3357FF", "#FF33F1", "#F1FF33",
-        "#FF8333", "#33FFF1", "#8333FF", "#F133FF", "#33FF83",
-        "#E91E63", "#9C27B0", "#673AB7", "#3F51B5", "#2196F3",
-        "#00BCD4", "#009688", "#4CAF50", "#8BC34A", "#CDDC39",
-        "#FFEB3B", "#FFC107", "#FF9800", "#FF5722", "#795548"
+        "#E8590C", // ブランドオレンジ
+        "#FAB005", // ハニーイエロー
+        "#66A80F", // ライム
+        "#2F9E44", // グリーン
+        "#099268", // ブランドティール
+        "#0C8599", // シアン
+        "#1C7ED6", // ブルー
+        "#3B5BDB", // インディゴ
+        "#7048E8", // バイオレット
+        "#AE3EC9", // グレープ
+        "#D6336C", // ピンク
+        "#E03131"  // レッド
     ]
     
     init(childRepository: ChildRepository) {

@@ -77,7 +77,7 @@ struct ErrorView: View {
                 Button("再試行") {
                     onRetry()
                 }
-                .primaryGradientButton()
+                .primaryButton()
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

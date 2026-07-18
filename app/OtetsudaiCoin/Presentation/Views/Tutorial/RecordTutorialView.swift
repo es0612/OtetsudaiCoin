@@ -26,7 +26,7 @@ struct RecordTutorialView: View {
         ZStack {
             // 背景グラデーション
             LinearGradient(
-                colors: [Color.green.opacity(0.1), Color.blue.opacity(0.1)],
+                colors: [AccessibilityColors.brandPrimary.opacity(0.10), AccessibilityColors.brandAccent.opacity(0.08)],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
@@ -35,7 +35,7 @@ struct RecordTutorialView: View {
             VStack(spacing: 0) {
                 // プログレスバー
                 ProgressView(value: Double(currentStep + 1), total: Double(totalSteps))
-                    .progressViewStyle(LinearProgressViewStyle(tint: .green))
+                    .progressViewStyle(LinearProgressViewStyle(tint: AccessibilityColors.brandPrimary))
                     .padding()
                 
                 Spacer()
@@ -111,10 +111,10 @@ struct RecordTutorialView: View {
         VStack(spacing: 24) {
             ZStack {
                 Circle()
-                    .fill(LinearGradient(colors: [.green, .blue], startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .fill(AccessibilityColors.brandSecondary)
                     .frame(width: 120, height: 120)
                     .shadow(radius: 10)
-                
+
                 Image(systemName: "list.clipboard.fill")
                     .font(.system(size: 50))
                     .foregroundColor(.white)
@@ -321,7 +321,7 @@ struct RecordTutorialView: View {
                                 Text("記録する")
                             }
                         }
-                        .successGradientButton(isDisabled: hasRecorded)
+                        .successButton(isDisabled: hasRecorded)
                         .disabled(hasRecorded)
                         
                         if hasRecorded {
@@ -354,10 +354,10 @@ struct RecordTutorialView: View {
         VStack(spacing: 24) {
             ZStack {
                 Circle()
-                    .fill(LinearGradient(colors: [.yellow, .orange], startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .fill(AccessibilityColors.brandPrimary)
                     .frame(width: 120, height: 120)
                     .shadow(radius: 10)
-                
+
                 Image(systemName: "trophy.fill")
                     .font(.system(size: 50))
                     .foregroundColor(.white)

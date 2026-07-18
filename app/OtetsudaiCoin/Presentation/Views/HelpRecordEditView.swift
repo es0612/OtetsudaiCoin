@@ -130,7 +130,7 @@ struct HelpRecordEditView: View {
                     Text("変更を保存")
                 }
             }
-            .primaryGradientButton(isDisabled: !viewModel.hasChanges || viewModel.isLoading)
+            .primaryButton(isDisabled: !viewModel.hasChanges || viewModel.isLoading)
             .disabled(!viewModel.hasChanges || viewModel.isLoading)
             
             // 削除ボタン
@@ -142,7 +142,7 @@ struct HelpRecordEditView: View {
                     Text("記録を削除")
                 }
             }
-            .warningGradientButton(isDisabled: viewModel.isLoading)
+            .destructiveButton(isDisabled: viewModel.isLoading)
             .disabled(viewModel.isLoading)
         }
     }
@@ -210,7 +210,7 @@ struct TaskSelectionRow: View {
             let helpRecordRepository = CoreDataHelpRecordRepository(context: context)
             let helpTaskRepository = CoreDataHelpTaskRepository(context: context)
             
-            let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+            let child = Child(id: UUID(), name: "太郎", themeColor: "#E8590C")
             let record = HelpRecord(id: UUID(), childId: child.id, helpTaskId: UUID(), recordedAt: Date())
             
             previewViewModel = HelpRecordEditViewModel(

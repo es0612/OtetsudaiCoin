@@ -214,7 +214,7 @@ struct MonthlySummaryView: View {
                 Text("¥\(remainder)").fontWeight(.bold)
             }
         }
-        .primaryGradientButton()
+        .primaryButton()
         .accessibilityIdentifier("summary_payment_cta")
     }
 }

@@ -112,6 +112,25 @@ struct AccessibilityColors {
     /// 高コントラストモード用のセカンダリ色
     static let highContrastSecondary = Color(hex: "#FFFFFF") ?? .white
     
+    // MARK: - Brand Colors (Issue #147: オレンジ × ティール)
+
+    /// ブランドプライマリ(温かいオレンジ)。メイン CTA・AccentColor・進捗バーに使用。
+    /// 白文字ボタン地として WCAG large text 基準 (3:1) を BrandColorsTests で担保。
+    static let brandPrimary = Color(hex: "#E8590C") ?? .orange
+
+    /// ブランドプライマリの濃色。押下状態・ダークモード調整用 (白文字 AA 4.5:1)。
+    static let brandPrimaryDark = Color(hex: "#C2410C") ?? .orange
+
+    /// ブランドセカンダリ(ティール)。記録・保存など成功系アクションに使用。
+    static let brandSecondary = Color(hex: "#099268") ?? .green
+
+    /// ブランドアクセント(コインゴールド)。コイン表現・お祝い演出に使用。
+    /// 白文字は載らないため地色として使う場合は濃色文字と組み合わせる。
+    static let brandAccent = Color(hex: "#FFD43B") ?? .yellow
+
+    /// 温色の淡背景。
+    static let brandSurfaceWarm = Color(hex: "#FFF4E6") ?? .orange.opacity(0.1)
+
     // MARK: - Utility Functions
     
     /// 指定された背景色に対して最適なテキスト色を返す

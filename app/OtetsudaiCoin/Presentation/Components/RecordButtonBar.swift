@@ -22,7 +22,7 @@ struct RecordButtonBar: View {
                     Text(recordButtonLabel)
                 }
             }
-            .successGradientButton(isDisabled: recordButtonDisabled)
+            .successButton(isDisabled: recordButtonDisabled)
             .disabled(recordButtonDisabled)
             .accessibilityIdentifier("record_button")
         }

@@ -1,4 +1,5 @@
 import XCTest
+import SwiftUI
 @testable import OtetsudaiCoin
 
 final class ChildManagementViewModelTests: XCTestCase {
@@ -174,5 +175,16 @@ final class ChildManagementViewModelTests: XCTestCase {
         print("選択したカラー: \(selectedColor)")
         print("保存されたカラー: \(savedChild.themeColor)")
         print("利用可能なカラー: \(availableColors)")
+    }
+
+    @MainActor
+    func testAvailableThemeColorsAreTwelveUniqueParseableColors() {
+        let colors = viewModel.getAvailableThemeColors()
+        XCTAssertEqual(colors.count, 12, "パレット調和の 12 色 (actual: \(colors.count))")
+        XCTAssertEqual(Set(colors).count, colors.count, "重複なし")
+        for hex in colors {
+            XCTAssertNotNil(Color(hex: hex), "\(hex) は Color(hex:) で解釈可能であること")
+        }
+        XCTAssertEqual(colors.first, "#E8590C", "先頭はブランドオレンジ (ChildFormView のデフォルトと一致)")
     }
 }

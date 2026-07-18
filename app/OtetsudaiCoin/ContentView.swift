@@ -146,8 +146,8 @@ struct ContentView: View {
                 if ProcessInfo.processInfo.arguments.contains("--uitesting") {
                     if existingChildren.isEmpty {
                         let sampleChildren = [
-                            Child(id: UUID(), name: "太郎", themeColor: "#FF5733"),
-                            Child(id: UUID(), name: "花子", themeColor: "#33FF57")
+                            Child(id: UUID(), name: "太郎", themeColor: "#E8590C"),
+                            Child(id: UUID(), name: "花子", themeColor: "#099268")
                         ]
                         for child in sampleChildren {
                             try await childRepository.save(child)

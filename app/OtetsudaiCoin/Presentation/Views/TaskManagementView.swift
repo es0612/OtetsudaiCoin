@@ -206,7 +206,7 @@ struct TaskFormView: View {
                     }) {
                         Text(isEditing ? "更新" : "追加")
                     }
-                    .successGradientButton(isDisabled: taskName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    .successButton(isDisabled: taskName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                     .disabled(taskName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }
