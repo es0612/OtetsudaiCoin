@@ -429,31 +429,33 @@ struct TutorialTaskCardView: View {
     let task: HelpTask
     let isSelected: Bool
     let onTap: () -> Void
-    
+
     var body: some View {
         Button(action: onTap) {
             VStack(spacing: 12) {
                 ZStack {
                     Circle()
-                        .fill(isSelected ? .blue : .gray.opacity(0.2))
+                        .fill(isSelected ? AccessibilityColors.brandPrimary.opacity(0.15) : Color.gray.opacity(0.1))
                         .frame(width: 50, height: 50)
-                    
-                    Image(systemName: "hands.sparkles")
+
+                    // 絵文字は装飾。カードの意味は displayName の Text が担うため VoiceOver から隠す
+                    // (TaskCardView と同型、#84 パターン)
+                    Text(task.displayIcon)
                         .font(.title2)
-                        .foregroundColor(isSelected ? .white : .blue)
+                        .accessibilityHidden(true)
                 }
-                
+
                 Text(task.displayName)
                     .font(.caption)
                     .fontWeight(.medium)
                     .multilineTextAlignment(.center)
                     .foregroundColor(.primary)
                     .lineLimit(2)
-                
+
                 if isSelected {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.title3)
-                        .foregroundColor(.blue)
+                        .foregroundColor(AccessibilityColors.brandPrimary)
                 } else {
                     Spacer()
                         .frame(height: 20)
@@ -463,14 +465,15 @@ struct TutorialTaskCardView: View {
             .frame(height: 120)
             .background(
                 RoundedRectangle(cornerRadius: AppRadius.large)
-                    .fill(isSelected ? Color.blue.opacity(0.1) : Color.gray.opacity(0.05))
+                    .fill(isSelected ? AccessibilityColors.brandPrimary.opacity(0.1) : Color.gray.opacity(0.05))
                     .overlay(
                         RoundedRectangle(cornerRadius: AppRadius.large)
-                            .stroke(isSelected ? Color.blue : Color.clear, lineWidth: 2)
+                            .stroke(isSelected ? AccessibilityColors.brandPrimary : Color.clear, lineWidth: 2)
                     )
             )
         }
         .buttonStyle(PlainButtonStyle())
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
         .scaleEffect(isSelected ? 1.05 : 1.0)
         .animation(.easeInOut(duration: 0.2), value: isSelected)
     }
