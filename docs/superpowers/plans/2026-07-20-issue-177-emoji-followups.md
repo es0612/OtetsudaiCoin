@@ -309,7 +309,7 @@ Claude-Session: https://claude.ai/code/session_01WbCyy2e8ySmrecnDphvqwh"
 
 Run: `xcodebuild test -project app/OtetsudaiCoin.xcodeproj -scheme OtetsudaiCoin -destination 'platform=iOS Simulator,name=iPhone 17 Pro Max' -only-testing:OtetsudaiCoinTests/TaskCardViewTests 2>&1 | tail -20`
 
-Expected: `** TEST SUCCEEDED **`(全 10 テスト PASS。強化はテスト側のみでプロダクト挙動は正しいため RED は無い)
+Expected: `** TEST SUCCEEDED **`(全 9 テスト PASS。強化はテスト側のみでプロダクト挙動は正しいため RED は無い)
 
 - [ ] **Step 3: mutation 検証 — 強化後テストが regression を検出できることを実証する**
 
