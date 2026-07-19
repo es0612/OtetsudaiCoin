@@ -124,17 +124,18 @@ class SampleDataService {
 
     /// サンプルタスク定義。sortOrder を 0 始まりの連番で付与し、
     /// 並べ替え機能の DEBUG 検証時に決定的な初期順序を保証する (#130-⑥)。
+    /// 名前は defaultIconsByName に無いため明示 icon を付与する (#177 項目2、DEBUG 専用・migration 不要)。
     static func sampleHelpTasks() -> [HelpTask] {
-        let specs: [(name: String, coinRate: Int)] = [
-            ("洗い物", 10),
-            ("洗濯物たたみ", 15),
-            ("掃除機かけ", 20),
-            ("おもちゃの片付け", 5),
-            ("お風呂掃除", 25),
-            ("ゴミ出し", 10)
+        let specs: [(name: String, coinRate: Int, icon: String)] = [
+            ("洗い物", 10, "🧼"),
+            ("洗濯物たたみ", 15, "👕"),
+            ("掃除機かけ", 20, "🧹"),
+            ("おもちゃの片付け", 5, "🧸"),
+            ("お風呂掃除", 25, "🛁"),
+            ("ゴミ出し", 10, "🗑️")
         ]
         return specs.enumerated().map { index, spec in
-            HelpTask(id: UUID(), name: spec.name, isActive: true, coinRate: spec.coinRate, sortOrder: index)
+            HelpTask(id: UUID(), name: spec.name, isActive: true, coinRate: spec.coinRate, sortOrder: index, icon: spec.icon)
         }
     }
 }
