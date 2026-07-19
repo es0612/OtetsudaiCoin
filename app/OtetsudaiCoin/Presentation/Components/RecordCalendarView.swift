@@ -91,7 +91,7 @@ struct RecordCalendarView: View {
                     .frame(width: 30, height: 30)
                     .background {
                         if isSelected {
-                            Circle().fill(AccessibilityColors.primaryBlue)
+                            Circle().fill(AccessibilityColors.brandPrimary)
                         }
                     }
                 Circle()
