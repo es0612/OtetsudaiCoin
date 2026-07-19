@@ -456,6 +456,7 @@ struct TutorialTaskCardView: View {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.title3)
                         .foregroundColor(AccessibilityColors.brandPrimary)
+                        .accessibilityHidden(true)
                 } else {
                     Spacer()
                         .frame(height: 20)
