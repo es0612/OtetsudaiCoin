@@ -83,22 +83,22 @@ final class RecordCalendarViewTests: XCTestCase {
         )
     }
 
-    /// 表示月内の選択日 (12) には primaryBlue の選択リングがあり、非選択日 (10) には無い。
+    /// 表示月内の選択日 (12) には brandPrimary の選択リングがあり、非選択日 (10) には無い。
     /// dot テストと同じ findAll(ViewType.Shape.self) + fillShapeStyle 方式で
-    /// Circle の fill 色 (#0066CCFF) を直接確認する。
+    /// Circle の fill 色 (#E8590C) を直接確認する (#175 で primaryBlue から変更)。
     func test_selectionCircle_shownForSelectedDayInMonth() throws {
         let view = makeView(selectedDay: 12)
         let allButtons = try view.inspect().findAll(ViewType.Button.self)
         let btn12 = allButtons.first(where: { (try? $0.find(text: "12")) != nil })
         let btn10 = allButtons.first(where: { (try? $0.find(text: "10")) != nil })
-        let selectionColor = AccessibilityColors.primaryBlue
+        let selectionColor = AccessibilityColors.brandPrimary
         XCTAssertTrue(
             btn12.map { shapeFills(in: $0).contains(selectionColor) } ?? false,
-            "選択日(12)の Circle に primaryBlue fill がない。allButtons=\(allButtons.count), fills=\(btn12.map { shapeFills(in: $0) } ?? [])"
+            "選択日(12)の Circle に brandPrimary fill がない。allButtons=\(allButtons.count), fills=\(btn12.map { shapeFills(in: $0) } ?? [])"
         )
         XCTAssertFalse(
             btn10.map { shapeFills(in: $0).contains(selectionColor) } ?? false,
-            "非選択日(10)に余計な primaryBlue 選択リングがある。fills=\(btn10.map { shapeFills(in: $0) } ?? [])"
+            "非選択日(10)に余計な brandPrimary 選択リングがある。fills=\(btn10.map { shapeFills(in: $0) } ?? [])"
         )
     }
 
