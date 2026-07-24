@@ -21,27 +21,32 @@ final class TaskCardViewTests: XCTestCase {
 
     // MARK: - #73 existingCountRow
 
+    /// coinInfo (ja "10コイン" / en "10 Coins") を除外した Text に判定文字列が現れるか。
+    /// clone simulator は en_US 既定で起動する (下記 tapToSelectVariants のコメント参照) ため、
+    /// ja suffix だけの除外だと "10 Coins" が数字を含んで false positive になる (#177 項目3)。
+    private func nonCoinTexts(_ texts: [String]) -> [String] {
+        texts.filter { !$0.hasSuffix("コイン") && !$0.hasSuffix("Coins") }
+    }
+
     func test_existingCountRow_hidden_whenCountIsZero() throws {
-        let view = TaskCardView(
-            task: makeTask(),
-            isSelected: false,
-            existingCount: 0,
-            onTap: {}
+        // 旧実装の XCTAssertThrowsError(find(viewWithAccessibilityIdentifier:)) は
+        // iOS 26 + ViewInspector 0.10.2 で当該 API が常に throw するため無条件 pass だった (#177 項目3)。
+        // findAll ベースで「coinInfo 以外に数字を含む Text が無い」ことを直接 assert する。
+        let view = TaskCardView(task: makeTask(), isSelected: false, existingCount: 0, onTap: {})
+        let texts = try renderedTexts(view)
+        XCTAssertFalse(
+            nonCoinTexts(texts).contains { $0.contains(where: \.isNumber) },
+            "existingCount(0) なのに件数表示の Text が描画されている。rendered: \(texts)"
         )
-        // 0 件のときは label が描画されない
-        XCTAssertThrowsError(try view.inspect().find(viewWithAccessibilityIdentifier: "existing_count_label"))
     }
 
     func test_existingCountRow_visible_whenCountIsOne() throws {
-        // coinInfo "10コイン" が "1" を含むため `contains("1")` だけだと
-        // existingCountRow が無くても通る false positive になる。
-        // coinInfo は常に "...コイン" suffix なので除外し、それ以外の Text に
-        // count 数字が現れることで existingCountRow の描画を確認する。
-        // 文言を exact match しないため locale / 文言変更には依存しない。
+        // 文言を exact match しないため locale / 文言変更には依存しない
+        // (ja "すでに 1 件記録済み" / en "Already recorded 1 time" のどちらでも "1" を含む)。
         let view = TaskCardView(task: makeTask(), isSelected: false, existingCount: 1, onTap: {})
         let texts = try renderedTexts(view)
         XCTAssertTrue(
-            texts.contains { !$0.hasSuffix("コイン") && $0.contains("1") },
+            nonCoinTexts(texts).contains { $0.contains("1") },
             "existingCount(1) を表す Text が見つからない。描画された Text: \(texts)"
         )
     }
@@ -50,7 +55,7 @@ final class TaskCardViewTests: XCTestCase {
         let view = TaskCardView(task: makeTask(), isSelected: false, existingCount: 3, onTap: {})
         let texts = try renderedTexts(view)
         XCTAssertTrue(
-            texts.contains { !$0.hasSuffix("コイン") && $0.contains("3") },
+            nonCoinTexts(texts).contains { $0.contains("3") },
             "existingCount(3) を表す Text が見つからない。描画された Text: \(texts)"
         )
     }
