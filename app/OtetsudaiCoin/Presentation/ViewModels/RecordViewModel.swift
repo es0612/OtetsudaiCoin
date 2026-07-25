@@ -38,6 +38,8 @@ class RecordViewModel: BaseViewModel {
     private let helpTaskRepository: HelpTaskRepository
     private let helpRecordRepository: HelpRecordRepository
     private let soundService: SoundServiceProtocol
+    private let hapticFeedback: HapticFeedbackProviding
+    private let feedbackSettings: FeedbackSettingsServiceProtocol
     private var loadChildrenTask: Task<Void, Never>?
     private var loadCountsTask: Task<Void, Never>?
     private var loadRecordedDaysTask: Task<Void, Never>?
@@ -46,15 +48,49 @@ class RecordViewModel: BaseViewModel {
         childRepository: ChildRepository,
         helpTaskRepository: HelpTaskRepository,
         helpRecordRepository: HelpRecordRepository,
-        soundService: SoundServiceProtocol? = nil
+        soundService: SoundServiceProtocol? = nil,
+        hapticFeedback: HapticFeedbackProviding? = nil,
+        feedbackSettings: FeedbackSettingsServiceProtocol? = nil
     ) {
         self.childRepository = childRepository
         self.helpTaskRepository = helpTaskRepository
         self.helpRecordRepository = helpRecordRepository
         self.soundService = soundService ?? SoundService()
+        self.hapticFeedback = hapticFeedback ?? SystemHapticFeedbackProvider()
+        self.feedbackSettings = feedbackSettings ?? FeedbackSettingsService()
         super.init()
     }
-    
+
+    /// 触覚は設定で OFF にできる。発火箇所が増えてもガードの入れ忘れが起きないよう
+    /// 判定をここへ集約する (#150)。
+    private func fireHaptic(_ fire: () -> Void) {
+        guard feedbackSettings.isHapticEnabled else { return }
+        fire()
+    }
+
+    /// 記録が 1 件以上成功したときの演出 (#150)。
+    /// 効果音とハプティクスはそれぞれ設定で個別に OFF にできる。
+    /// recordHelp / recordBulkHelp の両方から呼ぶため、従来 2 箇所に重複していた
+    /// 効果音ブロックもここへ集約する。
+    private func playSuccessFeedback() {
+        if feedbackSettings.isSoundEnabled {
+            do {
+                try soundService.playCoinEarnSound()
+                try soundService.playTaskCompleteSound()
+            } catch {
+                // 効果音の再生に失敗した場合はエラー音にフォールバックする (従来挙動)
+                try? soundService.playErrorSound()
+            }
+        }
+        fireHaptic { hapticFeedback.helpRecorded() }
+    }
+
+    /// 記録が 1 件も成功しなかったときの演出 (#150)。
+    /// 効果音は従来どおり鳴らさず、触覚だけを足す。
+    private func playErrorFeedback() {
+        fireHaptic { hapticFeedback.errorOccurred() }
+    }
+
     override func setupNotificationListeners() {
         // NotificationManagerを使用して通知を監視
         NotificationManager.shared.observeChildrenUpdates(
@@ -223,14 +259,9 @@ class RecordViewModel: BaseViewModel {
                 }
             }
 
-            // 効果音 (成功 1 件以上で再生)
+            // 演出 (成功 1 件以上で発火。部分失敗でも成功側のみ鳴らす)
             if !successIds.isEmpty {
-                do {
-                    try soundService.playCoinEarnSound()
-                    try soundService.playTaskCompleteSound()
-                } catch {
-                    try? soundService.playErrorSound()
-                }
+                playSuccessFeedback()
             }
 
             lastRecordedCoinValue = totalCoins
@@ -252,6 +283,7 @@ class RecordViewModel: BaseViewModel {
                 warningMessage = String(localized: "\(failureCount) 件失敗、もう一度タップしてください")
             }
             if successIds.isEmpty && !failureIds.isEmpty {
+                playErrorFeedback()
                 setError(String(localized: "記録に失敗しました"))
             }
             setLoading(false)
@@ -285,26 +317,21 @@ class RecordViewModel: BaseViewModel {
                 )
                 
                 try await helpRecordRepository.save(helpRecord)
-                
-                // 効果音を再生
-                do {
-                    try soundService.playCoinEarnSound()
-                    try soundService.playTaskCompleteSound()
-                } catch {
-                    // 効果音エラーの場合はエラー音を再生
-                    try? soundService.playErrorSound()
-                }
-                
+
+                // 演出 (効果音 + 触覚)
+                playSuccessFeedback()
+
                 // アニメーション用にコイン値を保存
                 lastRecordedCoinValue = task.coinRate
-                
+
                 // データ更新の通知
                 NotificationManager.shared.notifyHelpRecordUpdated()
-                
+
                 hasRecordedInSession = true
                 setSuccess(String(localized: "お手伝いを記録しました！"))
                 selectedTask = nil
             } catch {
+                playErrorFeedback()
                 setUserFriendlyError(error)
             }
         }
