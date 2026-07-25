@@ -332,3 +332,29 @@ class MockSoundService: SoundServiceProtocol {
         return true
     }
 }
+
+// MARK: - #150 Feedback Mocks
+
+/// 触覚が「どの経路で何回」呼ばれたかを記録する spy。
+final class MockHapticFeedbackProvider: HapticFeedbackProviding {
+    private(set) var helpRecordedCallCount = 0
+    private(set) var taskSelectionCallCount = 0
+    private(set) var childSelectionCallCount = 0
+    private(set) var errorOccurredCallCount = 0
+
+    func helpRecorded() { helpRecordedCallCount += 1 }
+    func taskSelection() { taskSelectionCallCount += 1 }
+    func childSelection() { childSelectionCallCount += 1 }
+    func errorOccurred() { errorOccurredCallCount += 1 }
+}
+
+/// UserDefaults を経由せずに ON/OFF を直接指定できる設定のフェイク。
+final class FakeFeedbackSettingsService: FeedbackSettingsServiceProtocol {
+    var isSoundEnabled: Bool
+    var isHapticEnabled: Bool
+
+    init(isSoundEnabled: Bool = true, isHapticEnabled: Bool = true) {
+        self.isSoundEnabled = isSoundEnabled
+        self.isHapticEnabled = isHapticEnabled
+    }
+}
