@@ -916,4 +916,64 @@ final class RecordViewModelTests: XCTestCase {
         XCTAssertEqual(mockHaptic.errorOccurredCallCount, 0)
         XCTAssertNotNil(viewModel.errorMessage, "触覚 OFF でもエラーメッセージ表示は従来どおり")
     }
+
+    // MARK: - #150 Selection Haptics
+
+    @MainActor
+    func test_selectTask_firesTaskSelectionHaptic() {
+        let task = HelpTask(id: UUID(), name: "ゴミ出し", isActive: true, coinRate: 10)
+
+        viewModel.selectTask(task)
+
+        XCTAssertEqual(viewModel.selectedTask?.id, task.id)
+        XCTAssertEqual(mockHaptic.taskSelectionCallCount, 1)
+    }
+
+    @MainActor
+    func test_selectChild_firesChildSelectionHaptic() {
+        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+
+        viewModel.selectChild(child)
+
+        XCTAssertEqual(viewModel.selectedChild?.id, child.id)
+        XCTAssertEqual(mockHaptic.childSelectionCallCount, 1)
+    }
+
+    @MainActor
+    func test_toggleTaskSelection_addsThenRemoves() {
+        let task = HelpTask(id: UUID(), name: "ゴミ出し", isActive: true, coinRate: 10)
+        viewModel.isBulkMode = true
+
+        viewModel.toggleTaskSelection(task)
+        XCTAssertEqual(viewModel.selectedTaskIds, [task.id])
+
+        viewModel.toggleTaskSelection(task)
+        XCTAssertTrue(viewModel.selectedTaskIds.isEmpty)
+    }
+
+    @MainActor
+    func test_toggleTaskSelection_firesHapticOnBothDirections() {
+        let task = HelpTask(id: UUID(), name: "ゴミ出し", isActive: true, coinRate: 10)
+        viewModel.isBulkMode = true
+
+        viewModel.toggleTaskSelection(task)
+        viewModel.toggleTaskSelection(task)
+
+        XCTAssertEqual(mockHaptic.taskSelectionCallCount, 2, "選択・解除のどちらでも手応えを返すべき")
+    }
+
+    @MainActor
+    func test_selection_hapticDisabled_firesNothing() {
+        fakeFeedbackSettings.isHapticEnabled = false
+        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+        let task = HelpTask(id: UUID(), name: "ゴミ出し", isActive: true, coinRate: 10)
+
+        viewModel.selectChild(child)
+        viewModel.selectTask(task)
+        viewModel.toggleTaskSelection(task)
+
+        XCTAssertEqual(mockHaptic.childSelectionCallCount, 0)
+        XCTAssertEqual(mockHaptic.taskSelectionCallCount, 0)
+        XCTAssertEqual(viewModel.selectedTaskIds, [task.id], "触覚 OFF でも選択自体は機能するべき")
+    }
 }

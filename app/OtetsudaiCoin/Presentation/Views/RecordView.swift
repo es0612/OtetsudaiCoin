@@ -214,11 +214,7 @@ struct RecordView: View {
                             existingCount: viewModel.existingRecordCount(for: task.id),
                             onTap: {
                                 if viewModel.isBulkMode {
-                                    if viewModel.selectedTaskIds.contains(task.id) {
-                                        viewModel.selectedTaskIds.remove(task.id)
-                                    } else {
-                                        viewModel.selectedTaskIds.insert(task.id)
-                                    }
+                                    viewModel.toggleTaskSelection(task)
                                 } else {
                                     viewModel.selectTask(task)
                                 }

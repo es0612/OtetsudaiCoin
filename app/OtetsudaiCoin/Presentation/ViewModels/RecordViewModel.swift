@@ -203,18 +203,33 @@ class RecordViewModel: BaseViewModel {
         clearErrorMessage()
         loadExistingCountsForCurrentDateAndChild()
         loadRecordedDaysForDisplayedMonth()   // ← 追加
+        fireHaptic { hapticFeedback.childSelection() }
     }
 
     func setPreselectedChild(_ child: Child) {
         selectedChild = child
     }
-    
+
     func selectTask(_ task: HelpTask) {
         selectedTask = task
         // 成功メッセージは保持し、エラーメッセージのみクリア
         clearErrorMessage()
+        fireHaptic { hapticFeedback.taskSelection() }
     }
-    
+
+    /// 一括モードでのタスク選択トグル (#150)。
+    ///
+    /// 従来は RecordView の onTap closure が selectedTaskIds を直接書き換えていたため、
+    /// テストが書けず触覚も挟めなかった。判定を ViewModel 側へ寄せて両方を解決する。
+    func toggleTaskSelection(_ task: HelpTask) {
+        if selectedTaskIds.contains(task.id) {
+            selectedTaskIds.remove(task.id)
+        } else {
+            selectedTaskIds.insert(task.id)
+        }
+        fireHaptic { hapticFeedback.taskSelection() }
+    }
+
     @MainActor
     func recordBulkHelp() {
         clearErrorMessage()
