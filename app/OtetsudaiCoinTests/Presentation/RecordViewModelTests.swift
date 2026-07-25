@@ -861,6 +861,22 @@ final class RecordViewModelTests: XCTestCase {
     }
 
     @MainActor
+    func test_recordHelp_saveFailed_playsErrorHaptic() async {
+        let (_, task) = makeSingleRecordFixture()
+        mockHelpRecordRepository.failingHelpTaskIds = [task.id]
+
+        viewModel.recordHelp()
+        await waitUntil(timeout: 2.0) { !self.viewModel.isLoading }
+
+        // 保存が実際に失敗したことを先に固定する (guard 早期 return 等で
+        // 何も起きていないのに green になるのを防ぐ)
+        XCTAssertTrue(mockHelpRecordRepository.records.isEmpty, "保存が失敗したので記録は残らないはず")
+        XCTAssertEqual(mockHaptic.errorOccurredCallCount, 1)
+        XCTAssertEqual(mockHaptic.helpRecordedCallCount, 0)
+        XCTAssertNotNil(viewModel.errorMessage, "保存失敗時はエラーメッセージが表示されるべき")
+    }
+
+    @MainActor
     func test_recordBulkHelp_partialFailure_playsSuccessHapticOnly() async {
         let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
         let t1 = HelpTask(id: UUID(), name: "A", isActive: true, coinRate: 10)
@@ -875,6 +891,7 @@ final class RecordViewModelTests: XCTestCase {
         viewModel.recordBulkHelp()
         await waitUntil(timeout: 2.0) { !self.viewModel.isLoading }
 
+        XCTAssertEqual(viewModel.selectedTaskIds, [t2.id], "部分失敗が実際に起きたことを固定する (失敗注入が壊れたら全件成功に退化して静かに通ってしまう)")
         XCTAssertEqual(mockHaptic.helpRecordedCallCount, 1, "成功分があるので成功触覚は鳴るべき")
         XCTAssertEqual(mockHaptic.errorOccurredCallCount, 0, "部分失敗でエラー触覚まで鳴らすと二重振動になる")
     }
