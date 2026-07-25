@@ -12,6 +12,7 @@ struct SettingsView: View {
     @State private var taskManagementViewModel: TaskManagementViewModel
     @State private var notificationSettingsViewModel: NotificationSettingsViewModel
     @State private var paymentReminderViewModel: PaymentReminderNotificationSettingsViewModel
+    @State private var feedbackSettingsViewModel: FeedbackSettingsViewModel
     @Environment(\.openURL) private var openURL
 
     #if DEBUG
@@ -36,6 +37,9 @@ struct SettingsView: View {
             userDefaults: .standard
         )
         self._notificationSettingsViewModel = State(wrappedValue: NotificationSettingsViewModel(service: notificationService))
+        self._feedbackSettingsViewModel = State(wrappedValue: FeedbackSettingsViewModel(
+            service: FeedbackSettingsService(userDefaults: .standard)
+        ))
 
         let childRepository = CoreDataChildRepository(context: context)
         let allowancePaymentRepository = RepositoryFactory(context: context).createAllowancePaymentRepository()
@@ -126,6 +130,11 @@ struct SettingsView: View {
                             Spacer()
                         }
                     }
+                }
+
+                Section("サウンドと触覚") {
+                    Toggle("効果音", isOn: $feedbackSettingsViewModel.isSoundEnabled)
+                    Toggle("振動（ハプティクス）", isOn: $feedbackSettingsViewModel.isHapticEnabled)
                 }
 
                 #if DEBUG

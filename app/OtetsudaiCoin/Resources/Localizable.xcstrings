@@ -2871,6 +2871,36 @@
           }
         }
       }
+    },
+    "サウンドと触覚" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sound & Haptics"
+          }
+        }
+      }
+    },
+    "効果音" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sound Effects"
+          }
+        }
+      }
+    },
+    "振動（ハプティクス）" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Haptics"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"
