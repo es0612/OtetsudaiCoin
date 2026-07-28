@@ -340,7 +340,10 @@ struct HelpRecordRow: View {
             Spacer()
             
             // アクションボタン
-            HStack(spacing: 12) {
+            // #151: 各ボタンが 44pt 幅 (アイコン 16pt + 左右 14pt ずつの余白) を
+            // 持つようになったため、ボタン間の 12pt は視覚的に不要。4pt へ詰めて
+            // タスク名側の横幅を戻す (アイコン間の実距離は 32pt 確保される)。
+            HStack(spacing: 4) {
                 // 編集ボタン
                 // #151: アイコン実寸 (約 16pt) がそのままタップ領域だったため、
                 // HIG の最小 44×44pt まで広げる。contentShape で frame 全体を
