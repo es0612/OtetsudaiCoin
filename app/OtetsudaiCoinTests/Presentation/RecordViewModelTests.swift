@@ -7,7 +7,9 @@ final class RecordViewModelTests: XCTestCase {
     private var mockHelpTaskRepository: MockHelpTaskRepository!
     private var mockHelpRecordRepository: MockHelpRecordRepository!
     private var mockSoundService: MockSoundService!
-    
+    private var mockHaptic: MockHapticFeedbackProvider!
+    private var fakeFeedbackSettings: FakeFeedbackSettingsService!
+
     @MainActor
     override func setUp() {
         super.setUp()
@@ -15,17 +17,23 @@ final class RecordViewModelTests: XCTestCase {
         mockHelpTaskRepository = MockHelpTaskRepository()
         mockHelpRecordRepository = MockHelpRecordRepository()
         mockSoundService = MockSoundService()
-        
+        mockHaptic = MockHapticFeedbackProvider()
+        fakeFeedbackSettings = FakeFeedbackSettingsService()
+
         viewModel = RecordViewModel(
             childRepository: mockChildRepository,
             helpTaskRepository: mockHelpTaskRepository,
             helpRecordRepository: mockHelpRecordRepository,
-            soundService: mockSoundService
+            soundService: mockSoundService,
+            hapticFeedback: mockHaptic,
+            feedbackSettings: fakeFeedbackSettings
         )
     }
-    
+
     override func tearDown() {
         viewModel = nil
+        fakeFeedbackSettings = nil
+        mockHaptic = nil
         mockSoundService = nil
         mockHelpRecordRepository = nil
         mockHelpTaskRepository = nil
@@ -792,5 +800,197 @@ final class RecordViewModelTests: XCTestCase {
         // Then
         await waitUntil(timeout: 2.0) { self.viewModel.recordedDays == [7, 9] }
         XCTAssertEqual(viewModel.recordedDays, [7, 9])
+    }
+
+    // MARK: - #150 Feedback Tests
+
+    @MainActor
+    private func makeSingleRecordFixture() -> (Child, HelpTask) {
+        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+        let task = HelpTask(id: UUID(), name: "お風呂を掃除する", isActive: true, coinRate: 10)
+        viewModel.availableChildren = [child]
+        viewModel.availableTasks = [task]
+        // selectChild / selectTask を通すと選択触覚が加算されるため直接代入する
+        viewModel.selectedChild = child
+        viewModel.selectedTask = task
+        return (child, task)
+    }
+
+    @MainActor
+    func test_recordHelp_playsSoundAndHaptic() async {
+        _ = makeSingleRecordFixture()
+
+        viewModel.recordHelp()
+        await waitUntil(timeout: 2.0) { !self.viewModel.isLoading }
+
+        XCTAssertEqual(mockHelpRecordRepository.records.count, 1)
+        XCTAssertTrue(mockSoundService.playCoinEarnSoundCalled)
+        XCTAssertTrue(mockSoundService.playTaskCompleteSoundCalled)
+        XCTAssertEqual(mockHaptic.helpRecordedCallCount, 1)
+    }
+
+    @MainActor
+    func test_recordHelp_hapticDisabled_playsSoundOnly() async {
+        fakeFeedbackSettings.isHapticEnabled = false
+        _ = makeSingleRecordFixture()
+
+        viewModel.recordHelp()
+        await waitUntil(timeout: 2.0) { !self.viewModel.isLoading }
+
+        // fixture が壊れて guard で早期 return すると isLoading が false のままとなり
+        // 「何も起きていないのに green」になる。記録が成立したことを先に固定する。
+        XCTAssertEqual(mockHelpRecordRepository.records.count, 1)
+        XCTAssertTrue(mockSoundService.playCoinEarnSoundCalled, "サウンドは ON のままなので鳴るべき")
+        XCTAssertEqual(mockHaptic.helpRecordedCallCount, 0, "ハプティクス OFF なのに触覚が鳴っている")
+    }
+
+    @MainActor
+    func test_recordHelp_soundDisabled_playsHapticOnly() async {
+        fakeFeedbackSettings.isSoundEnabled = false
+        _ = makeSingleRecordFixture()
+
+        viewModel.recordHelp()
+        await waitUntil(timeout: 2.0) { !self.viewModel.isLoading }
+
+        // 「鳴らないこと」だけを見るテストは、記録自体が起きていなくても green になる。
+        // 記録の成立を先に固定してから不在を assert する。
+        XCTAssertEqual(mockHelpRecordRepository.records.count, 1)
+        XCTAssertFalse(mockSoundService.playCoinEarnSoundCalled, "サウンド OFF なのに効果音が鳴っている")
+        XCTAssertFalse(mockSoundService.playTaskCompleteSoundCalled)
+        XCTAssertEqual(mockHaptic.helpRecordedCallCount, 1, "触覚は ON のままなので鳴るべき")
+    }
+
+    @MainActor
+    func test_recordHelp_saveFailed_playsErrorHaptic() async {
+        let (_, task) = makeSingleRecordFixture()
+        mockHelpRecordRepository.failingHelpTaskIds = [task.id]
+
+        viewModel.recordHelp()
+        await waitUntil(timeout: 2.0) { !self.viewModel.isLoading }
+
+        // 保存が実際に失敗したことを先に固定する (guard 早期 return 等で
+        // 何も起きていないのに green になるのを防ぐ)
+        XCTAssertTrue(mockHelpRecordRepository.records.isEmpty, "保存が失敗したので記録は残らないはず")
+        XCTAssertEqual(mockHaptic.errorOccurredCallCount, 1)
+        XCTAssertEqual(mockHaptic.helpRecordedCallCount, 0)
+        XCTAssertNotNil(viewModel.errorMessage, "保存失敗時はエラーメッセージが表示されるべき")
+    }
+
+    @MainActor
+    func test_recordBulkHelp_partialFailure_playsSuccessHapticOnly() async {
+        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+        let t1 = HelpTask(id: UUID(), name: "A", isActive: true, coinRate: 10)
+        let t2 = HelpTask(id: UUID(), name: "B", isActive: true, coinRate: 20)
+        viewModel.availableChildren = [child]
+        viewModel.selectedChild = child
+        viewModel.availableTasks = [t1, t2]
+        viewModel.isBulkMode = true
+        viewModel.selectedTaskIds = [t1.id, t2.id]
+        mockHelpRecordRepository.failingHelpTaskIds = [t2.id]
+
+        viewModel.recordBulkHelp()
+        await waitUntil(timeout: 2.0) { !self.viewModel.isLoading }
+
+        XCTAssertEqual(viewModel.selectedTaskIds, [t2.id], "部分失敗が実際に起きたことを固定する (失敗注入が壊れたら全件成功に退化して静かに通ってしまう)")
+        XCTAssertEqual(mockHaptic.helpRecordedCallCount, 1, "成功分があるので成功触覚は鳴るべき")
+        XCTAssertEqual(mockHaptic.errorOccurredCallCount, 0, "部分失敗でエラー触覚まで鳴らすと二重振動になる")
+    }
+
+    @MainActor
+    func test_recordBulkHelp_allFailed_playsErrorHaptic() async {
+        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+        let t1 = HelpTask(id: UUID(), name: "A", isActive: true, coinRate: 10)
+        viewModel.availableChildren = [child]
+        viewModel.selectedChild = child
+        viewModel.availableTasks = [t1]
+        viewModel.isBulkMode = true
+        viewModel.selectedTaskIds = [t1.id]
+        mockHelpRecordRepository.failingHelpTaskIds = [t1.id]
+
+        viewModel.recordBulkHelp()
+        await waitUntil(timeout: 2.0) { !self.viewModel.isLoading }
+
+        XCTAssertEqual(mockHaptic.errorOccurredCallCount, 1)
+        XCTAssertEqual(mockHaptic.helpRecordedCallCount, 0)
+        XCTAssertFalse(mockSoundService.playCoinEarnSoundCalled, "1 件も成功していないので成功音は鳴らない")
+    }
+
+    @MainActor
+    func test_recordBulkHelp_allFailed_hapticDisabled_playsNothing() async {
+        fakeFeedbackSettings.isHapticEnabled = false
+        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+        let t1 = HelpTask(id: UUID(), name: "A", isActive: true, coinRate: 10)
+        viewModel.availableChildren = [child]
+        viewModel.selectedChild = child
+        viewModel.availableTasks = [t1]
+        viewModel.isBulkMode = true
+        viewModel.selectedTaskIds = [t1.id]
+        mockHelpRecordRepository.failingHelpTaskIds = [t1.id]
+
+        viewModel.recordBulkHelp()
+        await waitUntil(timeout: 2.0) { !self.viewModel.isLoading }
+
+        XCTAssertEqual(mockHaptic.errorOccurredCallCount, 0)
+        XCTAssertNotNil(viewModel.errorMessage, "触覚 OFF でもエラーメッセージ表示は従来どおり")
+    }
+
+    // MARK: - #150 Selection Haptics
+
+    @MainActor
+    func test_selectTask_firesTaskSelectionHaptic() {
+        let task = HelpTask(id: UUID(), name: "ゴミ出し", isActive: true, coinRate: 10)
+
+        viewModel.selectTask(task)
+
+        XCTAssertEqual(viewModel.selectedTask?.id, task.id)
+        XCTAssertEqual(mockHaptic.taskSelectionCallCount, 1)
+    }
+
+    @MainActor
+    func test_selectChild_firesChildSelectionHaptic() {
+        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+
+        viewModel.selectChild(child)
+
+        XCTAssertEqual(viewModel.selectedChild?.id, child.id)
+        XCTAssertEqual(mockHaptic.childSelectionCallCount, 1)
+    }
+
+    @MainActor
+    func test_toggleTaskSelection_addsThenRemoves() {
+        let task = HelpTask(id: UUID(), name: "ゴミ出し", isActive: true, coinRate: 10)
+        viewModel.isBulkMode = true
+
+        viewModel.toggleTaskSelection(task)
+        XCTAssertEqual(viewModel.selectedTaskIds, [task.id])
+
+        viewModel.toggleTaskSelection(task)
+        XCTAssertTrue(viewModel.selectedTaskIds.isEmpty)
+    }
+
+    @MainActor
+    func test_toggleTaskSelection_firesHapticOnBothDirections() {
+        let task = HelpTask(id: UUID(), name: "ゴミ出し", isActive: true, coinRate: 10)
+        viewModel.isBulkMode = true
+
+        viewModel.toggleTaskSelection(task)
+        viewModel.toggleTaskSelection(task)
+
+        XCTAssertEqual(mockHaptic.taskSelectionCallCount, 2, "選択・解除のどちらでも手応えを返すべき")
+    }
+
+    @MainActor
+    func test_selection_hapticDisabled_firesNothing() {
+        fakeFeedbackSettings.isHapticEnabled = false
+        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+        let task = HelpTask(id: UUID(), name: "ゴミ出し", isActive: true, coinRate: 10)
+
+        viewModel.selectChild(child)
+        viewModel.selectTask(task)
+        viewModel.toggleTaskSelection(task)
+
+        XCTAssertEqual(mockHaptic.childSelectionCallCount, 0)
+        XCTAssertEqual(mockHaptic.taskSelectionCallCount, 0)
+        XCTAssertEqual(viewModel.selectedTaskIds, [task.id], "触覚 OFF でも選択自体は機能するべき")
     }
 }
