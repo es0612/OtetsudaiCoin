@@ -351,7 +351,8 @@ struct SettingsView: View {
             } catch {
                 await MainActor.run {
                     isGeneratingData = false
-                    sampleDataAlertMessage = "サンプルデータの生成に失敗しました: \(error.localizedDescription)"
+                    // #173: ユーザー向け文言は ErrorMessageConverter に集約する
+                    sampleDataAlertMessage = "サンプルデータの生成に失敗しました: \(ErrorMessageConverter.convertToUserFriendlyMessage(error))"
                     showingSampleDataAlert = true
                 }
             }
@@ -384,7 +385,8 @@ struct SettingsView: View {
             } catch {
                 await MainActor.run {
                     isClearingData = false
-                    sampleDataAlertMessage = "データの削除に失敗しました: \(error.localizedDescription)"
+                    // #173: ユーザー向け文言は ErrorMessageConverter に集約する
+                    sampleDataAlertMessage = "データの削除に失敗しました: \(ErrorMessageConverter.convertToUserFriendlyMessage(error))"
                     showingSampleDataAlert = true
                 }
             }
@@ -420,7 +422,8 @@ struct SettingsView: View {
             } catch {
                 await MainActor.run {
                     isClearingData = false
-                    sampleDataAlertMessage = "データの削除に失敗しました: \(error.localizedDescription)"
+                    // #173: ユーザー向け文言は ErrorMessageConverter に集約する
+                    sampleDataAlertMessage = "データの削除に失敗しました: \(ErrorMessageConverter.convertToUserFriendlyMessage(error))"
                     showingSampleDataAlert = true
                 }
             }
