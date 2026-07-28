@@ -154,6 +154,39 @@ final class RecordCalendarViewTests: XCTestCase {
         )
     }
 
+    /// #151: 月送り矢印は HIG の最小タップ領域 44×44pt を満たす。
+    ///
+    /// 修正前は `.frame(width: 44, height: 32)` で高さが 12pt 不足していた。
+    /// `fixedFrame()` による frame 取得はこのリポで初出のため、失敗時に
+    /// 観測値を dump して「機構が到達できなかった」のか
+    /// 「値が足りない」のかを再実行なしで切り分けられるようにする。
+    func test_monthNavButtons_meetMinimumTapTargetSize() throws {
+        let minimumTapTarget: CGFloat = 44
+        let view = makeView(canGoNextMonth: true)
+        let texts = try view.inspect().findAll(ViewType.Text.self)
+        let arrows = texts.filter { text in
+            guard let s = try? text.string() else { return false }
+            return s == "‹" || s == "›"
+        }
+        XCTAssertEqual(
+            arrows.count, 2,
+            "月送り矢印が 2 つ見つからない / rendered: \(texts.compactMap { try? $0.string() })"
+        )
+
+        let frames = arrows.compactMap { try? $0.fixedFrame() }
+        XCTAssertEqual(frames.count, 2, "矢印の frame を読めない (fixedFrame が到達不可)")
+        for frame in frames {
+            XCTAssertGreaterThanOrEqual(
+                frame.height ?? 0, minimumTapTarget,
+                "月送り矢印の高さが 44pt 未満 / frames: \(frames.map { ($0.width, $0.height) })"
+            )
+            XCTAssertGreaterThanOrEqual(
+                frame.width ?? 0, minimumTapTarget,
+                "月送り矢印の幅が 44pt 未満 / frames: \(frames.map { ($0.width, $0.height) })"
+            )
+        }
+    }
+
     /// 前月ボタンをタップすると onPrevMonth が呼ばれる。
     func test_tapPrevMonth_callsOnPrevMonth() throws {
         var called = false

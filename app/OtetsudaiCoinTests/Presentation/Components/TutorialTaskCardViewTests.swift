@@ -48,4 +48,20 @@ final class TutorialTaskCardViewTests: XCTestCase {
         ]
         XCTAssertTrue(fills.contains { expected.contains($0) }, "observed fills: \(fills)")
     }
+
+    /// #151: 未選択カードの背景は実 UI の TaskCardView と同じ適応色を使う。
+    /// チュートリアルの見本が実画面と違う見え方をしないよう揃える。
+    func testUnselectedCardBackgroundUsesAdaptiveColor() throws {
+        let view = TutorialTaskCardView(task: makeTask(), isSelected: false, onTap: {})
+        let fills = try view.inspect().findAll(ViewType.Shape.self).compactMap { try? $0.fillShapeStyle(Color.self) }
+
+        XCTAssertTrue(
+            fills.contains(AccessibilityColors.systemBackgroundSecondary),
+            "未選択カードの背景が適応色でない / observed fills: \(fills)"
+        )
+        XCTAssertFalse(
+            fills.contains(Color.gray.opacity(0.05)),
+            "ダークモードで消える gray.opacity(0.05) が残っている / observed fills: \(fills)"
+        )
+    }
 }

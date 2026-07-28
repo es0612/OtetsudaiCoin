@@ -466,7 +466,8 @@ struct TutorialTaskCardView: View {
             .frame(height: 120)
             .background(
                 RoundedRectangle(cornerRadius: AppRadius.large)
-                    .fill(isSelected ? AccessibilityColors.brandPrimary.opacity(0.1) : Color.gray.opacity(0.05))
+                    // #151: 実 UI の TaskCardView と同じ適応色に揃える (ダークモードで沈まない)
+                    .fill(isSelected ? AccessibilityColors.brandPrimary.opacity(0.1) : AccessibilityColors.systemBackgroundSecondary)
                     .overlay(
                         RoundedRectangle(cornerRadius: AppRadius.large)
                             .stroke(isSelected ? AccessibilityColors.brandPrimary : Color.clear, lineWidth: 2)

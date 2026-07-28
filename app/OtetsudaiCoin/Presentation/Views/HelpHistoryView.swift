@@ -342,18 +342,25 @@ struct HelpRecordRow: View {
             // アクションボタン
             HStack(spacing: 12) {
                 // 編集ボタン
+                // #151: アイコン実寸 (約 16pt) がそのままタップ領域だったため、
+                // HIG の最小 44×44pt まで広げる。contentShape で frame 全体を
+                // 当たり判定にする (frame だけではアイコンの形のまま)。
                 Button(action: onEdit) {
                     Image(systemName: "pencil")
                         .font(.system(size: 16))
                         .foregroundColor(.blue)
+                        .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(PlainButtonStyle())
-                
+
                 // 削除ボタン
                 Button(action: onDelete) {
                     Image(systemName: "trash")
                         .font(.system(size: 16))
                         .foregroundColor(.red)
+                        .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(PlainButtonStyle())
             }

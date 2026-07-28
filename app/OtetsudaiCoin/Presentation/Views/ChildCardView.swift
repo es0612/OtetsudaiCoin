@@ -44,7 +44,8 @@ struct ChildCardView: View {
             .frame(width: 120)
             .background(
                 RoundedRectangle(cornerRadius: AppRadius.medium)
-                    .fill(isSelected ? themeColor.opacity(0.1) : Color.gray.opacity(0.05))
+                    // #151: 未選択時は gray.opacity(0.05) だとダークモードで地に沈むため適応色を使う
+                    .fill(isSelected ? themeColor.opacity(0.1) : AccessibilityColors.systemBackgroundSecondary)
                     .overlay(
                         RoundedRectangle(cornerRadius: AppRadius.medium)
                             .stroke(isSelected ? themeColor : Color.clear, lineWidth: 2)
