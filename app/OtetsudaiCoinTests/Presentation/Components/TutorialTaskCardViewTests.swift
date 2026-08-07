@@ -48,4 +48,5 @@ final class TutorialTaskCardViewTests: XCTestCase {
         ]
         XCTAssertTrue(fills.contains { expected.contains($0) }, "observed fills: \(fills)")
     }
+
 }

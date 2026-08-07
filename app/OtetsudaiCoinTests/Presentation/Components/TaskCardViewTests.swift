@@ -122,4 +122,28 @@ final class TaskCardViewTests: XCTestCase {
         ]
         XCTAssertTrue(fills.contains { expected.contains($0) }, "observed fills: \(fills)")
     }
+
+    /// #151: 未選択カードの背景はダークモードで消えない適応色を使う。
+    ///
+    /// 修正前は `Color.gray.opacity(0.05)` の極薄塗りで、黒地ではほぼ見えず
+    /// カードの境界が失われていた。`systemBackgroundSecondary`
+    /// (`Color(.secondarySystemBackground)`) はライト/ダークで明度が反転するため
+    /// どちらでも地との差が残る。
+    ///
+    /// hex リテラル直書きではなくトークン定数と比較することで、
+    /// トークン側の値を変えたときにテストが追随する。
+    func testUnselectedCardBackgroundUsesAdaptiveColor() throws {
+        let view = TaskCardView(task: makeTask(), isSelected: false, onTap: {})
+        let shapes = try view.inspect().findAll(ViewType.Shape.self)
+        let fills = shapes.compactMap { try? $0.fillShapeStyle(Color.self) }
+
+        XCTAssertTrue(
+            fills.contains(AccessibilityColors.systemBackgroundSecondary),
+            "未選択カードの背景が適応色でない / observed fills: \(fills)"
+        )
+        XCTAssertFalse(
+            fills.contains(Color.gray.opacity(0.05)),
+            "ダークモードで消える gray.opacity(0.05) が残っている / observed fills: \(fills)"
+        )
+    }
 }

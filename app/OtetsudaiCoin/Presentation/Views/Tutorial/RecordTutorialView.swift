@@ -466,6 +466,10 @@ struct TutorialTaskCardView: View {
             .frame(height: 120)
             .background(
                 RoundedRectangle(cornerRadius: AppRadius.large)
+                    // #151: このカードはグラデ背景 + .ultraThinMaterial パネル (:345) の上に
+                    // 乗っているため、不透明な systemBackgroundSecondary へ置き換えると
+                    // 透過表現を潰してしまう。Tutorial 画面のダークモード方針
+                    // (issue #151 本文「グラデ背景上の白文字は未検証」) が決まるまで据え置く。
                     .fill(isSelected ? AccessibilityColors.brandPrimary.opacity(0.1) : Color.gray.opacity(0.05))
                     .overlay(
                         RoundedRectangle(cornerRadius: AppRadius.large)

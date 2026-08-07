@@ -45,7 +45,8 @@ struct RecordCalendarView: View {
     private var header: some View {
         HStack {
             Button(action: onPrevMonth) {
-                Text("‹").font(.title2).frame(width: 44, height: 32)
+                // #151: HIG の最小タップ領域 44×44pt を満たす (以前は高さ 32pt)
+                Text("‹").font(.title2).frame(width: 44, height: 44)
             }
             .accessibilityIdentifier("calendar_prev_month")
             .accessibilityLabel(Text(String(localized: "前の月")))
@@ -55,7 +56,7 @@ struct RecordCalendarView: View {
             Spacer()
 
             Button(action: onNextMonth) {
-                Text("›").font(.title2).frame(width: 44, height: 32)
+                Text("›").font(.title2).frame(width: 44, height: 44)
                     .opacity(canGoNextMonth ? 1 : 0.3)
             }
             .disabled(!canGoNextMonth)

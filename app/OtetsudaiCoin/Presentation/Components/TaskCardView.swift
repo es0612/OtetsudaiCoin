@@ -110,7 +110,9 @@ struct TaskCardView: View {
 
     private var cardBackground: some View {
         RoundedRectangle(cornerRadius: AppRadius.large)
-            .fill(isSelected ? AccessibilityColors.brandPrimary.opacity(0.1) : Color.gray.opacity(0.05))
+            // #151: 未選択時は gray.opacity(0.05) だとダークモードで地に沈んで
+            // カードの境界が消える。ライト/ダークで明度が反転する適応色を使う。
+            .fill(isSelected ? AccessibilityColors.brandPrimary.opacity(0.1) : AccessibilityColors.systemBackgroundSecondary)
             .overlay(
                 RoundedRectangle(cornerRadius: AppRadius.large)
                     .stroke(isSelected ? AccessibilityColors.brandPrimary : Color.clear, lineWidth: 2)
