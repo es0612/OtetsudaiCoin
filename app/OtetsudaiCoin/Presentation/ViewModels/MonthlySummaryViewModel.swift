@@ -177,6 +177,11 @@ class MonthlySummaryViewModel {
                 paymentStatus: paymentStatus
             )
         } catch {
+            // #173: 以前はログすら残らず、ユーザーには空表示だけが見えて
+            // 「記録が無い月」と「取得に失敗した月」を区別できなかった。
+            // snapshot は破棄したまま（月ラベルと数字の取り違えを避ける）で、
+            // 原因追跡の手掛かりだけ残す。
+            DebugLogger.error("loadMonth failed: \(error)")
             self.snapshot = nil
         }
     }

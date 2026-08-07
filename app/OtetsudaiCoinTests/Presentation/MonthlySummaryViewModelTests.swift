@@ -324,4 +324,40 @@ final class MonthlySummaryViewModelTests: XCTestCase {
             "獲得 0 の月は支払い対象なし → .paid（CTA 非表示）。空月で ¥0 CTA が出る回帰を防ぐ"
         )
     }
+
+    // MARK: - #173 Finding 1: 取得失敗時の挙動
+
+    /// 取得に失敗しても isLoading は必ず戻り、ローディング表示に貼り付かない。
+    ///
+    /// #173 で追加した `DebugLogger.error` は静的メソッドで差し替え口が無いため
+    /// 「ログが出たこと」自体は assert していない（同ファイル :119 の
+    /// `payCurrentMonth` の catch も同じ流儀）。ここで固定するのは、
+    /// 未テストのまま放置されていた catch 経路の観測可能な挙動。
+    @MainActor
+    func testLoadMonthFailureClearsLoadingAndSnapshot() async {
+        mockHelpRecordRepository.shouldThrowError = true
+
+        await viewModel.loadMonth()
+
+        XCTAssertFalse(viewModel.isLoading, "取得失敗後も isLoading が true のままだと画面がスピナーで固まる")
+        XCTAssertNil(viewModel.snapshot, "取得失敗時は snapshot を持たない")
+    }
+
+    /// 失敗は直前の成功結果を残さない。
+    ///
+    /// snapshot を残すと「新しい月のラベル + 前の月の数字」という
+    /// 取り違えを起こすため、意図的に破棄する挙動を固定する。
+    @MainActor
+    func testLoadMonthFailureDiscardsPreviouslyLoadedSnapshot() async {
+        mockHelpTaskRepository.tasks = []
+        mockHelpRecordRepository.records = []
+        mockAllowancePaymentRepository.payments = []
+        await viewModel.loadMonth()
+        XCTAssertNotNil(viewModel.snapshot, "前提: 一度は取得に成功している")
+
+        mockHelpRecordRepository.shouldThrowError = true
+        await viewModel.loadMonth()
+
+        XCTAssertNil(viewModel.snapshot, "失敗時に前回の snapshot が残ると月と数字が食い違う")
+    }
 }
