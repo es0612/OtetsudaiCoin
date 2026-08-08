@@ -30,7 +30,7 @@ log_error() {
 }
 
 # デフォルト設定
-SIMULATOR_NAME="iPhone 16"
+SIMULATOR_NAME="iPhone 17"
 SIMULATOR_OS="iOS"
 WARMUP_TIMEOUT=30
 VERBOSE=false
@@ -44,7 +44,7 @@ show_help() {
   $0 [オプション]
 
 オプション:
-  -s, --simulator NAME     シミュレータ名 (デフォルト: iPhone 16)
+  -s, --simulator NAME     シミュレータ名 (デフォルト: iPhone 17)
   -t, --timeout SECONDS   ウォームアップタイムアウト (デフォルト: 30秒)
   -v, --verbose           詳細ログ出力
   -h, --help              このヘルプを表示
