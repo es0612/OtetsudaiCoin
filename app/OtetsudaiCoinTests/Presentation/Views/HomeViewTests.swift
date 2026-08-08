@@ -7,6 +7,7 @@ import UIKit
 
 final class HomeViewTests: XCTestCase {
     private var viewModel: HomeViewModel!
+    private var childManagementViewModel: ChildManagementViewModel!
     private var mockChildRepository: MockChildRepository!
     private var mockHelpRecordRepository: MockHelpRecordRepository!
     private var mockHelpTaskRepository: MockHelpTaskRepository!
@@ -29,9 +30,11 @@ final class HomeViewTests: XCTestCase {
             allowanceCalculator: mockAllowanceCalculator,
             allowancePaymentRepository: mockAllowancePaymentRepository
         )
+        childManagementViewModel = ChildManagementViewModel(childRepository: mockChildRepository)
     }
-    
+
     override func tearDown() {
+        childManagementViewModel = nil
         viewModel = nil
         mockAllowancePaymentRepository = nil
         mockAllowanceCalculator = nil
@@ -49,7 +52,7 @@ final class HomeViewTests: XCTestCase {
         ]
         viewModel.children = children
         
-        let view = HomeView(viewModel: viewModel)
+        let view = HomeView(viewModel: viewModel, childManagementViewModel: childManagementViewModel)
         
         // LazyVStackを使用しているため、テキストの存在を直接確認
         XCTAssertNoThrow(try view.inspect().find(text: "太郎"))
@@ -71,14 +74,14 @@ final class HomeViewTests: XCTestCase {
         XCTAssertEqual(viewModel.totalRecordsThisMonth, 8)
         
         // Viewが作成できることを確認
-        let view = HomeView(viewModel: viewModel)
+        let view = HomeView(viewModel: viewModel, childManagementViewModel: childManagementViewModel)
         XCTAssertNotNil(view)
     }
     
     @MainActor
     func testHomeViewDisplaysLoadingState() throws {
         // @Observableでは状態を直接変更できないため、テストを簡略化
-        let view = HomeView(viewModel: viewModel)
+        let view = HomeView(viewModel: viewModel, childManagementViewModel: childManagementViewModel)
         
         XCTAssertNotNil(view)
     }
@@ -86,7 +89,7 @@ final class HomeViewTests: XCTestCase {
     @MainActor
     func testHomeViewDisplaysErrorMessage() throws {
         // @Observableでは状態を直接変更できないため、テストを簡略化
-        let view = HomeView(viewModel: viewModel)
+        let view = HomeView(viewModel: viewModel, childManagementViewModel: childManagementViewModel)
         
         XCTAssertNotNil(view)
     }
@@ -99,7 +102,7 @@ final class HomeViewTests: XCTestCase {
         ]
         viewModel.children = children
         
-        let view = HomeView(viewModel: viewModel)
+        let view = HomeView(viewModel: viewModel, childManagementViewModel: childManagementViewModel)
         
         // LazyVStackの中のボタンを探す
         let button = try view.inspect().find(ViewType.Button.self, containing: "太郎")
@@ -113,7 +116,7 @@ final class HomeViewTests: XCTestCase {
     func testHomeViewDisplaysEmptyStateWhenNoChildren() throws {
         viewModel.children = []
         
-        let view = HomeView(viewModel: viewModel)
+        let view = HomeView(viewModel: viewModel, childManagementViewModel: childManagementViewModel)
         
         XCTAssertNoThrow(try view.inspect().find(text: "お子様を登録してください", locale: Locale(identifier: "ja")))
     }
@@ -132,7 +135,7 @@ final class HomeViewTests: XCTestCase {
         viewModel.unpaidWarningMessage = "12月分のお小遣いが未払いです"
         viewModel.totalUnpaidAmount = 500
         
-        let view = HomeView(viewModel: viewModel)
+        let view = HomeView(viewModel: viewModel, childManagementViewModel: childManagementViewModel)
         
         // 未支払い警告バナーの表示をテスト
         XCTAssertNoThrow(try view.inspect().find(text: "未支払いのお小遣いがあります", locale: Locale(identifier: "ja")))
@@ -154,7 +157,7 @@ final class HomeViewTests: XCTestCase {
         viewModel.unpaidWarningMessage = "太郎の未支払いのお小遣いが500コインあります。"
         viewModel.totalUnpaidAmount = 500
 
-        let view = HomeView(viewModel: viewModel)
+        let view = HomeView(viewModel: viewModel, childManagementViewModel: childManagementViewModel)
 
         // バナーが表示されること
         XCTAssertNoThrow(try view.inspect().find(text: "未支払いのお小遣いがあります", locale: Locale(identifier: "ja")))
@@ -173,7 +176,7 @@ final class HomeViewTests: XCTestCase {
         viewModel.showUnpaidWarning = false
         viewModel.totalUnpaidAmount = 0
         
-        let view = HomeView(viewModel: viewModel)
+        let view = HomeView(viewModel: viewModel, childManagementViewModel: childManagementViewModel)
         
         // 未支払い警告バナーが表示されないことをテスト
         XCTAssertThrowsError(try view.inspect().find(text: "未支払いのお小遣いがあります", locale: Locale(identifier: "ja")))
@@ -183,7 +186,7 @@ final class HomeViewTests: XCTestCase {
     
     @MainActor
     func testHomeViewUsesNavigationStack() throws {
-        let view = HomeView(viewModel: viewModel)
+        let view = HomeView(viewModel: viewModel, childManagementViewModel: childManagementViewModel)
         
         // NavigationStackが使用されていることを確認
         XCTAssertNoThrow(try view.inspect().find(ViewType.NavigationStack.self))
@@ -198,7 +201,7 @@ final class HomeViewTests: XCTestCase {
         viewModel.selectedChild = child
         viewModel.children = [child]
         
-        let view = HomeView(viewModel: viewModel)
+        let view = HomeView(viewModel: viewModel, childManagementViewModel: childManagementViewModel)
         
         // Viewが正常に作成されることを確認（レスポンシブレイアウト対応）
         XCTAssertNotNil(view)

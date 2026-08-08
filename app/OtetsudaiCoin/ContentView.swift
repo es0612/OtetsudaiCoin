@@ -72,7 +72,7 @@ struct ContentView: View {
     
     private var mainAppView: some View {
         TabView(selection: $selectedTab) {
-            HomeView(viewModel: homeViewModel)
+            HomeView(viewModel: homeViewModel, childManagementViewModel: childManagementViewModel)
                 .tabItem {
                     Image(systemName: "house.fill")
                     Text("ホーム")

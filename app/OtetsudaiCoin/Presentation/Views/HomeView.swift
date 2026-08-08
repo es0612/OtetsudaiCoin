@@ -3,6 +3,8 @@ import UIKit
 
 struct HomeView: View {
     @Bindable var viewModel: HomeViewModel
+    // 子ども 0 人時の空状態 CTA から ChildFormView を開くための pass-through (Issue #149)
+    let childManagementViewModel: ChildManagementViewModel
 
     var body: some View {
         NavigationStack {
