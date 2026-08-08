@@ -130,7 +130,7 @@ struct HelpRecordEditView: View {
                     Text("変更を保存")
                 }
             }
-            .primaryButton(isDisabled: !viewModel.hasChanges || viewModel.isLoading)
+            .primaryButton()
             .disabled(!viewModel.hasChanges || viewModel.isLoading)
             
             // 削除ボタン
@@ -142,7 +142,7 @@ struct HelpRecordEditView: View {
                     Text("記録を削除")
                 }
             }
-            .destructiveButton(isDisabled: viewModel.isLoading)
+            .destructiveButton()
             .disabled(viewModel.isLoading)
         }
     }

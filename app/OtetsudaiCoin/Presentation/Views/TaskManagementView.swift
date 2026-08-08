@@ -229,7 +229,7 @@ struct TaskFormView: View {
                     }) {
                         Text(isEditing ? "更新" : "追加")
                     }
-                    .successButton(isDisabled: taskName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    .successButton()
                     .disabled(taskName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }

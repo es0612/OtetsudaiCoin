@@ -75,6 +75,8 @@ enum AppShadow {
     static let cardElevated = AppShadowStyle(color: .black.opacity(0.08), radius: 4, x: 0, y: 2)
     /// 強い影（フローティング要素・ヒーローカード）: 黒10% / radius 10 / y5
     static let floating = AppShadowStyle(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
+    /// 影なし（無効状態のボタン等）
+    static let none = AppShadowStyle(color: .clear, radius: 0, x: 0, y: 0)
 }
 
 // MARK: - SwiftUI View Extensions
