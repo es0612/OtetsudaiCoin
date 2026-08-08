@@ -162,7 +162,7 @@ struct ChildTutorialView: View {
                         Text("お子様を追加")
                     }
                 }
-                .primaryButton(isDisabled: hasAddedChild)
+                .primaryButton()
                 .disabled(hasAddedChild)
             }
         }

@@ -105,7 +105,7 @@ struct ChildFormView: View {
                             Text(isEditing ? "更新" : "追加")
                         }
                     }
-                    .primaryButton(isDisabled: !isValidInput)
+                    .primaryButton()
                     .disabled(!isValidInput)
                     .accessibilityIdentifier("main_save_button")
                 }
