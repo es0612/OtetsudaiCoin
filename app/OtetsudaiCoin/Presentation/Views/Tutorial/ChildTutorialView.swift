@@ -161,19 +161,8 @@ struct ChildTutorialView: View {
                         Image(systemName: "plus.circle.fill")
                         Text("お子様を追加")
                     }
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 32)
-                    .padding(.vertical, 16)
-                    .background(
-                        AccessibilityColors.brandPrimary
-                    )
-                    .clipShape(Capsule())
-                    .shadow(radius: 8)
                 }
-                .scaleEffect(hasAddedChild ? 0.8 : 1.0)
-                .opacity(hasAddedChild ? 0.5 : 1.0)
+                .primaryButton(isDisabled: hasAddedChild)
                 .disabled(hasAddedChild)
             }
         }
