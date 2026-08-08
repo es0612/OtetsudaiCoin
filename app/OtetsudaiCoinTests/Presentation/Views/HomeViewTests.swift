@@ -120,6 +120,38 @@ final class HomeViewTests: XCTestCase {
         
         XCTAssertNoThrow(try view.inspect().find(text: "お子様を登録してください", locale: Locale(identifier: "ja")))
     }
+
+    @MainActor
+    func testHomeViewEmptyStateShowsAddChildCTA() throws {
+        // Issue #149: 子ども 0 人時の空状態に「新しい子供を追加」CTA を表示する。
+        // 空状態には Image(systemName:)+.foregroundColor (AccessibilityImageLabel blocker)
+        // があるため、find(viewWithAccessibilityIdentifier:) ではなく findAll ベースで検証する
+        // (iOS 26 + ViewInspector 0.10.2 の既知制約)。
+        viewModel.children = []
+
+        let view = HomeView(viewModel: viewModel, childManagementViewModel: childManagementViewModel)
+
+        // CTA ラベル Text が描画されること (findAll は blocker を跨いで Text を列挙できる)。
+        // test host は en locale で走るため、既存テストの find(text:locale:) と同様に
+        // string(locale: ja) でローカライズキーを ja 解決して比較する。
+        let ja = Locale(identifier: "ja")
+        let texts = try view.inspect().findAll(ViewType.Text.self).compactMap { try? $0.string(locale: ja) }
+        XCTAssertTrue(
+            texts.contains("新しい子供を追加"),
+            "空状態に CTA ラベルが見つからない。rendered texts: \(texts)"
+        )
+
+        // CTA が Button として存在すること (label 内 Text でフィルタ)
+        let buttons = try view.inspect().findAll(ViewType.Button.self)
+        let ctaButtons = buttons.filter { button in
+            let labelTexts = (try? button.labelView().findAll(ViewType.Text.self).compactMap { try? $0.string(locale: ja) }) ?? []
+            return labelTexts.contains("新しい子供を追加")
+        }
+        XCTAssertEqual(
+            ctaButtons.count, 1,
+            "CTA ボタンが 1 個であること。buttons: \(buttons.count) 個, rendered texts: \(texts)"
+        )
+    }
     
     @MainActor
     func testHomeViewDisplaysUnpaidWarningBanner() throws {
