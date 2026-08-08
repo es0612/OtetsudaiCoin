@@ -6,7 +6,7 @@
 set -euo pipefail
 
 # 設定
-SIMULATOR_NAME="iPhone 16"
+SIMULATOR_NAME="iPhone 17"
 PROJECT_PATH="/Users/shinya/workspace/claude/OtetsudaiCoin/app/OtetsudaiCoin.xcodeproj"
 SCHEME="OtetsudaiCoin"
 TEST_TARGET="OtetsudaiCoinTests/AllowanceCalculatorTests"
