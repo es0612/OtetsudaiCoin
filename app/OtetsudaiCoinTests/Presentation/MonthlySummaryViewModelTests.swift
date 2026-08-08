@@ -143,8 +143,12 @@ final class MonthlySummaryViewModelTests: XCTestCase {
         XCTAssertEqual(snap.taskBreakdown.first?.count, 2)
         XCTAssertEqual(snap.highlights.consecutiveDayStreak, 1)
         XCTAssertEqual(snap.paymentStatus, .unpaid)
-        XCTAssertTrue(snap.monthLabel.contains("\(thisMonth.year!)"))
-        XCTAssertTrue(snap.monthLabel.contains("\(thisMonth.month!)"))
+        // monthLabel は locale 依存 (en: "August 2026" は数字の月を含まない) ため、
+        // 数字 contains ではなく helper と同一出力であることを assert する。
+        let expectedLabel = MonthlySummaryViewModel.monthLabel(
+            year: thisMonth.year!, month: thisMonth.month!, locale: Locale.current
+        )
+        XCTAssertEqual(snap.monthLabel, expectedLabel, "rendered: \(snap.monthLabel)")
     }
 
     @MainActor
@@ -359,5 +363,24 @@ final class MonthlySummaryViewModelTests: XCTestCase {
         await viewModel.loadMonth()
 
         XCTAssertNil(viewModel.snapshot, "失敗時に前回の snapshot が残ると月と数字が食い違う")
+    }
+
+    // MARK: - 月ラベルの i18n (#155 コメント報告分)
+
+    /// ja では現行表記「2026年7月」と同一であること (非退行)。
+    func testMonthLabelJapaneseLocaleKeepsCurrentStyle() {
+        let label = MonthlySummaryViewModel.monthLabel(
+            year: 2026, month: 7, locale: Locale(identifier: "ja_JP")
+        )
+        XCTAssertEqual(label, "2026年7月", "rendered: \(label)")
+    }
+
+    /// en では日本語ハードコードではなく「July 2026」相当になること。
+    func testMonthLabelEnglishLocaleUsesLocalizedTemplate() {
+        let label = MonthlySummaryViewModel.monthLabel(
+            year: 2026, month: 7, locale: Locale(identifier: "en_US")
+        )
+        XCTAssertEqual(label, "July 2026", "rendered: \(label)")
+        XCTAssertFalse(label.contains("年"), "en locale に日本語表記が混入: \(label)")
     }
 }

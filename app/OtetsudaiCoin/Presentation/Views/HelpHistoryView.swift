@@ -221,25 +221,47 @@ struct HelpHistoryView: View {
     }
     
     private var groupedRecords: [(key: String, value: [HelpRecordWithDetails])] {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "M月d日 (E)"
-        formatter.locale = Locale(identifier: "ja_JP")
-        
+        let locale = Locale.current
+
         let grouped = Dictionary(grouping: viewModel.helpRecords) { record in
-            formatter.string(from: record.helpRecord.recordedAt)
+            Self.dayGroupLabel(from: record.helpRecord.recordedAt, locale: locale)
         }
-        
+
         return grouped.sorted { lhs, rhs in
             let lhsDate = viewModel.helpRecords.first { record in
-                formatter.string(from: record.helpRecord.recordedAt) == lhs.key
+                Self.dayGroupLabel(from: record.helpRecord.recordedAt, locale: locale) == lhs.key
             }?.helpRecord.recordedAt ?? Date.distantPast
-            
+
             let rhsDate = viewModel.helpRecords.first { record in
-                formatter.string(from: record.helpRecord.recordedAt) == rhs.key
+                Self.dayGroupLabel(from: record.helpRecord.recordedAt, locale: locale) == rhs.key
             }?.helpRecord.recordedAt ?? Date.distantPast
-            
+
             return lhsDate > rhsDate
         }
+    }
+
+    /// 履歴の日付グループ見出しを locale に応じて生成する (#155 コメント報告の i18n 漏れ対応)。
+    ///
+    /// 旧実装は `dateFormat = "M月d日 (E)"` + ja_JP 固定で、en ロケールでも日本語表記が出ていた。
+    /// `MMMEd` テンプレートは ja で「7月15日(水)」(現行「7月15日 (水)」とほぼ同一、括弧前スペースのみ差)、
+    /// en で「Wed, Jul 15」になる。テスト可能にするため locale を引数に取る static helper とする。
+    static func dayGroupLabel(from date: Date, locale: Locale) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = locale
+        formatter.setLocalizedDateFormatFromTemplate("MMMEd")
+        return formatter.string(from: date)
+    }
+
+    /// 記録時刻を locale に応じて生成する (#155 コメント報告の i18n 漏れ対応)。
+    ///
+    /// 旧実装は `HelpRecordRow` 内の private func で ja_JP 固定になっており、
+    /// en ロケールでも 24 時間表記が強制されていた。`.short` スタイルは
+    /// ja で「9:05」(現行と同一)、en で「9:05 AM」になる。
+    static func timeString(from date: Date, locale: Locale) -> String {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        formatter.locale = locale
+        return formatter.string(from: date)
     }
     
     private func createEditView(for record: HelpRecordWithDetails) -> some View {
@@ -319,7 +341,7 @@ struct HelpRecordRow: View {
                     .lineLimit(1)
                 
                 HStack(spacing: 8) {
-                    Text(timeString(from: record.helpRecord.recordedAt))
+                    Text(HelpHistoryView.timeString(from: record.helpRecord.recordedAt, locale: Locale.current))
                         .font(.caption)
                         .foregroundColor(.secondary)
                     
@@ -371,12 +393,6 @@ struct HelpRecordRow: View {
         .padding(.vertical, 8)
     }
     
-    private func timeString(from date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.timeStyle = .short
-        formatter.locale = Locale(identifier: "ja_JP")
-        return formatter.string(from: date)
-    }
 }
 
 

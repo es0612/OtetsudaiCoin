@@ -164,7 +164,7 @@ class MonthlySummaryViewModel {
                 expected: totalCoins
             )
 
-            let monthLabel = "\(year)年\(month)月"
+            let monthLabel = Self.monthLabel(year: year, month: month, locale: Locale.current)
 
             self.snapshot = MonthSnapshot(
                 monthLabel: monthLabel,
@@ -184,6 +184,27 @@ class MonthlySummaryViewModel {
             DebugLogger.error("loadMonth failed: \(error)")
             self.snapshot = nil
         }
+    }
+
+    /// 表示用の月ラベルを locale に応じて生成する (#155 コメント報告の i18n 漏れ対応)。
+    ///
+    /// 旧実装は "\(year)年\(month)月" の日本語ハードコードで、en ロケールでも
+    /// 日本語表記が出ていた。`yMMMM` テンプレートは ja で「2026年7月」(現行と同一)、
+    /// en で「July 2026」になる。テスト可能にするため locale を引数に取る static helper とする。
+    nonisolated static func monthLabel(year: Int, month: Int, locale: Locale) -> String {
+        var components = DateComponents()
+        components.year = year
+        components.month = month
+        components.day = 1
+        let calendar = Calendar(identifier: .gregorian)
+        guard let date = calendar.date(from: components) else {
+            return "\(year)/\(month)"
+        }
+        let formatter = DateFormatter()
+        formatter.calendar = calendar
+        formatter.locale = locale
+        formatter.setLocalizedDateFormatFromTemplate("yMMMM")
+        return formatter.string(from: date)
     }
 
     private func computeTaskBreakdown(records: [HelpRecord], taskMap: [UUID: HelpTask]) -> [MonthSnapshot.TaskBreakdownItem] {
