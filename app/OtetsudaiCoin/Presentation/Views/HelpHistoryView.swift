@@ -221,35 +221,43 @@ struct HelpHistoryView: View {
     }
     
     private var groupedRecords: [(key: String, value: [HelpRecordWithDetails])] {
-        let locale = Locale.current
+        // formatter 生成 (ICU 初期化) は安くないため、旧実装同様に 1 インスタンスを
+        // grouping / sort lookup で使い回す (sort lookup は O(n²) 回呼ばれる)。
+        let formatter = Self.makeDayGroupFormatter(locale: Locale.current)
 
         let grouped = Dictionary(grouping: viewModel.helpRecords) { record in
-            Self.dayGroupLabel(from: record.helpRecord.recordedAt, locale: locale)
+            formatter.string(from: record.helpRecord.recordedAt)
         }
 
         return grouped.sorted { lhs, rhs in
             let lhsDate = viewModel.helpRecords.first { record in
-                Self.dayGroupLabel(from: record.helpRecord.recordedAt, locale: locale) == lhs.key
+                formatter.string(from: record.helpRecord.recordedAt) == lhs.key
             }?.helpRecord.recordedAt ?? Date.distantPast
 
             let rhsDate = viewModel.helpRecords.first { record in
-                Self.dayGroupLabel(from: record.helpRecord.recordedAt, locale: locale) == rhs.key
+                formatter.string(from: record.helpRecord.recordedAt) == rhs.key
             }?.helpRecord.recordedAt ?? Date.distantPast
 
             return lhsDate > rhsDate
         }
     }
 
-    /// 履歴の日付グループ見出しを locale に応じて生成する (#155 コメント報告の i18n 漏れ対応)。
+    /// 履歴の日付グループ見出し用の locale 対応 formatter を生成する (#155 コメント報告の i18n 漏れ対応)。
     ///
     /// 旧実装は `dateFormat = "M月d日 (E)"` + ja_JP 固定で、en ロケールでも日本語表記が出ていた。
     /// `MMMEd` テンプレートは ja で「7月15日(水)」(現行「7月15日 (水)」とほぼ同一、括弧前スペースのみ差)、
-    /// en で「Wed, Jul 15」になる。テスト可能にするため locale を引数に取る static helper とする。
-    static func dayGroupLabel(from date: Date, locale: Locale) -> String {
+    /// en で「Wed, Jul 15」になる。
+    static func makeDayGroupFormatter(locale: Locale) -> DateFormatter {
         let formatter = DateFormatter()
         formatter.locale = locale
         formatter.setLocalizedDateFormatFromTemplate("MMMEd")
-        return formatter.string(from: date)
+        return formatter
+    }
+
+    /// `makeDayGroupFormatter` の薄い wrapper。単発フォーマット / テスト用。
+    /// `groupedRecords` のようなループ内では formatter を 1 度だけ作って使い回すこと。
+    static func dayGroupLabel(from date: Date, locale: Locale) -> String {
+        makeDayGroupFormatter(locale: locale).string(from: date)
     }
 
     /// 記録時刻を locale に応じて生成する (#155 コメント報告の i18n 漏れ対応)。
