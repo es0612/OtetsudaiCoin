@@ -3,6 +3,9 @@ import UIKit
 
 struct HomeView: View {
     @Bindable var viewModel: HomeViewModel
+    // 子ども 0 人時の空状態 CTA から ChildFormView を開くための pass-through (Issue #149)
+    let childManagementViewModel: ChildManagementViewModel
+    @State private var showingAddChildForm = false
 
     var body: some View {
         NavigationStack {
@@ -34,6 +37,18 @@ struct HomeView: View {
                             .appFont(.sectionHeader)
                             .foregroundColor(AccessibilityColors.textSecondary)
                             .padding()
+                        // Issue #149: 空状態から直接子ども登録へ進める CTA
+                        // (履歴画面の空状態 CTA と同じ .primaryButton() パターン)
+                        Button(action: {
+                            showingAddChildForm = true
+                        }) {
+                            HStack {
+                                Image(systemName: "plus.circle.fill")
+                                Text("新しい子供を追加")
+                            }
+                        }
+                        .primaryButton()
+                        .accessibilityIdentifier("home_empty_add_child_button")
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
@@ -62,6 +77,10 @@ struct HomeView: View {
                 // 自動再ロードと競合してメイン画面が空表示のまま固定されるケースが残っていた。
                 await viewModel.loadChildrenAsync()
             }
+        }
+        .sheet(isPresented: $showingAddChildForm) {
+            // SettingsView の追加フローと同じ形 (ChildFormView + editingChild: nil)
+            ChildFormView(viewModel: childManagementViewModel, editingChild: nil)
         }
         .alert("エラー", isPresented: .constant(viewModel.errorMessage != nil)) {
             Button("OK") {
