@@ -1,5 +1,6 @@
 import XCTest
 import Observation
+import os
 @testable import OtetsudaiCoin
 
 /// `BaseViewModel` を継承した ViewModel の「サブクラスで新規宣言した stored property」が
@@ -24,14 +25,17 @@ final class ViewModelObservationTrackingTests: XCTestCase {
         access: () -> Void,
         mutate: () -> Void
     ) -> Bool {
-        var fired = false
+        // #154: `onChange` は @Sendable クロージャなので、ローカル var を直接
+        // 書き換えると strict concurrency 警告 (Swift 6 ではエラー) になる。
+        // 発火は同期なので、Sendable な lock 越しの boolean で受ける。
+        let fired = OSAllocatedUnfairLock(initialState: false)
         withObservationTracking {
             access()
         } onChange: {
-            fired = true
+            fired.withLock { $0 = true }
         }
         mutate()
-        return fired
+        return fired.withLock { $0 }
     }
 
     // MARK: - ChildManagementViewModel（サブクラスで `children` を宣言）

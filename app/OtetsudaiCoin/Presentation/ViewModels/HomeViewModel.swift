@@ -120,14 +120,14 @@ class HomeViewModel: BaseViewModel {
                 // 処理開始時の選択された子供を保持
                 let processChild = child
 
-                // データ取得を並行処理で高速化
-                async let recordsTask = helpRecordRepository.findByChildIdInCurrentMonth(processChild.id)
-                async let tasksTask = helpTaskRepository.findAll()
-                async let paymentTask = getCurrentMonthPayment(for: processChild.id)
-
-                let records = try await recordsTask
-                let tasks = try await tasksTask
-                let payment = try await paymentTask
+                // #154 (strict concurrency targeted): リポジトリは非 Sendable のため
+                // `async let` の子タスク (非隔離) へ送れない。逐次 await へ変更する。
+                // 各 fetch は Core Data の background context 上で走るのでメインスレッドは
+                // ブロックせず、コストは「最大値」から「合計値」への増分のみ。
+                // リポジトリの Sendable 化は complete 段階でまとめて扱う。
+                let records = try await helpRecordRepository.findByChildIdInCurrentMonth(processChild.id)
+                let tasks = try await helpTaskRepository.findAll()
+                let payment = try await getCurrentMonthPayment(for: processChild.id)
 
                 // タスクがキャンセルされていないか、選択された子供が変更されていないか確認
                 guard !Task.isCancelled, selectedChild?.id == processChild.id else {
