@@ -196,6 +196,7 @@ OtetsudaiCoin - お手伝いコイン
 - [ ] Archive & Export 成功確認
 - [ ] App Store Connect上でアプリ作成完了
 - [ ] TestFlight配信テスト完了
+- [ ] **Core Data モデルを変更したリリースでは、旧モデル入りの実機/シミュレータへ上書きインストールして migration を spot-check**（in-memory の roundtrip テストが green でも、実ディスク上の旧ストアを開く経路は未実測のため）
 
 ### App Store Connect設定
 - [ ] アプリ情報入力完了
