@@ -20,7 +20,7 @@ struct ChildFormView: View {
                 Section("基本情報") {
                     HStack {
                         Image(systemName: "person.circle.fill")
-                            .foregroundColor(.blue)
+                            .foregroundColor(AccessibilityColors.brandPrimary)
                             .font(.title2)
                         
                         TextField("お子様のお名前", text: $name)
