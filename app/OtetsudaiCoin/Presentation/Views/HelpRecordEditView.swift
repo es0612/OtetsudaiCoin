@@ -185,7 +185,7 @@ struct TaskSelectionRow: View {
                 if isSelected {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.title3)
-                        .foregroundColor(.blue)
+                        .foregroundColor(AccessibilityColors.brandPrimary)
                 }
             }
             .padding(.vertical, 4)

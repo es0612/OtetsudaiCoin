@@ -105,7 +105,7 @@ struct SettingsView: View {
                     }) {
                         HStack {
                             Image(systemName: "list.bullet.clipboard")
-                                .foregroundColor(.blue)
+                                .foregroundColor(AccessibilityColors.brandPrimary)
                             Text("お手伝いリストを編集")
                             Spacer()
                             Image(systemName: "chevron.right")
@@ -216,7 +216,7 @@ struct SettingsView: View {
                 Section("アプリ情報") {
                     HStack {
                         Image(systemName: "info.circle")
-                            .foregroundColor(.blue)
+                            .foregroundColor(AccessibilityColors.brandPrimary)
                         Text("バージョン")
                         Spacer()
                         Text(appVersionText)
@@ -233,7 +233,7 @@ struct SettingsView: View {
                         }) {
                             HStack {
                                 Image(systemName: "arrow.up.right.square")
-                                    .foregroundColor(.blue)
+                                    .foregroundColor(AccessibilityColors.brandPrimary)
                                 Text("App Store でレビューする")
                                 Spacer()
                                 Image(systemName: "chevron.right")

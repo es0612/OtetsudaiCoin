@@ -148,7 +148,7 @@ struct RecordTutorialView: View {
         VStack(spacing: 24) {
             Image(systemName: "person.2.circle.fill")
                 .font(.system(size: 80))
-                .foregroundColor(.blue)
+                .foregroundColor(AccessibilityColors.brandPrimary)
             
             Text("お子様を選択")
                 .font(.largeTitle)
@@ -518,7 +518,7 @@ struct CompletionFeature: View {
         HStack(spacing: 16) {
             Image(systemName: icon)
                 .font(.title2)
-                .foregroundColor(.blue)
+                .foregroundColor(AccessibilityColors.brandPrimary)
                 .frame(width: 30)
             
             VStack(alignment: .leading, spacing: 4) {

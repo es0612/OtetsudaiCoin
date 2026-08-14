@@ -381,7 +381,7 @@ struct HelpRecordRow: View {
                 Button(action: onEdit) {
                     Image(systemName: "pencil")
                         .font(.system(size: 16))
-                        .foregroundColor(.blue)
+                        .foregroundColor(AccessibilityColors.brandPrimary)
                         .frame(width: 44, height: 44)
                         .contentShape(Rectangle())
                 }

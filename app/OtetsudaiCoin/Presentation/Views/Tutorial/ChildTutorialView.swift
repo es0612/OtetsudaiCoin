@@ -125,7 +125,7 @@ struct ChildTutorialView: View {
         VStack(spacing: 24) {
             Image(systemName: "person.circle.fill")
                 .font(.system(size: 80))
-                .foregroundColor(.blue)
+                .foregroundColor(AccessibilityColors.brandPrimary)
             
             Text("最初のお子様を\n登録しましょう")
                 .font(.largeTitle)
@@ -250,7 +250,7 @@ struct FeatureRow: View {
         HStack(spacing: 16) {
             Image(systemName: icon)
                 .font(.title2)
-                .foregroundColor(.blue)
+                .foregroundColor(AccessibilityColors.brandPrimary)
                 .frame(width: 30)
             
             VStack(alignment: .leading, spacing: 4) {
