@@ -230,6 +230,7 @@ en Description / What's New に絵文字を入れない。本ドキュメント 
 - [ ] 対応 issue (#89 / その他 v1.1.2 で close 漏れの issue) を `gh issue close <N> --reason completed --comment "v1.1.3 でリリース"` で処理
 - [ ] v1.1.1 用の GitHub Release を「Latest」マークから外し、v1.1.3 をマーク
 - [ ] `release-retrospective` skill を実行 (v1.1.2 → v1.1.3 の reject と再提出フローの振り返り、特に **同じ ITMS reject を 2 回踏んだ理由** を skill/CI で更にどう塞ぐか検討)
+- [ ] **次リリース手順書 (本ドキュメントをベースに作成) の § 3 コード / プロジェクトへ「Core Data migration spot-check」を追加する** ← #177 項目4。v1.1.3 は model v3 で出荷したが、次リリースは **model v4 の初出荷** (#148 PR #176 で v3→v4 の additive optional 属性を追加) となる。in-memory roundtrip テストは green だが**実ディスク上の v3 ストアを開く経路は未実測**のため、`v1.1.3 (model v3) をインストール済みのシミュレータへ新ビルドを上書き起動し、既存データが消えない / クラッシュしない ことを目視確認する` チェック項目を必ず置く (版非依存の記載は `APP_STORE_SUBMISSION_GUIDE.md` § 提出前チェックリスト § 技術的要件 にもあり)
 
 ## 6. 振り返り (Retrospective)
 
