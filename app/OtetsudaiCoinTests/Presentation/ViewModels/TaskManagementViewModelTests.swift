@@ -236,9 +236,12 @@ final class TaskManagementViewModelTests: XCTestCase {
 
         // 2 つの並べ替えをほぼ同時に発火。直列化されていれば updateSortOrders は
         // 同時に 1 つしか走らない (#130-①)。
-        async let first: Void = viewModel.moveTasks(from: IndexSet(integer: 2), to: 0)
-        async let second: Void = viewModel.moveTasks(from: IndexSet(integer: 0), to: 2)
-        _ = await (first, second)
+        // #154: `async let` の子タスクは非隔離のため、非 Sendable な viewModel を
+        // 送れない。`Task` は囲みの @MainActor を継承するので隔離を跨がずに
+        // 「await せず 2 つ発火 → 両方待つ」という同時実行の意図を保てる。
+        let first = Task { await viewModel.moveTasks(from: IndexSet(integer: 2), to: 0) }
+        let second = Task { await viewModel.moveTasks(from: IndexSet(integer: 0), to: 2) }
+        _ = await (first.value, second.value)
 
         XCTAssertLessThanOrEqual(
             mockTaskRepository.maxConcurrentUpdateSortOrders, 1,
