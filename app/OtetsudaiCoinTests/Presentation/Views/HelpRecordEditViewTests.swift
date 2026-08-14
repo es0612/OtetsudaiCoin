@@ -92,4 +92,22 @@ final class HelpRecordEditViewTests: XCTestCase {
         // Then: 基本的な表示確認のみ
         XCTAssertNoThrow(try selectedRow.inspect())
     }
+
+    /// #177 項目5: タスク選択行のアイコンは displayIcon 絵文字を表示する (#148 の展開)。
+    @MainActor
+    func testTaskSelectionRowRendersDisplayIconEmoji() throws {
+        let task = HelpTask(id: UUID(), name: "食器洗い", isActive: true, coinRate: 10, sortOrder: 0, icon: "🧽")
+        let row = TaskSelectionRow(task: task, isSelected: false, onSelect: {})
+        let texts = try row.inspect().findAll(ViewType.Text.self).compactMap { try? $0.string() }
+        XCTAssertTrue(texts.contains("🧽"), "rendered: \(texts)")
+    }
+
+    /// icon 未設定 & 辞書外名は ✨ へフォールバックする。
+    @MainActor
+    func testTaskSelectionRowFallsBackToSparkle() throws {
+        let task = HelpTask(id: UUID(), name: "辞書に無い独自タスク", isActive: true)
+        let row = TaskSelectionRow(task: task, isSelected: false, onSelect: {})
+        let texts = try row.inspect().findAll(ViewType.Text.self).compactMap { try? $0.string() }
+        XCTAssertTrue(texts.contains("✨"), "rendered: \(texts)")
+    }
 }
