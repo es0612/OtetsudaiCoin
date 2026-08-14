@@ -337,9 +337,11 @@ struct HelpRecordRow: View {
                 ))
                 .frame(width: 44, height: 44)
                 .overlay(
-                    Image(systemName: "hands.sparkles")
-                        .font(.system(size: 18))
-                        .foregroundColor(.white)
+                    // #177 項目5: displayIcon 絵文字 (#148 のカードデザイン展開)。
+                    // 絵文字は装飾。行の意味は displayName の Text が担うため VoiceOver から隠す (#84 パターン)
+                    Text(record.task.displayIcon)
+                        .font(.title3)
+                        .accessibilityHidden(true)
                 )
             
             // タスク情報

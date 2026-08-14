@@ -16,11 +16,13 @@ import ViewInspector
 final class HelpRecordRowTests: XCTestCase {
 
     private func makeView(
+        taskName: String = "皿洗い",
+        taskIcon: String? = nil,
         onEdit: @escaping () -> Void = {},
         onDelete: @escaping () -> Void = {}
     ) -> HelpRecordRow {
         let child = Child(id: UUID(), name: "さくら", themeColor: "#FF6B6B")
-        let task = HelpTask(id: UUID(), name: "皿洗い", isActive: true, coinRate: 100)
+        let task = HelpTask(id: UUID(), name: taskName, isActive: true, coinRate: 100, sortOrder: 0, icon: taskIcon)
         let record = HelpRecord(
             id: UUID(),
             childId: child.id,
@@ -52,7 +54,8 @@ final class HelpRecordRowTests: XCTestCase {
         // タップ領域は Button ではなく label 側の Image に付けている
         // (contentShape と組で当たり判定を frame 全体へ広げるため)。
         // Image は AccessibilityImageLabel blocker になるが、findAll なら列挙できる。
-        // frame を持たない兄弟 Image (行頭の hands.sparkles) は compactMap で落ちる。
+        // frame を持たない兄弟 Image (star.fill) は compactMap で落ちる。
+        // 行頭アイコンは #177 で Text 絵文字になったため Image 列挙に現れない。
         let images = try view.inspect().findAll(ViewType.Image.self)
         let frames = images.compactMap { try? $0.fixedFrame() }
         XCTAssertEqual(
@@ -88,5 +91,19 @@ final class HelpRecordRowTests: XCTestCase {
 
         try buttons[1].tap()
         XCTAssertTrue(deleted, "2 つ目のボタンで onDelete が呼ばれない")
+    }
+
+    /// #177 項目5: 行頭アイコンはタスクの displayIcon 絵文字を表示する (#148 の展開)。
+    func test_rowIcon_rendersExplicitIconEmoji() throws {
+        let view = makeView(taskIcon: "🧹")
+        let texts = try view.inspect().findAll(ViewType.Text.self).compactMap { try? $0.string() }
+        XCTAssertTrue(texts.contains("🧹"), "rendered: \(texts)")
+    }
+
+    /// icon 未設定 & 辞書外名は ✨ へフォールバックする (displayIcon の既定挙動が row に配線されていること)。
+    func test_rowIcon_fallsBackToSparkleForUnknownName() throws {
+        let view = makeView(taskName: "辞書に無い独自タスク")
+        let texts = try view.inspect().findAll(ViewType.Text.self).compactMap { try? $0.string() }
+        XCTAssertTrue(texts.contains("✨"), "rendered: \(texts)")
     }
 }
