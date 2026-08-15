@@ -29,10 +29,12 @@
 ### Task 1: HelpRecordRow (履歴行) の絵文字化
 
 **Files:**
+
 - Modify: `app/OtetsudaiCoin/Presentation/Views/HelpHistoryView.swift:339-343` (HelpRecordRow 内の overlay)
 - Test: `app/OtetsudaiCoinTests/Presentation/Components/HelpRecordRowTests.swift`
 
 **Interfaces:**
+
 - Consumes: `HelpTask.displayIcon` (明示 icon → 辞書 → ✨ フォールバック、実装済み)
 - Produces: なし (表示のみ)
 
@@ -136,10 +138,12 @@ git commit -m "feat(#177): 履歴行のアイコンを displayIcon 絵文字へ�
 ### Task 2: TaskSelectionRow (記録編集のタスク選択行) の絵文字化
 
 **Files:**
+
 - Modify: `app/OtetsudaiCoin/Presentation/Views/HelpRecordEditView.swift:158-167` (TaskSelectionRow 内のアイコン)
 - Test: `app/OtetsudaiCoinTests/Presentation/Views/HelpRecordEditViewTests.swift`
 
 **Interfaces:**
+
 - Consumes: `HelpTask.displayIcon`
 - Produces: なし
 
@@ -218,10 +222,12 @@ git commit -m "feat(#177): 記録編集タスク選択行のアイコンを disp
 ### Task 3: TaskRowView (タスク管理行) の絵文字化 + 新規テストファイル
 
 **Files:**
+
 - Modify: `app/OtetsudaiCoin/Presentation/Views/TaskManagementView.swift:119-121` (TaskRowView 内のアイコン)
 - Create: `app/OtetsudaiCoinTests/Presentation/Components/TaskRowViewTests.swift`
 
 **Interfaces:**
+
 - Consumes: `HelpTask.displayIcon`
 - Produces: なし
 
@@ -327,10 +333,12 @@ git commit -m "feat(#177): タスク管理行のアイコンを displayIcon 絵�
 ### Task 4: 項目7 — testSelectedCardUsesBrandPrimaryShapes の AND 化
 
 **Files:**
+
 - Modify: `app/OtetsudaiCoinTests/Presentation/Components/TaskCardViewTests.swift:114-124`
 - Modify: `app/OtetsudaiCoinTests/Presentation/Components/TutorialTaskCardViewTests.swift:41-51`
 
 **Interfaces:**
+
 - Consumes: `AccessibilityColors.brandPrimary` (アイコン円 0.15 / カード背景 0.1、TaskCardView.swift:61,115 / RecordTutorialView.swift:438,473 で確認済み)
 - Produces: なし (テスト強化のみ)
 
@@ -428,6 +436,7 @@ Expected: `** TEST SUCCEEDED **`。fail が出たら `-only-testing:` で isolat
 push 直前に `git status` で HEAD ブランチ再確認、`gh pr list --head feature/issue-177-item5-emoji-rollout` で既存 PR 無しを確認。
 
 PR description に必ず含める:
+
 - Refs #177 (項目5 全 3 箇所 + 項目7)
 - **スプラッシュ除外**: `SplashScreenView.swift:62` は #151 track のため対象外 (issue コメント指示どおり)
 - **計画済み設計逸脱**: TaskSelectionRow の円塗りを白/青 → TaskCardView 同型 (brandPrimary 0.15 / gray 0.1) へ変更した理由

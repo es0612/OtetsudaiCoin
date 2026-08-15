@@ -122,7 +122,8 @@ struct TaskRowView: View {
             // 絵文字は装飾。行の意味は displayName の Text が担うため VoiceOver から隠す (#84 パターン)
             Text(task.displayIcon)
                 .font(.title3)
-                .frame(width: 30)
+                // minWidth: 列揃えは保ちつつ、AX サイズの Dynamic Type では truncate せず広がれる
+                .frame(minWidth: 30)
                 .opacity(task.isActive ? 1.0 : 0.4)
                 .accessibilityHidden(true)
             

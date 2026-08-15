@@ -328,21 +328,29 @@ struct HelpRecordRow: View {
     var body: some View {
         HStack(spacing: 12) {
             // タスクアイコン
-            Circle()
-                .fill(LinearGradient(
-                    colors: [Color(hex: record.child.themeColor) ?? .blue, 
-                            (Color(hex: record.child.themeColor) ?? .blue).opacity(0.7)],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                ))
-                .frame(width: 44, height: 44)
-                .overlay(
-                    // #177 項目5: displayIcon 絵文字 (#148 のカードデザイン展開)。
-                    // 絵文字は装飾。行の意味は displayName の Text が担うため VoiceOver から隠す (#84 パターン)
-                    Text(record.task.displayIcon)
-                        .font(.title3)
-                        .accessibilityHidden(true)
-                )
+            // #177 項目5: displayIcon 絵文字 (#148 のカードデザイン展開)。
+            // テーマカラーグラデはリング状に残して子ども識別を保ちつつ、内側に適応色
+            // ディスクを敷いて絵文字のコントラストを担保する (テーマ色 x 絵文字色の
+            // 組み合わせ次第で視認性が無制限に落ちるのを防ぐ)。
+            // ZStack + 非拘束 Text は TaskCardView と同じパターンで、AX サイズの
+            // Dynamic Type でも絵文字が truncate せず overflow に留まる。
+            // 絵文字は装飾。行の意味は displayName の Text が担うため VoiceOver から隠す (#84 パターン)
+            ZStack {
+                Circle()
+                    .fill(LinearGradient(
+                        colors: [Color(hex: record.child.themeColor) ?? .blue,
+                                (Color(hex: record.child.themeColor) ?? .blue).opacity(0.7)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ))
+                    .frame(width: 44, height: 44)
+                Circle()
+                    .fill(AccessibilityColors.systemBackgroundSecondary)
+                    .frame(width: 34, height: 34)
+                Text(record.task.displayIcon)
+                    .font(.title3)
+                    .accessibilityHidden(true)
+            }
             
             // タスク情報
             VStack(alignment: .leading, spacing: 4) {

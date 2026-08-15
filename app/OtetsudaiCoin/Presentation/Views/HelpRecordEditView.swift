@@ -160,15 +160,17 @@ struct TaskSelectionRow: View {
                 // #177 項目5: displayIcon 絵文字 (#148 のカードデザイン展開)。
                 // 円の塗りは TaskCardView と同型 (絵文字の上に青塗りは意味を失うため、
                 // 白/青 SF Symbol デザインから brandPrimary 0.15 / gray 0.1 へ揃える)。
+                // ZStack + 非拘束 Text (TaskCardView パターン): 固定 frame + background だと
+                // AX サイズの Dynamic Type で絵文字が truncate する。
                 // 絵文字は装飾。行の意味は displayName の Text が担うため VoiceOver から隠す (#84 パターン)
-                Text(task.displayIcon)
-                    .font(.title3)
-                    .frame(width: 32, height: 32)
-                    .background(
-                        Circle()
-                            .fill(isSelected ? AccessibilityColors.brandPrimary.opacity(0.15) : Color.gray.opacity(0.1))
-                    )
-                    .accessibilityHidden(true)
+                ZStack {
+                    Circle()
+                        .fill(isSelected ? AccessibilityColors.brandPrimary.opacity(0.15) : Color.gray.opacity(0.1))
+                        .frame(width: 32, height: 32)
+                    Text(task.displayIcon)
+                        .font(.title3)
+                        .accessibilityHidden(true)
+                }
                 
                 // タスク情報
                 VStack(alignment: .leading, spacing: 4) {
@@ -195,6 +197,9 @@ struct TaskSelectionRow: View {
             .padding(.vertical, 4)
         }
         .buttonStyle(PlainButtonStyle())
+        // 円塗りの選択差分が控えめになったため、VoiceOver には trait で選択状態を明示する
+        // (TaskCardView / TutorialTaskCardView と同じパターン)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }
 
