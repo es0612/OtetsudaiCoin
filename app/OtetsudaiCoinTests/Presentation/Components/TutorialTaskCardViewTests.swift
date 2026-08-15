@@ -41,12 +41,17 @@ final class TutorialTaskCardViewTests: XCTestCase {
     func testSelectedCardUsesBrandPrimaryShapes() throws {
         let view = TutorialTaskCardView(task: makeTask(), isSelected: true, onTap: {})
         let fills = try view.inspect().findAll(ViewType.Shape.self).compactMap { try? $0.fillShapeStyle(Color.self) }
-        // アイコン円 (brandPrimary 0.15) かカード背景 (brandPrimary 0.1) のどちらかが取得できること
-        let expected: [Color] = [
-            AccessibilityColors.brandPrimary.opacity(0.15),
-            AccessibilityColors.brandPrimary.opacity(0.1)
-        ]
-        XCTAssertTrue(fills.contains { expected.contains($0) }, "observed fills: \(fills)")
+        // #177 項目7: アイコン円 (0.15) とカード背景 (0.1) の両方を個別に assert する (AND)。
+        // OR だと片方だけの色 regression を検出できない。findAll(Shape) が
+        // .background 内 RoundedRectangle にも到達できることは本テストの GREEN + mutation 検証で実証済み。
+        XCTAssertTrue(
+            fills.contains(AccessibilityColors.brandPrimary.opacity(0.15)),
+            "アイコン円の brandPrimary 0.15 が無い / observed fills: \(fills)"
+        )
+        XCTAssertTrue(
+            fills.contains(AccessibilityColors.brandPrimary.opacity(0.1)),
+            "カード背景の brandPrimary 0.1 が無い / observed fills: \(fills)"
+        )
     }
 
 }

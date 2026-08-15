@@ -117,9 +117,15 @@ struct TaskRowView: View {
     
     var body: some View {
         HStack {
-            Image(systemName: task.isActive ? "hands.sparkles.fill" : "hands.sparkles")
-                .foregroundColor(task.isActive ? .blue : .gray)
-                .frame(width: 30)
+            // #177 項目5: displayIcon 絵文字 (#148 のカードデザイン展開)。
+            // 無効タスクは opacity でミュート (有効/無効の意味は下の状態 Text が担う)。
+            // 絵文字は装飾。行の意味は displayName の Text が担うため VoiceOver から隠す (#84 パターン)
+            Text(task.displayIcon)
+                .font(.title3)
+                // minWidth: 列揃えは保ちつつ、AX サイズの Dynamic Type では truncate せず広がれる
+                .frame(minWidth: 30)
+                .opacity(task.isActive ? 1.0 : 0.4)
+                .accessibilityHidden(true)
             
             VStack(alignment: .leading, spacing: 4) {
                 Text(task.displayName)
