@@ -23,25 +23,21 @@ final class TaskRowViewTests: XCTestCase {
         return TaskRowView(task: task, onEdit: {}, onToggle: {}, onDelete: {})
     }
 
-    private func renderedTexts(_ view: TaskRowView) throws -> [String] {
-        try view.inspect().findAll(ViewType.Text.self).compactMap { try? $0.string() }
-    }
-
     /// #177 項目5: 行頭アイコンはタスクの displayIcon 絵文字を表示する (#148 の展開)。
     func test_activeRow_rendersExplicitIconEmoji() throws {
-        let texts = try renderedTexts(makeView(icon: "🧹", isActive: true))
+        let texts = try makeView(icon: "🧹", isActive: true).renderedTexts()
         XCTAssertTrue(texts.contains("🧹"), "rendered: \(texts)")
     }
 
     /// 無効タスクでも絵文字自体は表示される (ミュートは opacity で表現、有効/無効の意味は状態 Text が担う)。
     func test_inactiveRow_stillRendersEmoji() throws {
-        let texts = try renderedTexts(makeView(icon: "🧹", isActive: false))
+        let texts = try makeView(icon: "🧹", isActive: false).renderedTexts()
         XCTAssertTrue(texts.contains("🧹"), "rendered: \(texts)")
     }
 
     /// icon 未設定 & 辞書外名は ✨ へフォールバックする。
     func test_unknownName_fallsBackToSparkle() throws {
-        let texts = try renderedTexts(makeView(name: "辞書に無い独自タスク"))
+        let texts = try makeView(name: "辞書に無い独自タスク").renderedTexts()
         XCTAssertTrue(texts.contains("✨"), "rendered: \(texts)")
     }
 }

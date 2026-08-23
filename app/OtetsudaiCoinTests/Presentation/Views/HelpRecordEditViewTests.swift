@@ -4,13 +4,13 @@ import ViewInspector
 @testable import OtetsudaiCoin
 
 
+@MainActor
 final class HelpRecordEditViewTests: XCTestCase {
-    
+
     private var mockHelpRecordRepository: MockHelpRecordRepository!
     private var mockHelpTaskRepository: MockHelpTaskRepository!
     private var viewModel: HelpRecordEditViewModel!
-    
-    @MainActor
+
     override func setUp() {
         super.setUp()
         mockHelpRecordRepository = MockHelpRecordRepository()
@@ -34,7 +34,6 @@ final class HelpRecordEditViewTests: XCTestCase {
         super.tearDown()
     }
     
-    @MainActor
     func testHelpRecordEditViewDisplaysTitle() throws {
         // Given
         let view = HelpRecordEditView(viewModel: viewModel)
@@ -43,7 +42,6 @@ final class HelpRecordEditViewTests: XCTestCase {
         XCTAssertNoThrow(try view.inspect())
     }
     
-    @MainActor
     func testHelpRecordEditViewDisplaysForm() throws {
         // Given
         let view = HelpRecordEditView(viewModel: viewModel)
@@ -52,7 +50,6 @@ final class HelpRecordEditViewTests: XCTestCase {
         XCTAssertNoThrow(try view.inspect())
     }
     
-    @MainActor
     func testHelpRecordEditViewDisplaysDatePicker() throws {
         // Given
         let view = HelpRecordEditView(viewModel: viewModel)
@@ -61,7 +58,6 @@ final class HelpRecordEditViewTests: XCTestCase {
         XCTAssertNoThrow(try view.inspect().find(text: "日時", locale: Locale(identifier: "ja")))
     }
     
-    @MainActor
     func testHelpRecordEditViewDisplaysDeleteButton() throws {
         // Given
         let view = HelpRecordEditView(viewModel: viewModel)
@@ -70,7 +66,6 @@ final class HelpRecordEditViewTests: XCTestCase {
         XCTAssertNoThrow(try view.inspect().find(text: "記録を削除", locale: Locale(identifier: "ja")))
     }
     
-    @MainActor
     func testTaskSelectionRowDisplaysTaskInfo() throws {
         // Given
         let task = HelpTask(id: UUID(), name: "食器洗い", isActive: true)
@@ -81,7 +76,6 @@ final class HelpRecordEditViewTests: XCTestCase {
         XCTAssertNoThrow(try row.inspect().find(text: "お手伝いタスク", locale: Locale(identifier: "ja")))
     }
     
-    @MainActor
     func testTaskSelectionRowDisplaysSelectedState() throws {
         // Given
         let task = HelpTask(id: UUID(), name: "食器洗い", isActive: true)
@@ -94,38 +88,33 @@ final class HelpRecordEditViewTests: XCTestCase {
     }
 
     /// #177 項目5: タスク選択行のアイコンは displayIcon 絵文字を表示する (#148 の展開)。
-    @MainActor
     func testTaskSelectionRowRendersDisplayIconEmoji() throws {
         let task = HelpTask(id: UUID(), name: "食器洗い", isActive: true, coinRate: 10, sortOrder: 0, icon: "🧽")
         let row = TaskSelectionRow(task: task, isSelected: false, onSelect: {})
-        let texts = try row.inspect().findAll(ViewType.Text.self).compactMap { try? $0.string() }
+        let texts = try row.renderedTexts()
         XCTAssertTrue(texts.contains("🧽"), "rendered: \(texts)")
     }
 
     /// icon 未設定 & 辞書外名は ✨ へフォールバックする。
-    @MainActor
     func testTaskSelectionRowFallsBackToSparkle() throws {
         let task = HelpTask(id: UUID(), name: "辞書に無い独自タスク", isActive: true)
         let row = TaskSelectionRow(task: task, isSelected: false, onSelect: {})
-        let texts = try row.inspect().findAll(ViewType.Text.self).compactMap { try? $0.string() }
+        let texts = try row.renderedTexts()
         XCTAssertTrue(texts.contains("✨"), "rendered: \(texts)")
     }
 
     /// #177 項目5 で導入した円塗りルール (選択 brandPrimary 0.15 / 非選択 gray 0.1) の
     /// regression guard。項目7 と同じ findAll(Shape) + トークン定数の等価比較パターン。
-    @MainActor
     func testTaskSelectionRowCircleFillFollowsSelectionState() throws {
         let task = HelpTask(id: UUID(), name: "食器洗い", isActive: true)
 
-        let selectedFills = try TaskSelectionRow(task: task, isSelected: true, onSelect: {})
-            .inspect().findAll(ViewType.Shape.self).compactMap { try? $0.fillShapeStyle(Color.self) }
+        let selectedFills = try TaskSelectionRow(task: task, isSelected: true, onSelect: {}).renderedFills()
         XCTAssertTrue(
             selectedFills.contains(AccessibilityColors.brandPrimary.opacity(0.15)),
             "選択時の円が brandPrimary 0.15 でない / observed fills: \(selectedFills)"
         )
 
-        let unselectedFills = try TaskSelectionRow(task: task, isSelected: false, onSelect: {})
-            .inspect().findAll(ViewType.Shape.self).compactMap { try? $0.fillShapeStyle(Color.self) }
+        let unselectedFills = try TaskSelectionRow(task: task, isSelected: false, onSelect: {}).renderedFills()
         XCTAssertTrue(
             unselectedFills.contains(Color.gray.opacity(0.1)),
             "非選択時の円が gray 0.1 でない / observed fills: \(unselectedFills)"
