@@ -131,6 +131,12 @@ struct AccessibilityColors {
     /// 温色の淡背景。
     static let brandSurfaceWarm = Color(hex: "#FFF4E6") ?? .orange.opacity(0.1)
 
+    /// タスクアイコン円の塗り (選択時)。TaskIconView で使用 (#200 で 3 site から hoist)。
+    static let taskIconSelectedFill = brandPrimary.opacity(0.15)
+
+    /// タスクアイコン円の塗り (非選択時)。TaskIconView で使用 (#200 で 3 site から hoist)。
+    static let taskIconUnselectedFill = Color.gray.opacity(0.1)
+
     // MARK: - Utility Functions
     
     /// 指定された背景色に対して最適なテキスト色を返す
