@@ -260,16 +260,35 @@ struct HelpHistoryView: View {
         makeDayGroupFormatter(locale: locale).string(from: date)
     }
 
+    /// 記録時刻 formatter の locale 別 cache (#201)。
+    /// 旧実装は呼び出し (= HelpRecordRow の行 render) ごとに DateFormatter を生成しており、
+    /// 長い履歴リストのスクロールで全可視行分の生成+設定コストが発生していた。
+    /// View body (= MainActor) からしか呼ばれないため @MainActor で隔離し、
+    /// 素の static var の data race を避ける。
+    @MainActor
+    private static var timeFormatterCache: [String: DateFormatter] = [:]
+
+    /// locale に対応する時刻 formatter を返す (cache 済みなら再利用)。
+    @MainActor
+    static func timeFormatter(locale: Locale) -> DateFormatter {
+        if let cached = timeFormatterCache[locale.identifier] {
+            return cached
+        }
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        formatter.locale = locale
+        timeFormatterCache[locale.identifier] = formatter
+        return formatter
+    }
+
     /// 記録時刻を locale に応じて生成する (#155 コメント報告の i18n 漏れ対応)。
     ///
     /// 旧実装は `HelpRecordRow` 内の private func で ja_JP 固定になっており、
     /// en ロケールでも 24 時間表記が強制されていた。`.short` スタイルは
     /// ja で「9:05」(現行と同一)、en で「9:05 AM」になる。
+    @MainActor
     static func timeString(from date: Date, locale: Locale) -> String {
-        let formatter = DateFormatter()
-        formatter.timeStyle = .short
-        formatter.locale = locale
-        return formatter.string(from: date)
+        timeFormatter(locale: locale).string(from: date)
     }
     
     private func createEditView(for record: HelpRecordWithDetails) -> some View {

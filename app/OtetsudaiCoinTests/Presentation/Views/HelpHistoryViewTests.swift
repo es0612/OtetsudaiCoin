@@ -6,6 +6,7 @@ import XCTest
 /// - 日付 fixture は固定絶対日付 (2026-07-15 = 月中日) を使い、実行日非依存にする (#112/#114/#115 の flake 対策)。
 /// - locale は明示的に ja_JP / en_US を渡し、実行環境 locale に依存しない。
 /// - View 本体の traverse は ViewInspector の既知制約があるため行わず、static helper を直接検証する。
+@MainActor
 final class HelpHistoryViewTests: XCTestCase {
 
     /// 2026-07-15 (水) 09:05 を gregorian で固定生成する。
@@ -58,5 +59,17 @@ final class HelpHistoryViewTests: XCTestCase {
         )
         XCTAssertTrue(time.hasPrefix("9:05"), "rendered: \(time)")
         XCTAssertTrue(time.contains("AM"), "rendered: \(time)")
+    }
+
+    // MARK: - timeFormatter cache (#201)
+
+    /// 同一 locale では formatter instance が再利用されること (行 render ごとの生成コスト解消)。
+    func testTimeFormatterIsCachedPerLocale() {
+        let ja1 = HelpHistoryView.timeFormatter(locale: Locale(identifier: "ja_JP"))
+        let ja2 = HelpHistoryView.timeFormatter(locale: Locale(identifier: "ja_JP"))
+        XCTAssertTrue(ja1 === ja2, "同一 locale で formatter が再生成されている")
+
+        let en = HelpHistoryView.timeFormatter(locale: Locale(identifier: "en_US"))
+        XCTAssertFalse(ja1 === en, "locale が異なるのに同一 formatter が返っている")
     }
 }
