@@ -29,8 +29,8 @@ extension XCTestCase {
     ) throws {
         let fills = try view.renderedFills()
         XCTAssertTrue(
-            fills.contains(AccessibilityColors.brandPrimary.opacity(0.15)),
-            "アイコン円の brandPrimary 0.15 が無い / observed fills: \(fills)", file: file, line: line
+            fills.contains(AccessibilityColors.taskIconSelectedFill),
+            "アイコン円の taskIconSelectedFill が無い / observed fills: \(fills)", file: file, line: line
         )
         XCTAssertTrue(
             fills.contains(AccessibilityColors.brandPrimary.opacity(0.1)),
