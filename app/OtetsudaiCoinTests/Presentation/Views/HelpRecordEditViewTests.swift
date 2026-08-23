@@ -103,21 +103,21 @@ final class HelpRecordEditViewTests: XCTestCase {
         XCTAssertTrue(texts.contains("✨"), "rendered: \(texts)")
     }
 
-    /// #177 項目5 で導入した円塗りルール (選択 brandPrimary 0.15 / 非選択 gray 0.1) の
+    /// #177 項目5 で導入した円塗りルール (選択 taskIconSelectedFill / 非選択 taskIconUnselectedFill) の
     /// regression guard。項目7 と同じ findAll(Shape) + トークン定数の等価比較パターン。
     func testTaskSelectionRowCircleFillFollowsSelectionState() throws {
         let task = HelpTask(id: UUID(), name: "食器洗い", isActive: true)
 
         let selectedFills = try TaskSelectionRow(task: task, isSelected: true, onSelect: {}).renderedFills()
         XCTAssertTrue(
-            selectedFills.contains(AccessibilityColors.brandPrimary.opacity(0.15)),
-            "選択時の円が brandPrimary 0.15 でない / observed fills: \(selectedFills)"
+            selectedFills.contains(AccessibilityColors.taskIconSelectedFill),
+            "選択時の円が taskIconSelectedFill でない / observed fills: \(selectedFills)"
         )
 
         let unselectedFills = try TaskSelectionRow(task: task, isSelected: false, onSelect: {}).renderedFills()
         XCTAssertTrue(
-            unselectedFills.contains(Color.gray.opacity(0.1)),
-            "非選択時の円が gray 0.1 でない / observed fills: \(unselectedFills)"
+            unselectedFills.contains(AccessibilityColors.taskIconUnselectedFill),
+            "非選択時の円が taskIconUnselectedFill でない / observed fills: \(unselectedFills)"
         )
     }
 }

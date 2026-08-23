@@ -433,17 +433,8 @@ struct TutorialTaskCardView: View {
     var body: some View {
         Button(action: onTap) {
             VStack(spacing: 12) {
-                ZStack {
-                    Circle()
-                        .fill(isSelected ? AccessibilityColors.brandPrimary.opacity(0.15) : Color.gray.opacity(0.1))
-                        .frame(width: 50, height: 50)
-
-                    // 絵文字は装飾。カードの意味は displayName の Text が担うため VoiceOver から隠す
-                    // (TaskCardView と同型、#84 パターン)
-                    Text(task.displayIcon)
-                        .font(.title2)
-                        .accessibilityHidden(true)
-                }
+                // ZStack + 非拘束 Text / VoiceOver hidden / 円塗りトークンは TaskIconView に集約 (#200)
+                TaskIconView(task: task, isSelected: isSelected)
 
                 Text(task.displayName)
                     .font(.caption)
