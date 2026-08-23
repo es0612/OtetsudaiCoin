@@ -19,7 +19,7 @@ final class StoreLoadErrorViewTests: XCTestCase {
         // 文言の exact match は locale 依存になるため、見出し + 案内文の 2 つの Text が
         // 描画されること（locale 非依存の構造）を確認する。実文言は simulator 視覚確認で担保。
         let view = StoreLoadErrorView()
-        let texts = try view.inspect().findAll(ViewType.Text.self).compactMap { try? $0.string() }
+        let texts = try view.renderedTexts()
         XCTAssertGreaterThanOrEqual(
             texts.count, 2,
             "expected title + guidance Text (>=2); rendered: \(texts)"

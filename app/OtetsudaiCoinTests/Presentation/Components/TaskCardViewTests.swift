@@ -10,15 +10,6 @@ final class TaskCardViewTests: XCTestCase {
         HelpTask(id: UUID(), name: name, isActive: true, coinRate: coinRate, sortOrder: 0, icon: icon)
     }
 
-    /// TaskCardView 内の全 Text を列挙して文字列で返す。
-    ///
-    /// `find(viewWithAccessibilityIdentifier:)` は ViewInspector 0.10.2 + iOS 26 SDK で
-    /// systematic に効かない既知回帰があるため (CLAUDE.md「SwiftUI View テスト戦略」節)、
-    /// `findAll(ViewType.Text.self)` で blocker を跨いで Text を収集する。
-    private func renderedTexts(_ view: TaskCardView) throws -> [String] {
-        try view.inspect().findAll(ViewType.Text.self).compactMap { try? $0.string() }
-    }
-
     // MARK: - #73 existingCountRow
 
     /// coinInfo (ja "10コイン" / en "10 Coins") を除外した Text に判定文字列が現れるか。
@@ -33,7 +24,7 @@ final class TaskCardViewTests: XCTestCase {
         // iOS 26 + ViewInspector 0.10.2 で当該 API が常に throw するため無条件 pass だった (#177 項目3)。
         // findAll ベースで「coinInfo 以外に数字を含む Text が無い」ことを直接 assert する。
         let view = TaskCardView(task: makeTask(), isSelected: false, existingCount: 0, onTap: {})
-        let texts = try renderedTexts(view)
+        let texts = try view.renderedTexts()
         XCTAssertFalse(
             nonCoinTexts(texts).contains { $0.contains(where: \.isNumber) },
             "existingCount(0) なのに件数表示の Text が描画されている。rendered: \(texts)"
@@ -44,7 +35,7 @@ final class TaskCardViewTests: XCTestCase {
         // 文言を exact match しないため locale / 文言変更には依存しない
         // (ja "すでに 1 件記録済み" / en "Already recorded 1 time" のどちらでも "1" を含む)。
         let view = TaskCardView(task: makeTask(), isSelected: false, existingCount: 1, onTap: {})
-        let texts = try renderedTexts(view)
+        let texts = try view.renderedTexts()
         XCTAssertTrue(
             nonCoinTexts(texts).contains { $0.contains("1") },
             "existingCount(1) を表す Text が見つからない。描画された Text: \(texts)"
@@ -53,7 +44,7 @@ final class TaskCardViewTests: XCTestCase {
 
     func test_existingCountRow_visible_whenCountIsMany() throws {
         let view = TaskCardView(task: makeTask(), isSelected: false, existingCount: 3, onTap: {})
-        let texts = try renderedTexts(view)
+        let texts = try view.renderedTexts()
         XCTAssertTrue(
             nonCoinTexts(texts).contains { $0.contains("3") },
             "existingCount(3) を表す Text が見つからない。描画された Text: \(texts)"
@@ -64,13 +55,13 @@ final class TaskCardViewTests: XCTestCase {
 
     func testRendersExplicitIconEmoji() throws {
         let view = TaskCardView(task: makeTask(icon: "🧹"), isSelected: false, onTap: {})
-        let texts = try renderedTexts(view)
+        let texts = try view.renderedTexts()
         XCTAssertTrue(texts.contains("🧹"), "rendered: \(texts)")
     }
 
     func testDefaultTaskRendersDictionaryEmoji() throws {
         let view = TaskCardView(task: makeTask(name: "お風呂を入れる"), isSelected: false, onTap: {})
-        let texts = try renderedTexts(view)
+        let texts = try view.renderedTexts()
         XCTAssertTrue(texts.contains("🛁"), "rendered: \(texts)")
     }
 
@@ -85,7 +76,7 @@ final class TaskCardViewTests: XCTestCase {
 
     func testTapToSelectLabelIsRemoved() throws {
         let view = TaskCardView(task: makeTask(), isSelected: false, onTap: {})
-        let texts = try renderedTexts(view)
+        let texts = try view.renderedTexts()
         XCTAssertFalse(
             texts.contains { text in Self.tapToSelectVariants.contains { text.contains($0) } },
             "rendered: \(texts)"
@@ -95,7 +86,7 @@ final class TaskCardViewTests: XCTestCase {
     func testSingleModeSelectedShowsNoTextIndicator() throws {
         // 単独モードの選択表現は枠 + チェックマーク overlay のみ (「選択中」テキスト行は削除)
         let view = TaskCardView(task: makeTask(), isSelected: true, onTap: {})
-        let texts = try renderedTexts(view)
+        let texts = try view.renderedTexts()
         XCTAssertFalse(
             texts.contains { text in Self.selectedVariants.contains { text.contains($0) } },
             "rendered: \(texts)"
@@ -104,7 +95,7 @@ final class TaskCardViewTests: XCTestCase {
 
     func testBulkModeKeepsSelectionIndicator() throws {
         let view = TaskCardView(task: makeTask(), isSelected: true, isBulkMode: true, onTap: {})
-        let texts = try renderedTexts(view)
+        let texts = try view.renderedTexts()
         XCTAssertTrue(
             texts.contains { text in Self.selectedVariants.contains { text.contains($0) } },
             "rendered: \(texts)"
@@ -113,19 +104,10 @@ final class TaskCardViewTests: XCTestCase {
 
     func testSelectedCardUsesBrandPrimaryShapes() throws {
         let view = TaskCardView(task: makeTask(), isSelected: true, onTap: {})
-        let shapes = try view.inspect().findAll(ViewType.Shape.self)
-        let fills = shapes.compactMap { try? $0.fillShapeStyle(Color.self) }
         // #177 項目7: アイコン円 (0.15) とカード背景 (0.1) の両方を個別に assert する (AND)。
         // OR だと片方だけの色 regression を検出できない。findAll(Shape) が
         // .background 内 RoundedRectangle にも到達できることは本テストの GREEN + mutation 検証で実証済み。
-        XCTAssertTrue(
-            fills.contains(AccessibilityColors.brandPrimary.opacity(0.15)),
-            "アイコン円の brandPrimary 0.15 が無い / observed fills: \(fills)"
-        )
-        XCTAssertTrue(
-            fills.contains(AccessibilityColors.brandPrimary.opacity(0.1)),
-            "カード背景の brandPrimary 0.1 が無い / observed fills: \(fills)"
-        )
+        try assertBrandPrimaryIconAndCardFills(view)
     }
 
     /// #151: 未選択カードの背景はダークモードで消えない適応色を使う。
@@ -139,8 +121,7 @@ final class TaskCardViewTests: XCTestCase {
     /// トークン側の値を変えたときにテストが追随する。
     func testUnselectedCardBackgroundUsesAdaptiveColor() throws {
         let view = TaskCardView(task: makeTask(), isSelected: false, onTap: {})
-        let shapes = try view.inspect().findAll(ViewType.Shape.self)
-        let fills = shapes.compactMap { try? $0.fillShapeStyle(Color.self) }
+        let fills = try view.renderedFills()
 
         XCTAssertTrue(
             fills.contains(AccessibilityColors.systemBackgroundSecondary),

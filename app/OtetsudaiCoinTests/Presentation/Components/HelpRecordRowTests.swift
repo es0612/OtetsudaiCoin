@@ -96,14 +96,14 @@ final class HelpRecordRowTests: XCTestCase {
     /// #177 項目5: 行頭アイコンはタスクの displayIcon 絵文字を表示する (#148 の展開)。
     func test_rowIcon_rendersExplicitIconEmoji() throws {
         let view = makeView(taskIcon: "🧹")
-        let texts = try view.inspect().findAll(ViewType.Text.self).compactMap { try? $0.string() }
+        let texts = try view.renderedTexts()
         XCTAssertTrue(texts.contains("🧹"), "rendered: \(texts)")
     }
 
     /// icon 未設定 & 辞書外名は ✨ へフォールバックする (displayIcon の既定挙動が row に配線されていること)。
     func test_rowIcon_fallsBackToSparkleForUnknownName() throws {
         let view = makeView(taskName: "辞書に無い独自タスク")
-        let texts = try view.inspect().findAll(ViewType.Text.self).compactMap { try? $0.string() }
+        let texts = try view.renderedTexts()
         XCTAssertTrue(texts.contains("✨"), "rendered: \(texts)")
     }
 }
