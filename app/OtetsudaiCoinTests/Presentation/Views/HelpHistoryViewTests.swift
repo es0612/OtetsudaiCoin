@@ -1,7 +1,8 @@
 import XCTest
 @testable import OtetsudaiCoin
 
-/// HelpHistoryView の日付・時刻フォーマット helper のテスト (#155 コメント報告の i18n 漏れ)。
+/// HelpHistoryView の日付フォーマット helper (#155 コメント報告の i18n 漏れ) と
+/// 日付 grouping helper (#205) のテスト。記録時刻系は TimeStringFormatterTests へ移設 (#206)。
 ///
 /// - 日付 fixture は固定絶対日付 (2026-07-15 = 月中日) を使い、実行日非依存にする (#112/#114/#115 の flake 対策)。
 /// - locale は明示的に ja_JP / en_US を渡し、実行環境 locale に依存しない。
@@ -38,27 +39,6 @@ final class HelpHistoryViewTests: XCTestCase {
         )
         XCTAssertEqual(label, "Wed, Jul 15", "rendered: \(label)")
         XCTAssertFalse(label.contains("月"), "en locale に日本語表記が混入: \(label)")
-    }
-
-    // MARK: - timeString (記録時刻)
-
-    /// ja では現行の「9:05」と同一であること (非退行)。
-    func testTimeStringJapaneseLocaleKeepsCurrentStyle() {
-        let time = HelpHistoryView.timeString(
-            from: fixedDate(), locale: Locale(identifier: "ja_JP")
-        )
-        XCTAssertEqual(time, "9:05", "rendered: \(time)")
-    }
-
-    /// en では 12 時間表記 + AM/PM になること。
-    /// AM 前の空白は ICU バージョンにより U+202F (narrow no-break space) になるため、
-    /// 空白文字そのものは assert せず prefix + AM 含有で判定する。
-    func testTimeStringEnglishLocaleUsesLocalizedStyle() {
-        let time = HelpHistoryView.timeString(
-            from: fixedDate(), locale: Locale(identifier: "en_US")
-        )
-        XCTAssertTrue(time.hasPrefix("9:05"), "rendered: \(time)")
-        XCTAssertTrue(time.contains("AM"), "rendered: \(time)")
     }
 
     // MARK: - groupRecordsByDay (#205)
@@ -120,15 +100,4 @@ final class HelpHistoryViewTests: XCTestCase {
         XCTAssertTrue(groups.isEmpty)
     }
 
-    // MARK: - timeFormatter cache (#201)
-
-    /// 同一 locale では formatter instance が再利用されること (行 render ごとの生成コスト解消)。
-    func testTimeFormatterIsCachedPerLocale() {
-        let ja1 = HelpHistoryView.timeFormatter(locale: Locale(identifier: "ja_JP"))
-        let ja2 = HelpHistoryView.timeFormatter(locale: Locale(identifier: "ja_JP"))
-        XCTAssertTrue(ja1 === ja2, "同一 locale で formatter が再生成されている")
-
-        let en = HelpHistoryView.timeFormatter(locale: Locale(identifier: "en_US"))
-        XCTAssertFalse(ja1 === en, "locale が異なるのに同一 formatter が返っている")
-    }
 }
