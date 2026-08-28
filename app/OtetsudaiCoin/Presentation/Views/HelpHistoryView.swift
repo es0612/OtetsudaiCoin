@@ -221,21 +221,29 @@ struct HelpHistoryView: View {
     }
     
     private var groupedRecords: [(key: String, value: [HelpRecordWithDetails])] {
-        // formatter 生成 (ICU 初期化) は安くないため、旧実装同様に 1 インスタンスを
-        // grouping / sort lookup で使い回す (sort lookup は O(n²) 回呼ばれる)。
+        // formatter 生成 (ICU 初期化) は安くないため 1 インスタンスを使い回す。
         let formatter = Self.makeDayGroupFormatter(locale: Locale.current)
+        return Self.groupRecordsByDay(viewModel.helpRecords) { formatter.string(from: $0) }
+    }
 
-        let grouped = Dictionary(grouping: viewModel.helpRecords) { record in
-            formatter.string(from: record.helpRecord.recordedAt)
+    /// 履歴レコードを日付グループへまとめ、グループを日付降順で並べる (#205)。
+    /// `dayKey` は Date → グループ見出し文字列の変換 (プロダクションでは
+    /// makeDayGroupFormatter の string(from:) を渡す。テストではカウント用 closure を注入)。
+    nonisolated static func groupRecordsByDay(
+        _ records: [HelpRecordWithDetails],
+        dayKey: (Date) -> String
+    ) -> [(key: String, value: [HelpRecordWithDetails])] {
+        let grouped = Dictionary(grouping: records) { record in
+            dayKey(record.helpRecord.recordedAt)
         }
 
         return grouped.sorted { lhs, rhs in
-            let lhsDate = viewModel.helpRecords.first { record in
-                formatter.string(from: record.helpRecord.recordedAt) == lhs.key
+            let lhsDate = records.first { record in
+                dayKey(record.helpRecord.recordedAt) == lhs.key
             }?.helpRecord.recordedAt ?? Date.distantPast
 
-            let rhsDate = viewModel.helpRecords.first { record in
-                formatter.string(from: record.helpRecord.recordedAt) == rhs.key
+            let rhsDate = records.first { record in
+                dayKey(record.helpRecord.recordedAt) == rhs.key
             }?.helpRecord.recordedAt ?? Date.distantPast
 
             return lhsDate > rhsDate

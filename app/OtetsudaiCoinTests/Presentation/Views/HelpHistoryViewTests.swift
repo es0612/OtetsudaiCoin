@@ -61,6 +61,46 @@ final class HelpHistoryViewTests: XCTestCase {
         XCTAssertTrue(time.contains("AM"), "rendered: \(time)")
     }
 
+    // MARK: - groupRecordsByDay (#205)
+
+    /// 2026-07-{day} {hour}:00 の HelpRecordWithDetails を固定生成する
+    /// (HelpRecordRowTests.makeView の factory パターンを流用)。
+    private func makeRecord(day: Int, hour: Int) -> HelpRecordWithDetails {
+        let date = Calendar(identifier: .gregorian).date(
+            from: DateComponents(year: 2026, month: 7, day: day, hour: hour)
+        )!
+        let child = Child(id: UUID(), name: "さくら", themeColor: "#FF6B6B")
+        let task = HelpTask(id: UUID(), name: "皿洗い", isActive: true, coinRate: 100, sortOrder: 0, icon: nil)
+        let record = HelpRecord(id: UUID(), childId: child.id, helpTaskId: task.id, recordedAt: date)
+        return HelpRecordWithDetails(helpRecord: record, child: child, task: task)
+    }
+
+    /// グループは日付降順、グループ内は入力配列順を維持すること (characterization)。
+    func testGroupRecordsByDaySortsGroupsDescendingAndKeepsWithinGroupOrder() {
+        // day15 の 2 件は「遅い時刻が先」の unsorted 配列順にして、
+        // グループ代表値の取り方 (first vs min) の差が結果へ出ないことも lock する
+        let records = [
+            makeRecord(day: 15, hour: 18),
+            makeRecord(day: 14, hour: 9),
+            makeRecord(day: 15, hour: 8),
+            makeRecord(day: 16, hour: 12),
+        ]
+        let groups = HelpHistoryView.groupRecordsByDay(records) { date in
+            "day-\(Calendar(identifier: .gregorian).component(.day, from: date))"
+        }
+        XCTAssertEqual(groups.map(\.key), ["day-16", "day-15", "day-14"],
+                       "rendered: \(groups.map(\.key))")
+        XCTAssertEqual(groups[1].value.map(\.helpRecord.recordedAt),
+                       [records[0], records[2]].map(\.helpRecord.recordedAt),
+                       "グループ内の入力配列順が保たれていない")
+    }
+
+    /// 空配列で空結果 (crash しない) こと。
+    func testGroupRecordsByDayEmptyInputReturnsEmpty() {
+        let groups = HelpHistoryView.groupRecordsByDay([]) { _ in "x" }
+        XCTAssertTrue(groups.isEmpty)
+    }
+
     // MARK: - timeFormatter cache (#201)
 
     /// 同一 locale では formatter instance が再利用されること (行 render ごとの生成コスト解消)。
