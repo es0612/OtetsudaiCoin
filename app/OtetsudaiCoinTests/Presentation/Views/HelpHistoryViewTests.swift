@@ -95,6 +95,25 @@ final class HelpHistoryViewTests: XCTestCase {
                        "グループ内の入力配列順が保たれていない")
     }
 
+    /// dayKey (formatter.string 相当) は各レコード 1 回 = 計 n 回しか呼ばれないこと (#205 perf)。
+    /// 旧実装は sort 比較内の線形探索で O(n·k·log k) 回呼んでいた。
+    func testGroupRecordsByDayCallsDayKeyOncePerRecord() {
+        let records = [
+            makeRecord(day: 15, hour: 18),
+            makeRecord(day: 14, hour: 9),
+            makeRecord(day: 15, hour: 8),
+            makeRecord(day: 16, hour: 12),
+            makeRecord(day: 13, hour: 7),
+        ]
+        var callCount = 0
+        _ = HelpHistoryView.groupRecordsByDay(records) { date in
+            callCount += 1
+            return "day-\(Calendar(identifier: .gregorian).component(.day, from: date))"
+        }
+        XCTAssertEqual(callCount, records.count,
+                       "dayKey が \(callCount) 回呼ばれた (期待: \(records.count) 回 = レコードあたり 1 回)")
+    }
+
     /// 空配列で空結果 (crash しない) こと。
     func testGroupRecordsByDayEmptyInputReturnsEmpty() {
         let groups = HelpHistoryView.groupRecordsByDay([]) { _ in "x" }

@@ -237,16 +237,16 @@ struct HelpHistoryView: View {
             dayKey(record.helpRecord.recordedAt)
         }
 
-        return grouped.sorted { lhs, rhs in
-            let lhsDate = records.first { record in
-                dayKey(record.helpRecord.recordedAt) == lhs.key
-            }?.helpRecord.recordedAt ?? Date.distantPast
+        // sort 比較内で dayKey (formatter.string 相当) の線形探索を繰り返すと
+        // O(n·k·log k) 回の呼び出しになるため、key → 代表日時のマップを 1 回だけ作る (#205)
+        let keyToDate: [String: Date] = grouped.reduce(into: [:]) { dict, pair in
+            dict[pair.key] = pair.value
+                .min(by: { $0.helpRecord.recordedAt < $1.helpRecord.recordedAt })?
+                .helpRecord.recordedAt
+        }
 
-            let rhsDate = records.first { record in
-                dayKey(record.helpRecord.recordedAt) == rhs.key
-            }?.helpRecord.recordedAt ?? Date.distantPast
-
-            return lhsDate > rhsDate
+        return grouped.sorted {
+            keyToDate[$0.key, default: .distantPast] > keyToDate[$1.key, default: .distantPast]
         }
     }
 
