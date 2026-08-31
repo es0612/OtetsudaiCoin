@@ -132,4 +132,24 @@ final class TaskCardViewTests: XCTestCase {
             "ダークモードで消える gray.opacity(0.05) が残っている / observed fills: \(fills)"
         )
     }
+
+    // MARK: - #151 Dynamic Type
+
+    /// #151: AX サイズで内容がクリップしないよう、カードは固定 height ではなく
+    /// minHeight で下方向に伸びられること。
+    /// flexFrame() traversal は本リポ初出のため観測値を message に dump する (#106 ルール)。
+    func test_cardFrame_usesMinHeightNotFixedHeight() throws {
+        let view = TaskCardView(task: makeTask(), isSelected: false, onTap: {})
+        let vstacks = try view.inspect().findAll(ViewType.VStack.self)
+        let flexFrames = vstacks.compactMap { try? $0.flexFrame() }
+        let fixedFrames = vstacks.compactMap { try? $0.fixedFrame() }
+        XCTAssertTrue(
+            flexFrames.contains(where: { $0.minHeight == 150 }),
+            "minHeight=150 の flexFrame が見つからない。vstacks=\(vstacks.count), flex=\(flexFrames), fixed=\(fixedFrames)"
+        )
+        XCTAssertFalse(
+            fixedFrames.contains(where: { $0.height == 150 }),
+            "固定 height=150 が残っている。fixed=\(fixedFrames)"
+        )
+    }
 }

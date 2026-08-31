@@ -173,16 +173,18 @@ final class RecordCalendarViewTests: XCTestCase {
             "月送り矢印が 2 つ見つからない / rendered: \(texts.compactMap { try? $0.string() })"
         )
 
-        let frames = arrows.compactMap { try? $0.fixedFrame() }
-        XCTAssertEqual(frames.count, 2, "矢印の frame を読めない (fixedFrame が到達不可)")
+        // #151 review 反映: AX サイズで glyph が truncate しないよう固定 frame →
+        // minWidth/minHeight (#198 パターン) に変更したため flexFrame() で読む。
+        let frames = arrows.compactMap { try? $0.flexFrame() }
+        XCTAssertEqual(frames.count, 2, "矢印の frame を読めない (flexFrame が到達不可)")
         for frame in frames {
             XCTAssertGreaterThanOrEqual(
-                frame.height ?? 0, minimumTapTarget,
-                "月送り矢印の高さが 44pt 未満 / frames: \(frames.map { ($0.width, $0.height) })"
+                frame.minHeight ?? 0, minimumTapTarget,
+                "月送り矢印の minHeight が 44pt 未満 / frames: \(frames.map { ($0.minWidth, $0.minHeight) })"
             )
             XCTAssertGreaterThanOrEqual(
-                frame.width ?? 0, minimumTapTarget,
-                "月送り矢印の幅が 44pt 未満 / frames: \(frames.map { ($0.width, $0.height) })"
+                frame.minWidth ?? 0, minimumTapTarget,
+                "月送り矢印の minWidth が 44pt 未満 / frames: \(frames.map { ($0.minWidth, $0.minHeight) })"
             )
         }
     }
@@ -208,5 +210,63 @@ final class RecordCalendarViewTests: XCTestCase {
         XCTAssertFalse(texts.contains("‹"), "showHeader:false ではヘッダーの ‹ を描画しない / rendered: \(texts)")
         XCTAssertFalse(texts.contains("›"), "showHeader:false ではヘッダーの › を描画しない / rendered: \(texts)")
         XCTAssertFalse(texts.contains("記録日"), "showHeader:false では selectedCaption(記録日 + 日付) を描画しない / rendered: \(texts)")
+    }
+
+    // MARK: - #151 Dynamic Type
+
+    /// #151: 日番号は固定 .system(size: 15) ではなく Dynamic Type 追従フォント
+    /// (.appFont(.secondaryInfo) = .subheadline) であること。
+    func test_dayCellFont_isDynamicTypeScaling() throws {
+        let view = makeView()
+        let texts = try view.inspect().findAll(ViewType.Text.self)
+        let day15 = texts.first(where: { (try? $0.string()) == "15" })
+        let font = day15.flatMap { try? $0.attributes().font() }
+        XCTAssertEqual(
+            font, AccessibilityFonts.secondaryInfo,
+            "日セルのフォントが Dynamic Type 追従でない。observed=\(String(describing: font)), rendered: \(texts.compactMap { try? $0.string() })"
+        )
+    }
+
+    /// #151: セルサイズは 44pt で clamp する。@ScaledMetric は AX XXXL で 30 → 約63pt まで
+    /// 育ち、7 列 + 間隔が最小幅 device (375pt) はおろか Pro Max (440pt) すら超えて
+    /// 水平 overflow → 画面全体が横ずれする (AX 撮影で実測)。44 = HIG 最小タップ領域、
+    /// 7×44 + 間隔 24 = 332pt で全 device に収まる。
+    func test_dayCellSize_clampedTo44() {
+        XCTAssertEqual(RecordCalendarView.clampedDayCellSize(scaled: 30, screenWidth: 440), 30, "既定サイズは clamp されない")
+        XCTAssertEqual(RecordCalendarView.clampedDayCellSize(scaled: 44, screenWidth: 440), 44, "境界値 44 はそのまま")
+        XCTAssertEqual(RecordCalendarView.clampedDayCellSize(scaled: 63, screenWidth: 440), 44, "AX サイズの実測値 63 は 44 へ clamp")
+    }
+
+    /// #151 review 反映: clamp は width-aware。Display Zoom 等の 320pt 論理幅では
+    /// (320 - padding 32 - 間隔 24) / 7 = 37.71pt が上限になり 7 列が収まる。
+    /// 極端に狭くても既定値 30 を下回らない floor を持つ。
+    func test_dayCellSize_widthAwareOnNarrowScreens() {
+        XCTAssertEqual(
+            RecordCalendarView.clampedDayCellSize(scaled: 63, screenWidth: 320),
+            (320.0 - 32 - 24) / 7, accuracy: 0.01,
+            "320pt 幅では画面幅逆算の上限が 44 より優先される"
+        )
+        XCTAssertEqual(
+            RecordCalendarView.clampedDayCellSize(scaled: 30, screenWidth: 320), 30,
+            "既定サイズは狭い画面でも 30 のまま"
+        )
+        XCTAssertEqual(
+            RecordCalendarView.clampedDayCellSize(scaled: 63, screenWidth: 200), 30,
+            "200pt などの異常に狭い幅でも floor 30 を下回らない"
+        )
+    }
+
+    /// #151: @ScaledMetric 化後も既定サイズでは 30×30 の geometry を維持すること
+    /// (スケーリング配線自体は ViewInspector から検証不能 → 検証境界は PR description 参照)。
+    /// #198 パターン適用後の構造: ZStack(選択 Circle + 非拘束 Text) に minWidth/minHeight。
+    /// findAll(ZStack) + flexFrame() は本リポ初出 traversal のため観測値を dump する (#106 ルール)。
+    func test_dayCellGeometry_defaultSizeIs30() throws {
+        let view = makeView()
+        let zstacks = try view.inspect().findAll(ViewType.ZStack.self)
+        let flexFrames = zstacks.compactMap { try? $0.flexFrame() }
+        XCTAssertTrue(
+            flexFrames.contains(where: { $0.minWidth == 30 && $0.minHeight == 30 }),
+            "既定サイズの日セル geometry (minWidth/minHeight 30) が見つからない。zstacks=\(zstacks.count), flex=\(flexFrames)"
+        )
     }
 }

@@ -19,7 +19,8 @@ struct TaskCardView: View {
                 }
             }
             .padding()
-            .frame(height: 150)
+            // #151: AX サイズの Dynamic Type で内容がクリップしないよう下方向へ伸ばせるようにする
+            .frame(minHeight: 150)
             .background(cardBackground)
             .overlay(alignment: .topTrailing) {
                 selectionCheckmark
