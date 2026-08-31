@@ -221,24 +221,32 @@ struct HelpHistoryView: View {
     }
     
     private var groupedRecords: [(key: String, value: [HelpRecordWithDetails])] {
-        // formatter 生成 (ICU 初期化) は安くないため、旧実装同様に 1 インスタンスを
-        // grouping / sort lookup で使い回す (sort lookup は O(n²) 回呼ばれる)。
+        // formatter 生成 (ICU 初期化) は安くないため 1 インスタンスを使い回す。
         let formatter = Self.makeDayGroupFormatter(locale: Locale.current)
+        return Self.groupRecordsByDay(viewModel.helpRecords) { formatter.string(from: $0) }
+    }
 
-        let grouped = Dictionary(grouping: viewModel.helpRecords) { record in
-            formatter.string(from: record.helpRecord.recordedAt)
+    /// 履歴レコードを日付グループへまとめ、グループを日付降順で並べる (#205)。
+    /// `dayKey` は Date → グループ見出し文字列の変換 (プロダクションでは
+    /// makeDayGroupFormatter の string(from:) を渡す。テストではカウント用 closure を注入)。
+    nonisolated static func groupRecordsByDay(
+        _ records: [HelpRecordWithDetails],
+        dayKey: (Date) -> String
+    ) -> [(key: String, value: [HelpRecordWithDetails])] {
+        let grouped = Dictionary(grouping: records) { record in
+            dayKey(record.helpRecord.recordedAt)
         }
 
-        return grouped.sorted { lhs, rhs in
-            let lhsDate = viewModel.helpRecords.first { record in
-                formatter.string(from: record.helpRecord.recordedAt) == lhs.key
-            }?.helpRecord.recordedAt ?? Date.distantPast
+        // sort 比較内で dayKey (formatter.string 相当) の線形探索を繰り返すと
+        // O(n·k·log k) 回の呼び出しになるため、key → 代表日時のマップを 1 回だけ作る (#205)
+        let keyToDate: [String: Date] = grouped.reduce(into: [:]) { dict, pair in
+            dict[pair.key] = pair.value
+                .min(by: { $0.helpRecord.recordedAt < $1.helpRecord.recordedAt })?
+                .helpRecord.recordedAt
+        }
 
-            let rhsDate = viewModel.helpRecords.first { record in
-                formatter.string(from: record.helpRecord.recordedAt) == rhs.key
-            }?.helpRecord.recordedAt ?? Date.distantPast
-
-            return lhsDate > rhsDate
+        return grouped.sorted {
+            keyToDate[$0.key, default: .distantPast] > keyToDate[$1.key, default: .distantPast]
         }
     }
 
@@ -260,37 +268,6 @@ struct HelpHistoryView: View {
         makeDayGroupFormatter(locale: locale).string(from: date)
     }
 
-    /// 記録時刻 formatter の locale 別 cache (#201)。
-    /// 旧実装は呼び出し (= HelpRecordRow の行 render) ごとに DateFormatter を生成しており、
-    /// 長い履歴リストのスクロールで全可視行分の生成+設定コストが発生していた。
-    /// View body (= MainActor) からしか呼ばれないため @MainActor で隔離し、
-    /// 素の static var の data race を避ける。
-    @MainActor
-    private static var timeFormatterCache: [String: DateFormatter] = [:]
-
-    /// locale に対応する時刻 formatter を返す (cache 済みなら再利用)。
-    @MainActor
-    static func timeFormatter(locale: Locale) -> DateFormatter {
-        if let cached = timeFormatterCache[locale.identifier] {
-            return cached
-        }
-        let formatter = DateFormatter()
-        formatter.timeStyle = .short
-        formatter.locale = locale
-        timeFormatterCache[locale.identifier] = formatter
-        return formatter
-    }
-
-    /// 記録時刻を locale に応じて生成する (#155 コメント報告の i18n 漏れ対応)。
-    ///
-    /// 旧実装は `HelpRecordRow` 内の private func で ja_JP 固定になっており、
-    /// en ロケールでも 24 時間表記が強制されていた。`.short` スタイルは
-    /// ja で「9:05」(現行と同一)、en で「9:05 AM」になる。
-    @MainActor
-    static func timeString(from date: Date, locale: Locale) -> String {
-        timeFormatter(locale: locale).string(from: date)
-    }
-    
     private func createEditView(for record: HelpRecordWithDetails) -> some View {
         let editViewModel = sharedViewModelFactory.createHelpRecordEditViewModel(
             helpRecord: record.helpRecord,
@@ -378,7 +355,7 @@ struct HelpRecordRow: View {
                     .lineLimit(1)
                 
                 HStack(spacing: 8) {
-                    Text(HelpHistoryView.timeString(from: record.helpRecord.recordedAt, locale: Locale.current))
+                    Text(TimeStringFormatter.timeString(from: record.helpRecord.recordedAt, locale: Locale.current))
                         .font(.caption)
                         .foregroundColor(.secondary)
                     
