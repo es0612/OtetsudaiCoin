@@ -17,6 +17,14 @@ struct RecordCalendarView: View {
 
     private let cal = Calendar.current
 
+    // #151: AX サイズの Dynamic Type でも日番号がクリップしないよう、セル geometry を
+    // フォント (.subheadline) と同係数でスケールさせる。記録ドット (6pt) は装飾のため固定
+    // (情報は accessibilityLabel が伝える)。
+    @ScaledMetric(relativeTo: .subheadline) private var dayCellSize: CGFloat = 30
+    /// filler は日セル 30 + spacing 2 + ドット 6 に相当。dayCellSize と連動させないと
+    /// AX サイズで nil セルを含む週だけ行高が縮んで崩れる。
+    private var fillerHeight: CGFloat { dayCellSize + 8 }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             if showHeader {
@@ -29,7 +37,7 @@ struct RecordCalendarView: View {
                         if let day {
                             dayCell(day)
                         } else {
-                            Color.clear.frame(maxWidth: .infinity).frame(height: 38)
+                            Color.clear.frame(maxWidth: .infinity).frame(height: fillerHeight)
                         }
                     }
                 }
@@ -90,7 +98,7 @@ struct RecordCalendarView: View {
                     // #151: Dynamic Type 追従。.secondaryInfo = .subheadline ≈ 15pt で既定サイズは同等
                     .appFont(.secondaryInfo)
                     .foregroundColor(dayForeground(isFuture: isFuture, isSelected: isSelected))
-                    .frame(width: 30, height: 30)
+                    .frame(width: dayCellSize, height: dayCellSize)
                     .background {
                         if isSelected {
                             Circle().fill(AccessibilityColors.brandPrimary)
