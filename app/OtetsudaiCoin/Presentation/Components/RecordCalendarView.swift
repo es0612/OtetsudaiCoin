@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// 記録画面の「記録日」用インライン月カレンダー。
 /// 選択中の子どもの記録がある日に緑ドットを表示し、記録漏れ・二重登録に事前に気づけるようにする (#84)。
@@ -21,17 +22,28 @@ struct RecordCalendarView: View {
     // フォント (.subheadline) と同係数でスケールさせる。記録ドット (6pt) は装飾のため固定
     // (情報は accessibilityLabel が伝える)。
     @ScaledMetric(relativeTo: .subheadline) private var scaledDayCellSize: CGFloat = 30
-    private var dayCellSize: CGFloat { Self.clampedDayCellSize(scaled: scaledDayCellSize) }
+    private var dayCellSize: CGFloat {
+        Self.clampedDayCellSize(scaled: scaledDayCellSize, screenWidth: UIScreen.main.bounds.width)
+    }
     /// filler は日セル 30 + spacing 2 + ドット 6 に相当。dayCellSize と連動させないと
     /// AX サイズで nil セルを含む週だけ行高が縮んで崩れる。
     private var fillerHeight: CGFloat { dayCellSize + 8 }
 
     /// セルサイズの clamp 判定 (テスト可能な pure helper)。
-    /// @ScaledMetric は AX XXXL で 30 → 約63pt まで育ち、7 列 + 間隔が画面幅を超えて
-    /// 水平 overflow する。44 = HIG 最小タップ領域、7×44 + 間隔 24 = 332pt で
-    /// 最小幅 device (375pt) にも収まる。フォント自体は clamp せず追従を維持する。
-    static func clampedDayCellSize(scaled: CGFloat) -> CGFloat {
-        min(scaled, 44)
+    /// @ScaledMetric は AX5 で 30 → 約63pt まで育ち、7 列 + 間隔が画面幅を超えて
+    /// 水平 overflow するため、(a) 44pt (HIG 最小タップ領域) と (b) 画面幅から逆算した
+    /// 1 列分 (横 padding 32 + セル間隔 4×6 を差し引いて 7 等分) の小さい方へ clamp する。
+    /// (b) は Display Zoom 等の 320pt 論理幅でも 7 列が収まるための width-aware 上限。
+    /// 既定値 30 を下回らない floor 付き (通常サイズでは常に 30)。
+    ///
+    /// なおフォントの上限は別機構 (body 側の .dynamicTypeSize(...accessibility2)) が与える。
+    /// この clamp と cap は冗長ではなく両方必要: cap は子 View のフォントにしか効かず
+    /// @ScaledMetric は cap 前の親 environment を読むので clamp が要り、逆に clamp を
+    /// 残しても cap を外すと AX5 の日番号 (≈49pt、Text は非拘束) がセル幅を超えて
+    /// overflow が再発する。
+    static func clampedDayCellSize(scaled: CGFloat, screenWidth: CGFloat) -> CGFloat {
+        let fitting = (screenWidth - 32 - 24) / 7
+        return max(30, min(scaled, 44, fitting))
     }
 
     var body: some View {
@@ -39,26 +51,32 @@ struct RecordCalendarView: View {
             if showHeader {
                 header
             }
-            weekdayHeader
-            ForEach(Array(weeks.enumerated()), id: \.offset) { _, week in
-                HStack(spacing: 4) {
-                    ForEach(Array(week.enumerated()), id: \.offset) { _, day in
-                        if let day {
-                            dayCell(day)
-                        } else {
-                            Color.clear.frame(maxWidth: .infinity).frame(height: fillerHeight)
+            // #151: 7 列グリッドは AX5 (subheadline ≈ 49pt) だと 2 桁日の週が画面幅を超えて
+            // 水平 overflow する (AX 撮影で実測)。dense グリッドの定石として accessibility2
+            // (≈ 27pt、既定比 1.8 倍) を上限にする。overflow 要因でない月タイトル・
+            // 記録日 caption は cap の外に置き AX5 まで追従させる。
+            Group {
+                weekdayHeader
+                ForEach(Array(weeks.enumerated()), id: \.offset) { _, week in
+                    HStack(spacing: 4) {
+                        ForEach(Array(week.enumerated()), id: \.offset) { _, day in
+                            if let day {
+                                dayCell(day)
+                            } else {
+                                // minWidth を day cell と揃え、幅が逼迫したとき filler だけ
+                                // 潰れて週ごとに列位置がずれるのを防ぐ
+                                Color.clear
+                                    .frame(minWidth: dayCellSize, maxWidth: .infinity, minHeight: fillerHeight)
+                            }
                         }
                     }
                 }
             }
+            .dynamicTypeSize(...DynamicTypeSize.accessibility2)
             if showHeader {
                 selectedCaption
             }
         }
-        // #151: 7 列グリッドは AX5 (subheadline ≈ 49pt) だと 2 桁日の週が画面幅を超えて
-        // 水平 overflow する (AX 撮影で実測)。dense グリッドの定石として accessibility2
-        // (≈ 27pt、既定比 1.8 倍) を上限にする。フォールバックはなく grid 構造を維持する。
-        .dynamicTypeSize(...DynamicTypeSize.accessibility2)
     }
 
     // MARK: - Header
@@ -66,8 +84,9 @@ struct RecordCalendarView: View {
     private var header: some View {
         HStack {
             Button(action: onPrevMonth) {
-                // #151: HIG の最小タップ領域 44×44pt を満たす (以前は高さ 32pt)
-                Text("‹").font(.title2).frame(width: 44, height: 44)
+                // #151: HIG の最小タップ領域 44×44pt を満たす (以前は高さ 32pt)。
+                // min 指定なのは AX サイズで glyph が 44pt を超えても truncate させないため (#198)
+                Text("‹").font(.title2).frame(minWidth: 44, minHeight: 44)
             }
             .accessibilityIdentifier("calendar_prev_month")
             .accessibilityLabel(Text(String(localized: "前の月")))
@@ -77,7 +96,7 @@ struct RecordCalendarView: View {
             Spacer()
 
             Button(action: onNextMonth) {
-                Text("›").font(.title2).frame(width: 44, height: 44)
+                Text("›").font(.title2).frame(minWidth: 44, minHeight: 44)
                     .opacity(canGoNextMonth ? 1 : 0.3)
             }
             .disabled(!canGoNextMonth)
