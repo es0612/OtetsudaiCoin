@@ -225,14 +225,27 @@ final class RecordCalendarViewTests: XCTestCase {
         )
     }
 
+    /// #151: セルサイズは 44pt で clamp する。@ScaledMetric は AX XXXL で 30 → 約63pt まで
+    /// 育ち、7 列 + 間隔が最小幅 device (375pt) はおろか Pro Max (440pt) すら超えて
+    /// 水平 overflow → 画面全体が横ずれする (AX 撮影で実測)。44 = HIG 最小タップ領域、
+    /// 7×44 + 間隔 24 = 332pt で全 device に収まる。
+    func test_dayCellSize_clampedTo44() {
+        XCTAssertEqual(RecordCalendarView.clampedDayCellSize(scaled: 30), 30, "既定サイズは clamp されない")
+        XCTAssertEqual(RecordCalendarView.clampedDayCellSize(scaled: 44), 44, "境界値 44 はそのまま")
+        XCTAssertEqual(RecordCalendarView.clampedDayCellSize(scaled: 63), 44, "AX サイズの実測値 63 は 44 へ clamp")
+    }
+
     /// #151: @ScaledMetric 化後も既定サイズでは 30×30 の geometry を維持すること
     /// (スケーリング配線自体は ViewInspector から検証不能 → 検証境界は PR description 参照)。
+    /// #198 パターン適用後の構造: ZStack(選択 Circle + 非拘束 Text) に minWidth/minHeight。
+    /// findAll(ZStack) + flexFrame() は本リポ初出 traversal のため観測値を dump する (#106 ルール)。
     func test_dayCellGeometry_defaultSizeIs30() throws {
         let view = makeView()
-        let texts = try view.inspect().findAll(ViewType.Text.self)
-        let day15 = texts.first(where: { (try? $0.string()) == "15" })
-        let frame = day15.flatMap { try? $0.fixedFrame() }
-        XCTAssertEqual(frame?.width, 30, "既定サイズの日セル幅が 30 でない。observed=\(String(describing: frame))")
-        XCTAssertEqual(frame?.height, 30, "既定サイズの日セル高が 30 でない。observed=\(String(describing: frame))")
+        let zstacks = try view.inspect().findAll(ViewType.ZStack.self)
+        let flexFrames = zstacks.compactMap { try? $0.flexFrame() }
+        XCTAssertTrue(
+            flexFrames.contains(where: { $0.minWidth == 30 && $0.minHeight == 30 }),
+            "既定サイズの日セル geometry (minWidth/minHeight 30) が見つからない。zstacks=\(zstacks.count), flex=\(flexFrames)"
+        )
     }
 }

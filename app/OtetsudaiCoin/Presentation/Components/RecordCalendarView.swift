@@ -20,10 +20,19 @@ struct RecordCalendarView: View {
     // #151: AX サイズの Dynamic Type でも日番号がクリップしないよう、セル geometry を
     // フォント (.subheadline) と同係数でスケールさせる。記録ドット (6pt) は装飾のため固定
     // (情報は accessibilityLabel が伝える)。
-    @ScaledMetric(relativeTo: .subheadline) private var dayCellSize: CGFloat = 30
+    @ScaledMetric(relativeTo: .subheadline) private var scaledDayCellSize: CGFloat = 30
+    private var dayCellSize: CGFloat { Self.clampedDayCellSize(scaled: scaledDayCellSize) }
     /// filler は日セル 30 + spacing 2 + ドット 6 に相当。dayCellSize と連動させないと
     /// AX サイズで nil セルを含む週だけ行高が縮んで崩れる。
     private var fillerHeight: CGFloat { dayCellSize + 8 }
+
+    /// セルサイズの clamp 判定 (テスト可能な pure helper)。
+    /// @ScaledMetric は AX XXXL で 30 → 約63pt まで育ち、7 列 + 間隔が画面幅を超えて
+    /// 水平 overflow する。44 = HIG 最小タップ領域、7×44 + 間隔 24 = 332pt で
+    /// 最小幅 device (375pt) にも収まる。フォント自体は clamp せず追従を維持する。
+    static func clampedDayCellSize(scaled: CGFloat) -> CGFloat {
+        min(scaled, 44)
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -46,6 +55,10 @@ struct RecordCalendarView: View {
                 selectedCaption
             }
         }
+        // #151: 7 列グリッドは AX5 (subheadline ≈ 49pt) だと 2 桁日の週が画面幅を超えて
+        // 水平 overflow する (AX 撮影で実測)。dense グリッドの定石として accessibility2
+        // (≈ 27pt、既定比 1.8 倍) を上限にする。フォールバックはなく grid 構造を維持する。
+        .dynamicTypeSize(...DynamicTypeSize.accessibility2)
     }
 
     // MARK: - Header
@@ -94,16 +107,21 @@ struct RecordCalendarView: View {
             onSelectDay(day)
         } label: {
             VStack(spacing: 2) {
-                Text("\(day)")
-                    // #151: Dynamic Type 追従。.secondaryInfo = .subheadline ≈ 15pt で既定サイズは同等
-                    .appFont(.secondaryInfo)
-                    .foregroundColor(dayForeground(isFuture: isFuture, isSelected: isSelected))
-                    .frame(width: dayCellSize, height: dayCellSize)
-                    .background {
-                        if isSelected {
-                            Circle().fill(AccessibilityColors.brandPrimary)
-                        }
+                // #198 パターン: 可変サイズ Text を固定 frame + .background に入れると
+                // AX サイズで 2 桁日番号が truncate する (実測で "…" になった)。
+                // ZStack + 別 frame の Circle + 非拘束 Text で組み、frame は min 指定にする。
+                ZStack {
+                    if isSelected {
+                        Circle()
+                            .fill(AccessibilityColors.brandPrimary)
+                            .frame(width: dayCellSize, height: dayCellSize)
                     }
+                    Text("\(day)")
+                        // #151: Dynamic Type 追従。.secondaryInfo = .subheadline ≈ 15pt で既定サイズは同等
+                        .appFont(.secondaryInfo)
+                        .foregroundColor(dayForeground(isFuture: isFuture, isSelected: isSelected))
+                }
+                .frame(minWidth: dayCellSize, minHeight: dayCellSize)
                 Circle()
                     .fill(isRecorded ? AccessibilityColors.successGreen : Color.clear)
                     .frame(width: 6, height: 6)
