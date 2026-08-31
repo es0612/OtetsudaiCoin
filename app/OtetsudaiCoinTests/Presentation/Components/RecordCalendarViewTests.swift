@@ -209,4 +209,30 @@ final class RecordCalendarViewTests: XCTestCase {
         XCTAssertFalse(texts.contains("›"), "showHeader:false ではヘッダーの › を描画しない / rendered: \(texts)")
         XCTAssertFalse(texts.contains("記録日"), "showHeader:false では selectedCaption(記録日 + 日付) を描画しない / rendered: \(texts)")
     }
+
+    // MARK: - #151 Dynamic Type
+
+    /// #151: 日番号は固定 .system(size: 15) ではなく Dynamic Type 追従フォント
+    /// (.appFont(.secondaryInfo) = .subheadline) であること。
+    func test_dayCellFont_isDynamicTypeScaling() throws {
+        let view = makeView()
+        let texts = try view.inspect().findAll(ViewType.Text.self)
+        let day15 = texts.first(where: { (try? $0.string()) == "15" })
+        let font = day15.flatMap { try? $0.attributes().font() }
+        XCTAssertEqual(
+            font, AccessibilityFonts.secondaryInfo,
+            "日セルのフォントが Dynamic Type 追従でない。observed=\(String(describing: font)), texts=\(texts.count)"
+        )
+    }
+
+    /// #151: @ScaledMetric 化後も既定サイズでは 30×30 の geometry を維持すること
+    /// (スケーリング配線自体は ViewInspector から検証不能 → 検証境界は PR description 参照)。
+    func test_dayCellGeometry_defaultSizeIs30() throws {
+        let view = makeView()
+        let texts = try view.inspect().findAll(ViewType.Text.self)
+        let day15 = texts.first(where: { (try? $0.string()) == "15" })
+        let frame = day15.flatMap { try? $0.fixedFrame() }
+        XCTAssertEqual(frame?.width, 30, "既定サイズの日セル幅が 30 でない。observed=\(String(describing: frame))")
+        XCTAssertEqual(frame?.height, 30, "既定サイズの日セル高が 30 でない。observed=\(String(describing: frame))")
+    }
 }

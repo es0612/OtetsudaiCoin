@@ -87,7 +87,8 @@ struct RecordCalendarView: View {
         } label: {
             VStack(spacing: 2) {
                 Text("\(day)")
-                    .font(.system(size: 15))
+                    // #151: Dynamic Type 追従。.secondaryInfo = .subheadline ≈ 15pt で既定サイズは同等
+                    .appFont(.secondaryInfo)
                     .foregroundColor(dayForeground(isFuture: isFuture, isSelected: isSelected))
                     .frame(width: 30, height: 30)
                     .background {
