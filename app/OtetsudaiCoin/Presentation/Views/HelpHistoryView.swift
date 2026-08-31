@@ -252,13 +252,13 @@ struct HelpHistoryView: View {
 
     /// 履歴の日付グループ見出し用の locale 対応 formatter を生成する (#155 コメント報告の i18n 漏れ対応)。
     ///
-    /// 旧実装は `dateFormat = "M月d日 (E)"` + ja_JP 固定で、en ロケールでも日本語表記が出ていた。
-    /// `MMMEd` テンプレートは ja で「7月15日(水)」(現行「7月15日 (水)」とほぼ同一、括弧前スペースのみ差)、
-    /// en で「Wed, Jul 15」になる。
+    /// `yMMMEd` テンプレートは ja で「2026年7月15日(水)」、en で「Wed, Jul 15, 2026」になる。
+    /// 年を含めないと group key が年跨ぎで単射にならず、.all 期間で年違いの
+    /// 同月同日同曜日が同一グループへ衝突する (#208)。
     static func makeDayGroupFormatter(locale: Locale) -> DateFormatter {
         let formatter = DateFormatter()
         formatter.locale = locale
-        formatter.setLocalizedDateFormatFromTemplate("MMMEd")
+        formatter.setLocalizedDateFormatFromTemplate("yMMMEd")
         return formatter
     }
 

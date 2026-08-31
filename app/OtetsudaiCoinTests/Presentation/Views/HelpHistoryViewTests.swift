@@ -24,21 +24,42 @@ final class HelpHistoryViewTests: XCTestCase {
 
     // MARK: - dayGroupLabel (履歴の日付グループ見出し)
 
-    /// ja では現行の「7月15日 (水)」とほぼ同等 (テンプレート化で括弧前スペースのみ消える) であること (非退行)。
-    func testDayGroupLabelJapaneseLocaleKeepsCurrentStyle() {
+    /// ja では年入りの「2026年7月15日(水)」になること (#208: 年なし key の年跨ぎ衝突対策で yMMMEd 化)。
+    func testDayGroupLabelJapaneseLocaleIncludesYear() {
         let label = HelpHistoryView.dayGroupLabel(
             from: fixedDate(), locale: Locale(identifier: "ja_JP")
         )
-        XCTAssertEqual(label, "7月15日(水)", "rendered: \(label)")
+        XCTAssertEqual(label, "2026年7月15日(水)", "rendered: \(label)")
     }
 
-    /// en では「Wed, Jul 15」相当のローカライズ表記になること (旧実装は ja_JP 固定で「7月15日 (水)」が出る実バグ)。
-    func testDayGroupLabelEnglishLocaleUsesLocalizedTemplate() {
+    /// en では「Wed, Jul 15, 2026」相当のローカライズ表記になること (旧実装は ja_JP 固定で日本語表記が出る実バグ)。
+    func testDayGroupLabelEnglishLocaleUsesLocalizedTemplateWithYear() {
         let label = HelpHistoryView.dayGroupLabel(
             from: fixedDate(), locale: Locale(identifier: "en_US")
         )
-        XCTAssertEqual(label, "Wed, Jul 15", "rendered: \(label)")
+        XCTAssertEqual(label, "Wed, Jul 15, 2026", "rendered: \(label)")
         XCTAssertFalse(label.contains("月"), "en locale に日本語表記が混入: \(label)")
+    }
+
+    /// 年違いの同月同日同曜日 (2025-07-15(火) / 2031-07-15(火)) が別グループになること (#208)。
+    /// 旧 `MMMEd` key は年を含まず両者が「7月15日(火)」へ衝突して 1 グループに merge されていた。
+    func testGroupRecordsByDaySeparatesSameMonthDayWeekdayAcrossYears() {
+        let calendar = Calendar(identifier: .gregorian)
+        let records = [2031, 2025].map { year -> HelpRecordWithDetails in
+            let date = calendar.date(
+                from: DateComponents(year: year, month: 7, day: 15, hour: 10)
+            )!
+            let child = Child(id: UUID(), name: "さくら", themeColor: "#FF6B6B")
+            let task = HelpTask(id: UUID(), name: "皿洗い", isActive: true, coinRate: 100, sortOrder: 0, icon: nil)
+            let record = HelpRecord(id: UUID(), childId: child.id, helpTaskId: task.id, recordedAt: date)
+            return HelpRecordWithDetails(helpRecord: record, child: child, task: task)
+        }
+        let formatter = HelpHistoryView.makeDayGroupFormatter(locale: Locale(identifier: "ja_JP"))
+        let groups = HelpHistoryView.groupRecordsByDay(records) { formatter.string(from: $0) }
+        XCTAssertEqual(groups.count, 2,
+                       "年跨ぎの同月同日同曜日が衝突している: keys=\(groups.map(\.key))")
+        XCTAssertEqual(groups.map(\.key), ["2031年7月15日(火)", "2025年7月15日(火)"],
+                       "rendered: \(groups.map(\.key))")
     }
 
     // MARK: - groupRecordsByDay (#205)
