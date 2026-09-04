@@ -95,3 +95,7 @@ app/build/
 
 # Claude Code: 個人のローカル設定 (共有しない)
 .claude/settings.local.json
+
+# 検証専用スクショ (capture-verification-screenshots.sh の出力、ASC 非提出物)。
+# 棚卸し結果は issue コメントに表として残し、PNG 自体は commit しない (Issue #199 / #151)
+docs/screenshots/verification/
