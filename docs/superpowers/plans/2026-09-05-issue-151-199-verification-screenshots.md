@@ -66,7 +66,7 @@ XCTest はメソッドをアルファベット順に実行する (`ChildDetail` 
 
 **Interfaces:**
 - Consumes: 既存 accessibilityIdentifier `child_button` / `home_monthly_summary_entry` / `home_help_history_entry` / `add_child_button` / `cancel_button` (いずれも `Presentation/Views/HomeView.swift`, `SettingsView.swift`, `ChildFormView.swift` に定義済み)、ボタン文言 「お手伝いリストを編集」 (`SettingsView.swift:109`)、「閉じる」 (`TaskManagementView.swift:63`)、「通知設定」 (`SettingsView.swift:129`)、「次へ」 (`ChildTutorialView.swift:222`, `RecordTutorialView.swift:403`)
-- Produces: 添付名 `verify-NN-name` (regex `^verify-([0-9]{2})-([a-z-]+)$`) を 14 件。Task 2 の script がこの命名規約で PNG を配置する
+- Produces: 添付名 `verify-NN-name` (regex `^verify-([0-9]{2})-([a-z-]+)`) を 14 件。Task 2 の script がこの命名規約で PNG を配置する
 
 - [ ] **Step 1: `.gitignore` に出力先を追加**
 
@@ -320,7 +320,7 @@ git commit -m "test(#199): 検証専用スクショ用 VerificationScreenshotUIT
 - Test: script を `/bin/bash` 経由で `--help` / 不正引数 / `--appearance light` / `--appearance dark` / 引数なし (both) の全モードで実行する
 
 **Interfaces:**
-- Consumes: Task 1 の添付名規約 `^verify-([0-9]{2})-([a-z-]+)$`、テストクラス `OtetsudaiCoinUITests/VerificationScreenshotUITests`
+- Consumes: Task 1 の添付名規約 `^verify-([0-9]{2})-([a-z-]+)`、テストクラス `OtetsudaiCoinUITests/VerificationScreenshotUITests`
 - Produces: `docs/screenshots/verification/{light,dark}/NN-name.png` (14 件 × 外観数)。Task 3 がこれを Read する
 
 - [ ] **Step 1: script を作成**
@@ -444,7 +444,7 @@ place_attachments() {
   mkdir -p "$dest_dir"
   local placed=0
   while IFS=$'\t' read -r human export; do
-    if [[ "$human" =~ ^verify-([0-9]{2})-([a-z-]+)$ ]]; then
+    if [[ "$human" =~ ^verify-([0-9]{2})-([a-z-]+) ]]; then
       local num="${BASH_REMATCH[1]}" name="${BASH_REMATCH[2]}"
       cp "$extract_dir/$export" "$dest_dir/${num}-${name}.png"
       echo "  $human → $dest_dir/${num}-${name}.png"
