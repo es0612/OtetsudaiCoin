@@ -103,6 +103,13 @@ struct AccessibilityColors {
     
     /// セカンダリシステム背景色（ダーク・ライトモード対応）
     static let systemBackgroundSecondary = Color(.secondarySystemBackground)
+
+    /// グループ化レイアウト上のカード背景色（ダーク・ライトモード対応、Issue #151 ダークモード5）。
+    /// light では白 (= 従来の `Color(.systemBackground)` と同じ見た目)、dark では #1C1C1E になり
+    /// 黒いページ背景から浮く。`Color(.systemBackground)` は dark で黒になりページ背景と同化するため、
+    /// 薄灰のページ上に置くカード (HomeView) にはこちらを使う。
+    /// `systemBackgroundSecondary` (light #F2F2F7) は薄灰ページ上では light で同化するので使わない。
+    static let cardBackgroundGrouped = Color(.secondarySystemGroupedBackground)
     
     // MARK: - High Contrast Support
     

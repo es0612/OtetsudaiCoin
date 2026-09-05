@@ -298,4 +298,51 @@ final class HomeViewTests: XCTestCase {
         let paddedView = testView.adaptivePadding()
         XCTAssertNotNil(paddedView)
     }
+
+    // MARK: - #151 ダークモード5: カード背景の適応色
+
+    /// 子ども一覧カードの背景は、黒いページ背景から浮く grouped 系の適応色を使う。
+    ///
+    /// 修正前は `Color(.systemBackground)` で、ダークモードではページ背景と同じ黒になり
+    /// カードの境界が消えていた (2026-09-05 棚卸し 01-home)。図形の色は
+    /// `findAll(ViewType.Shape.self)` + `fillShapeStyle(Color.self)` で確認する (ChildCardViewTests と同型)。
+    @MainActor
+    func testChildListCardBackgroundUsesGroupedAdaptiveColor() throws {
+        viewModel.children = [
+            Child(id: UUID(), name: "太郎", themeColor: "#FF5733"),
+            Child(id: UUID(), name: "花子", themeColor: "#33FF57")
+        ]
+        let view = HomeView(viewModel: viewModel, childManagementViewModel: childManagementViewModel)
+        let fills = try view.inspect().findAll(ViewType.Shape.self).compactMap { try? $0.fillShapeStyle(Color.self) }
+
+        XCTAssertTrue(
+            fills.contains(AccessibilityColors.cardBackgroundGrouped),
+            "子どもカードの背景が cardBackgroundGrouped でない / observed fills: \(fills)"
+        )
+        XCTAssertFalse(
+            fills.contains(Color(.systemBackground)),
+            "ダークモードで黒地と同化する Color(.systemBackground) が残っている / observed fills: \(fills)"
+        )
+    }
+
+    /// 子ども選択後の統計カード外枠と「月のまとめ / お手伝い履歴」行も同じ適応色を使う (棚卸し 06-home-selected)。
+    @MainActor
+    func testSelectedChildCardsBackgroundUseGroupedAdaptiveColor() throws {
+        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+        viewModel.children = [child]
+        viewModel.selectedChild = child
+        let view = HomeView(viewModel: viewModel, childManagementViewModel: childManagementViewModel)
+        let fills = try view.inspect().findAll(ViewType.Shape.self).compactMap { try? $0.fillShapeStyle(Color.self) }
+
+        let groupedCount = fills.filter { $0 == AccessibilityColors.cardBackgroundGrouped }.count
+        // 統計カード外枠 + 入口行 2 つ + 子どもカード 1 枚 = 最低 4 面
+        XCTAssertGreaterThanOrEqual(
+            groupedCount, 4,
+            "選択後のカード面が cardBackgroundGrouped で塗られていない (count=\(groupedCount)) / observed fills: \(fills)"
+        )
+        XCTAssertFalse(
+            fills.contains(Color(.systemBackground)),
+            "ダークモードで黒地と同化する Color(.systemBackground) が残っている / observed fills: \(fills)"
+        )
+    }
 }
