@@ -159,7 +159,7 @@ struct HomeView: View {
         .adaptivePadding()
         .background(
             RoundedRectangle(cornerRadius: AppRadius.xLarge)
-                .fill(Color(.systemBackground))
+                .fill(AccessibilityColors.cardBackgroundGrouped)
                 .appShadow(AppShadow.floating)
         )
         .padding(.horizontal, DeviceInfo.contentPadding)
@@ -203,7 +203,7 @@ struct HomeView: View {
         .padding(.horizontal, 16)
         .background(
             RoundedRectangle(cornerRadius: AppRadius.medium)
-                .fill(Color(.systemBackground))
+                .fill(AccessibilityColors.cardBackgroundGrouped)
                 .appShadow(AppShadow.card)
         )
     }
@@ -244,7 +244,7 @@ struct HomeView: View {
                         .padding(.horizontal, 16)
                         .background(
                             RoundedRectangle(cornerRadius: AppRadius.medium)
-                                .fill(Color(.systemBackground))
+                                .fill(AccessibilityColors.cardBackgroundGrouped)
                                 .appShadow(AppShadow.card)
                         )
                     }
@@ -329,7 +329,7 @@ struct HomeView: View {
         .padding(14)
         .background(
             RoundedRectangle(cornerRadius: AppRadius.medium)
-                .fill(Color(.systemBackground))
+                .fill(AccessibilityColors.cardBackgroundGrouped)
                 .appShadow(AppShadow.cardElevated)
         )
         .overlay(
