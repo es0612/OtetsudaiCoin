@@ -104,7 +104,8 @@ echo "==> Using simulator: $DEVICE_NAME ($UDID)"
 # from the moment it is installed; the real value is read after boot below.
 ORIG_APPEARANCE="light"
 restore_appearance() {
-  xcrun simctl ui "$UDID" appearance "$ORIG_APPEARANCE" >/dev/null 2>&1 || true
+  xcrun simctl ui "$UDID" appearance "$ORIG_APPEARANCE" >/dev/null 2>&1 \
+    || echo "warn: could not restore simulator appearance to $ORIG_APPEARANCE" >&2
 }
 trap restore_appearance EXIT
 
