@@ -13,7 +13,7 @@ set -euo pipefail
 
 PROJECT="app/OtetsudaiCoin.xcodeproj"
 SCHEME="OtetsudaiCoin"
-DESTINATION='platform=iOS Simulator,name=iPhone 17 Pro Max'
+DEVICE_NAME="iPhone 17 Pro Max"
 TEST_CLASS="OtetsudaiCoinUITests/ASCScreenshotUITests"
 OUT_DIR="docs/screenshots/asc/v1.1.x"
 
@@ -46,6 +46,28 @@ JQ="$(resolve_jq)" || {
 }
 echo "==> Using jq: $JQ"
 
+# Resolve ONE udid for the device name. Several simulators can share a name
+# (this project's dev machine has 7× "iPhone 17 Pro Max"), and with a
+# `name=` destination xcodebuild picks among them non-deterministically.
+# Prefer an already-booted one to skip boot time. Mirrors resolve_udid() in
+# scripts/capture-verification-screenshots.sh. See Issue #217.
+resolve_udid() {
+  local name="$1"
+  xcrun simctl list devices available -j \
+    | "$JQ" -r --arg n "$name" '
+        [.devices[][] | select(.name == $n and .isAvailable)]
+        | sort_by(.state != "Booted")
+        | .[0].udid // empty'
+}
+
+UDID="$(resolve_udid "$DEVICE_NAME")"
+[[ -n "$UDID" ]] || {
+  echo "error: no available simulator named '$DEVICE_NAME'. Available iPhones:" >&2
+  xcrun simctl list devices available | grep iPhone >&2 || true
+  exit 1
+}
+echo "==> Using simulator: $DEVICE_NAME ($UDID)"
+
 TMP_ROOT="$(mktemp -d)"
 RESULT_BUNDLE="$TMP_ROOT/result.xcresult"
 EXTRACT_DIR="$TMP_ROOT/extracted"
@@ -54,7 +76,7 @@ echo "==> Running ASCScreenshotUITests"
 xcodebuild test \
   -project "$PROJECT" \
   -scheme "$SCHEME" \
-  -destination "$DESTINATION" \
+  -destination "id=$UDID" \
   -only-testing:"$TEST_CLASS" \
   -resultBundlePath "$RESULT_BUNDLE" \
   | tail -20
