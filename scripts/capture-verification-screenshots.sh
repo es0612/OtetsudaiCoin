@@ -99,14 +99,27 @@ UDID="$(resolve_udid "$DEVICE_NAME")"
 }
 echo "==> Using simulator: $DEVICE_NAME ($UDID)"
 
-# Always leave the simulator in light mode, even if a run fails midway.
+# Restore whatever appearance the simulator had before this run, even if a
+# run fails midway. Seeded with "light" so the trap is safe under `set -u`
+# from the moment it is installed; the real value is read after boot below.
+ORIG_APPEARANCE="light"
 restore_appearance() {
-  xcrun simctl ui "$UDID" appearance light >/dev/null 2>&1 || true
+  xcrun simctl ui "$UDID" appearance "$ORIG_APPEARANCE" >/dev/null 2>&1 || true
 }
 trap restore_appearance EXIT
 
 xcrun simctl boot "$UDID" >/dev/null 2>&1 || true   # no-op if already booted
 xcrun simctl bootstatus "$UDID" -b >/dev/null
+
+# `simctl ui <udid> appearance` reports a real value only once the device is
+# booted — while shut down it prints "unknown" (and still exits 0), so this
+# read must come after bootstatus. Anything other than light/dark keeps the
+# previous behaviour of restoring to light.
+case "$(xcrun simctl ui "$UDID" appearance 2>/dev/null)" in
+  dark) ORIG_APPEARANCE="dark" ;;
+  *)    ORIG_APPEARANCE="light" ;;
+esac
+echo "==> Appearance before run: $ORIG_APPEARANCE (restored on exit)"
 
 TMP_ROOT="$(mktemp -d)"
 echo "==> Scratch: $TMP_ROOT"
