@@ -5,6 +5,10 @@
 
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib/common.sh
+source "$SCRIPT_DIR/lib/common.sh"
+
 # カラー出力用の定数
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -31,7 +35,7 @@ log_error() {
 
 # デフォルト設定
 SIMULATOR_NAME="iPhone 17"
-SIMULATOR_OS="iOS"
+SIMULATOR_UDID=""
 WARMUP_TIMEOUT=30
 VERBOSE=false
 
@@ -44,7 +48,8 @@ show_help() {
   $0 [オプション]
 
 オプション:
-  -s, --simulator NAME     シミュレータ名 (デフォルト: iPhone 17)
+  -s, --simulator NAME     シミュレータ名 (デフォルト: iPhone 17)。同名が複数あれば起動済みを優先して 1 台に決める
+  -d, --udid UDID          起動する端末を UDID で直接指定 (-s より優先)
   -t, --timeout SECONDS   ウォームアップタイムアウト (デフォルト: 30秒)
   -v, --verbose           詳細ログ出力
   -h, --help              このヘルプを表示
@@ -61,6 +66,10 @@ while [[ $# -gt 0 ]]; do
     case $1 in
         -s|--simulator)
             SIMULATOR_NAME="$2"
+            shift 2
+            ;;
+        -d|--udid)
+            SIMULATOR_UDID="$2"
             shift 2
             ;;
         -t|--timeout)
@@ -90,62 +99,22 @@ verbose_log() {
     fi
 }
 
-# シミュレータの存在確認
-check_simulator_exists() {
-    local simulator_name="$1"
-    
-    if [[ "$VERBOSE" == "true" ]]; then
-        log_info "シミュレータ '$simulator_name' の存在を確認中..."
-    fi
-    
-    if xcrun simctl list devices available | grep -q "$simulator_name"; then
-        log_success "シミュレータ '$simulator_name' が見つかりました"
+# 対象端末の UDID を決める。同名の端末が複数あるため name 一致の grep ではなく
+# resolve_udid (lib/common.sh) で 1 台に決める (Issue #224)。
+resolve_target_udid() {
+    if [[ -n "$SIMULATOR_UDID" ]]; then
+        printf '%s\n' "$SIMULATOR_UDID"
         return 0
-    else
-        log_error "シミュレータ '$simulator_name' が見つかりません"
-        log_info "利用可能なシミュレータ一覧:"
-        xcrun simctl list devices available | grep "iPhone\|iPad" | head -10
-        return 1
     fi
+    resolve_udid "$SIMULATOR_NAME"
 }
 
-# シミュレータの起動状態確認
-check_simulator_status() {
-    local simulator_name="$1"
-    
-    if [[ "$VERBOSE" == "true" ]]; then
-        log_info "シミュレータ '$simulator_name' の状態を確認中..."
-    fi
-    
-    # 正確なシミュレータ名にマッチするようにパターンを調整
-    local device_line=$(xcrun simctl list devices | grep "^ *$simulator_name (" | head -1)
-    
-    if [[ -z "$device_line" ]]; then
-        log_error "シミュレータ '$simulator_name' のデバイス情報を取得できませんでした"
-        log_info "利用可能なシミュレータ一覧:"
-        xcrun simctl list devices available | grep "iPhone" | head -5
-        return 1
-    fi
-    
-    local device_id=$(echo "$device_line" | grep -o "[A-F0-9-]\{36\}")
-    local status="Shutdown"
-    
-    if echo "$device_line" | grep -q "Booted"; then
-        status="Booted"
-    fi
-    
-    if [[ -z "$device_id" ]]; then
-        log_error "デバイスIDを正しく取得できませんでした"
-        log_error "デバイス行: $device_line"
-        return 1
-    fi
-    
-    if [[ "$VERBOSE" == "true" ]]; then
-        log_info "デバイスID: $device_id"
-        log_info "現在の状態: $status"
-    fi
-    
-    echo "$device_id:$status"
+# 端末の状態 (Booted / Shutdown / ...) を返す。見つからなければ空。
+# ログは stderr へ出す (stdout は呼び出し側の $(...) が値として受け取る)。
+simulator_state() {
+    local udid="$1"
+    xcrun simctl list devices -j \
+        | "$JQ" -r --arg u "$udid" '[.devices[][] | select(.udid == $u)][0].state // empty'
 }
 
 # シミュレータ起動
@@ -171,22 +140,30 @@ warmup_simulator() {
     local timeout="$3"
     
     log_info "シミュレータのウォームアップ中... (最大${timeout}秒)"
-    
+
+    # 起動完了は `simctl bootstatus -b` で待つ。以前の「launchctl print system に
+    # SpringBoard が出るか」判定は iOS 26 ランタイムでは出てこず、常にタイムアウトしていた
+    # (Issue #224)。bootstatus にはタイムアウト指定が無いので、裏で動かして -t 秒で打ち切る。
+    xcrun simctl bootstatus "$device_id" -b >/dev/null 2>&1 &
+    local waiter=$!
     local elapsed=0
     local interval=2
-    
+
     while [[ $elapsed -lt $timeout ]]; do
-        # Simulator.appが利用可能かチェック
-        if xcrun simctl spawn "$device_id" launchctl print system 2>/dev/null | grep -q "SpringBoard"; then
-            log_success "シミュレータのウォームアップが完了しました (${elapsed}秒)"
-            return 0
+        if ! kill -0 "$waiter" 2>/dev/null; then
+            if wait "$waiter"; then
+                log_success "シミュレータのウォームアップが完了しました (${elapsed}秒)"
+                return 0
+            fi
+            log_warning "bootstatus が失敗しました"
+            return 1
         fi
-        
         verbose_log "ウォームアップ待機中... (${elapsed}/${timeout}秒)"
         sleep $interval
         elapsed=$((elapsed + interval))
     done
-    
+
+    kill "$waiter" 2>/dev/null || true
     log_warning "ウォームアップがタイムアウトしました (${timeout}秒)"
     return 1
 }
@@ -210,21 +187,23 @@ main() {
     # ランタイム情報表示
     show_runtime_info
     
-    # シミュレータ存在確認
-    if ! check_simulator_exists "$SIMULATOR_NAME"; then
+    JQ="$(resolve_jq)" || {
+        log_error "動作する jq が見つかりません。brew install jq でインストールしてください"
+        exit 1
+    }
+
+    local device_id
+    device_id="$(resolve_target_udid)"
+    local status=""
+    [[ -n "$device_id" ]] && status="$(simulator_state "$device_id")"
+    if [[ -z "$status" ]]; then
+        log_error "シミュレータが見つかりません (名前: '$SIMULATOR_NAME', UDID: '${SIMULATOR_UDID:-未指定}')"
+        log_info "利用可能なシミュレータ一覧:"
+        xcrun simctl list devices available | grep "iPhone\|iPad" | head -10
         exit 1
     fi
-    
-    # シミュレータ状態取得
-    local status_info
-    status_info=$(check_simulator_status "$SIMULATOR_NAME")
-    if [[ $? -ne 0 ]]; then
-        exit 1
-    fi
-    
-    local device_id=$(echo "$status_info" | cut -d: -f1)
-    local status=$(echo "$status_info" | cut -d: -f2)
-    
+    log_success "対象シミュレータ: $SIMULATOR_NAME ($device_id, $status)"
+
     # 状態に応じた処理
     case "$status" in
         "Booted")
