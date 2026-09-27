@@ -17,48 +17,16 @@ DEVICE_NAME="iPhone 17 Pro Max"
 TEST_CLASS="OtetsudaiCoinUITests/ASCScreenshotUITests"
 OUT_DIR="docs/screenshots/asc/v1.1.x"
 
-# Resolve a working jq before the slow xcodebuild (fail fast). On this
-# project's dev machines an asdf shim can be first in PATH
-# (~/.asdf/shims/jq) but broken when its libexec is missing, so checking
-# `-x` is not enough — run `--version` to confirm the binary executes.
-# Honors a JQ override and covers both Homebrew prefixes (Apple Silicon /
-# Intel) plus /usr/bin. See Issue #96.
-resolve_jq() {
-  local candidate
-  for candidate in "${JQ:-}" /opt/homebrew/bin/jq /usr/local/bin/jq /usr/bin/jq; do
-    { [ -n "$candidate" ] && [ -x "$candidate" ]; } || continue
-    if "$candidate" --version >/dev/null 2>&1; then
-      printf '%s\n' "$candidate"
-      return 0
-    fi
-  done
-  # Last resort: whatever `jq` resolves to on PATH, if it actually runs.
-  if command -v jq >/dev/null 2>&1 && jq --version >/dev/null 2>&1; then
-    command -v jq
-    return 0
-  fi
-  return 1
-}
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib/common.sh
+source "$SCRIPT_DIR/lib/common.sh"
 
+# Resolve a working jq before the slow xcodebuild (fail fast).
 JQ="$(resolve_jq)" || {
   echo "error: no working jq found. Install with: brew install jq" >&2
   exit 1
 }
 echo "==> Using jq: $JQ"
-
-# Resolve ONE udid for the device name. Several simulators can share a name
-# (this project's dev machine has 7× "iPhone 17 Pro Max"), and with a
-# `name=` destination xcodebuild picks among them non-deterministically.
-# Prefer an already-booted one to skip boot time. Mirrors resolve_udid() in
-# scripts/capture-verification-screenshots.sh. See Issue #217.
-resolve_udid() {
-  local name="$1"
-  xcrun simctl list devices available -j \
-    | "$JQ" -r --arg n "$name" '
-        [.devices[][] | select(.name == $n and .isAvailable)]
-        | sort_by(.state != "Booted")
-        | .[0].udid // empty'
-}
 
 UDID="$(resolve_udid "$DEVICE_NAME")"
 [[ -n "$UDID" ]] || {
@@ -67,6 +35,13 @@ UDID="$(resolve_udid "$DEVICE_NAME")"
   exit 1
 }
 echo "==> Using simulator: $DEVICE_NAME ($UDID)"
+
+# ASC deliverables are always light. Force it for this run only and restore
+# the developer's own setting on exit — otherwise a simulator left in dark
+# silently produces dark ASC screenshots. See Issue #218.
+boot_and_restore_appearance_on_exit "$UDID"
+echo "==> Forcing light appearance for ASC capture"
+xcrun simctl ui "$UDID" appearance light
 
 TMP_ROOT="$(mktemp -d)"
 RESULT_BUNDLE="$TMP_ROOT/result.xcresult"
@@ -78,6 +53,7 @@ xcodebuild test \
   -scheme "$SCHEME" \
   -destination "id=$UDID" \
   -only-testing:"$TEST_CLASS" \
+  -parallel-testing-enabled NO \
   -resultBundlePath "$RESULT_BUNDLE" \
   | tail -20
 

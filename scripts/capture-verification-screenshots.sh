@@ -54,23 +54,9 @@ case "$APPEARANCE_MODE" in
   *) echo "error: --appearance must be light|dark|both (got: $APPEARANCE_MODE)" >&2; exit 2 ;;
 esac
 
-# Same resolution strategy as capture-asc-screenshots.sh (kept in sync by hand):
-# the asdf shim can be first in PATH but broken, so run --version to confirm.
-resolve_jq() {
-  local candidate
-  for candidate in "${JQ:-}" /opt/homebrew/bin/jq /usr/local/bin/jq /usr/bin/jq; do
-    { [ -n "$candidate" ] && [ -x "$candidate" ]; } || continue
-    if "$candidate" --version >/dev/null 2>&1; then
-      printf '%s\n' "$candidate"
-      return 0
-    fi
-  done
-  if command -v jq >/dev/null 2>&1 && jq --version >/dev/null 2>&1; then
-    command -v jq
-    return 0
-  fi
-  return 1
-}
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib/common.sh
+source "$SCRIPT_DIR/lib/common.sh"
 
 JQ="$(resolve_jq)" || {
   echo "error: no working jq found. Install with: brew install jq" >&2
@@ -78,19 +64,8 @@ JQ="$(resolve_jq)" || {
 }
 echo "==> Using jq: $JQ"
 
-# Resolve ONE udid for the device name. Several simulators can share a name
-# (this machine has 7× "iPhone 17 Pro Max"); `simctl ui appearance` must hit
-# the same device xcodebuild uses, so we pass `-destination id=<udid>`.
-# Prefer an already-booted one to skip boot time.
-resolve_udid() {
-  local name="$1"
-  xcrun simctl list devices available -j \
-    | "$JQ" -r --arg n "$name" '
-        [.devices[][] | select(.name == $n and .isAvailable)]
-        | sort_by(.state != "Booted")
-        | .[0].udid // empty'
-}
-
+# `simctl ui appearance` must hit the same device xcodebuild uses, so we pass
+# `-destination id=<udid>` (see resolve_udid in lib/common.sh).
 UDID="$(resolve_udid "$DEVICE_NAME")"
 [[ -n "$UDID" ]] || {
   echo "error: no available simulator named '$DEVICE_NAME'. Available iPhones:" >&2
@@ -99,28 +74,8 @@ UDID="$(resolve_udid "$DEVICE_NAME")"
 }
 echo "==> Using simulator: $DEVICE_NAME ($UDID)"
 
-# Restore whatever appearance the simulator had before this run, even if a
-# run fails midway. Seeded with "light" so the trap is safe under `set -u`
-# from the moment it is installed; the real value is read after boot below.
-ORIG_APPEARANCE="light"
-restore_appearance() {
-  xcrun simctl ui "$UDID" appearance "$ORIG_APPEARANCE" >/dev/null 2>&1 \
-    || echo "warn: could not restore simulator appearance to $ORIG_APPEARANCE" >&2
-}
-trap restore_appearance EXIT
-
-xcrun simctl boot "$UDID" >/dev/null 2>&1 || true   # no-op if already booted
-xcrun simctl bootstatus "$UDID" -b >/dev/null
-
-# `simctl ui <udid> appearance` reports a real value only once the device is
-# booted — while shut down it prints "unknown" (and still exits 0), so this
-# read must come after bootstatus. Anything other than light/dark keeps the
-# previous behaviour of restoring to light.
-case "$(xcrun simctl ui "$UDID" appearance 2>/dev/null)" in
-  dark) ORIG_APPEARANCE="dark" ;;
-  *)    ORIG_APPEARANCE="light" ;;
-esac
-echo "==> Appearance before run: $ORIG_APPEARANCE (restored on exit)"
+# Restore whatever appearance the simulator had before this run.
+boot_and_restore_appearance_on_exit "$UDID"
 
 TMP_ROOT="$(mktemp -d)"
 echo "==> Scratch: $TMP_ROOT"
