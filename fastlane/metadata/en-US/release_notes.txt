@@ -1,14 +1,20 @@
-Version 1.1.3 makes recording chores faster and more reliable.
+Version 1.1.4 brings a round of updates that make recording chores more fun and easier to follow.
 
 New
-- Added Bulk Mode — pick multiple chores and record them in one go. Great for logging chores in batches after the kids are done.
-- When a chore is already recorded for the same day, the task card now shows an "Already recorded N time(s)" badge so it's easy to avoid double-logging.
+- Chores can now have emoji icons. Pick any emoji when you add or edit a chore.
+- Reorder your chores freely, or sort them by how often they are used with one tap.
+- The recording screen now has a calendar, so you can see at a glance which days have records.
+- The Monthly Summary screen has been redesigned to show the calendar and allowance payments together.
+- Added haptic feedback when you record or select chores. Sound effects and haptics can each be turned on or off under Sound & Haptics in Settings.
 
-Bug fixes
-- Fixed an issue where the chore history and monthly history sheets could appear empty the first time they were opened.
+Design
+- Refreshed the app's colors around a warm orange theme, with 12 new avatar colors for your children.
+- Improved readability in Dark Mode and with larger text sizes.
 
-Improved English support
-- Added English translations for alert messages, the default help task names, and count phrases (one / other variants).
-- Fixed several truncated and untranslated labels in Settings and the child selection card so the UI reads more naturally in English.
+Fixes and improvements
+- Fixed an issue where switching tabs reset the selection on the recording screen.
+- The app now shows a message when setting up a notification fails.
+- Fixed chore names, dates and times that stayed in Japanese when the app is used in English.
+- Improved how allowance payment history is stored.
 
-Thank you for using Otetsudai Coin — we hope you keep enjoying it with your family!
+Thank you for using Otetsudai Coin!
