@@ -236,5 +236,7 @@ en Description / What's New に絵文字を入れない。本ドキュメント 
 
 ## 6. 振り返り (Retrospective)
 
+> **2026-09-28 追記**: 1.1.3 は ASC に提出されず未出荷のまま v1.1.4 に統合した (#225)。振り返りは [`RELEASE_v1.1.4.md` § 5](./RELEASE_v1.1.4.md#5-振り返り-retrospective) にまとめて記入した。
+>
 > 本セクションはリリース完了後に `release-retrospective` skill で生成される。マージ前は空欄のまま。
 > 関連 PR の取り込み範囲: v1.1.2 で予定していた全 PR + **#94** (#89 en i18n + UI truncation 修正)
