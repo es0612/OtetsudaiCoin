@@ -5,12 +5,17 @@
 
 set -euo pipefail
 
-# 設定
-SIMULATOR_NAME="iPhone 17"
-PROJECT_PATH="/Users/shinya/workspace/claude/OtetsudaiCoin/app/OtetsudaiCoin.xcodeproj"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib/common.sh
+source "$SCRIPT_DIR/lib/common.sh"
+
+# 設定 (パスはスクリプトの位置から解決するので、どの cwd から実行してもよい)
+SIMULATOR_NAME="${SIMULATOR_NAME:-iPhone 17}"
+PROJECT_PATH="$SCRIPT_DIR/../app/OtetsudaiCoin.xcodeproj"
 SCHEME="OtetsudaiCoin"
 TEST_TARGET="OtetsudaiCoinTests/AllowanceCalculatorTests"
-BENCHMARK_ITERATIONS=3
+BENCHMARK_ITERATIONS="${BENCHMARK_ITERATIONS:-3}"
+UDID=""  # main で 1 台に決める (Issue #224)
 
 # カラー出力関数
 log_info() {
@@ -29,10 +34,11 @@ log_error() {
     echo -e "\033[0;31m[ERROR]\033[0m $1"
 }
 
-# シミュレータをシャットダウン
+# 計測対象のシミュレータだけをシャットダウンする。`shutdown all` は並行して動く
+# 別セッションのシミュレータまで落とすので使わない (Issue #224)。
 shutdown_simulator() {
-    log_info "シミュレータをシャットダウン中..."
-    xcrun simctl shutdown all 2>/dev/null || true
+    log_info "シミュレータ ($UDID) をシャットダウン中..."
+    xcrun simctl shutdown "$UDID" 2>/dev/null || true
     sleep 3
 }
 
@@ -56,7 +62,7 @@ measure_test_time() {
         
         # シミュレータ事前起動（warm start の場合）
         if [ "$warm_start" = "true" ]; then
-            ./prepare-simulator.sh -s "$SIMULATOR_NAME" >/dev/null 2>&1 || true
+            "$SCRIPT_DIR/prepare-simulator.sh" -d "$UDID" >/dev/null 2>&1 || true
         fi
         
         # テスト実行時間を測定
@@ -65,7 +71,7 @@ measure_test_time() {
         xcodebuild test \
             -project "$PROJECT_PATH" \
             -scheme "$SCHEME" \
-            -destination "platform=iOS Simulator,name=$SIMULATOR_NAME" \
+            -destination "id=$UDID" \
             -only-testing:"$TEST_TARGET" \
             >/dev/null 2>&1
         
@@ -95,13 +101,16 @@ measure_test_time() {
 # メイン実行
 main() {
     log_info "=== テスト実行時間ベンチマーク開始 ==="
-    log_info "シミュレータ: $SIMULATOR_NAME"
+    JQ="$(resolve_jq)" || { log_error "動作する jq が見つかりません (brew install jq)"; exit 1; }
+    UDID="$(resolve_udid "$SIMULATOR_NAME")"
+    [[ -n "$UDID" ]] || { log_error "シミュレータ '$SIMULATOR_NAME' が見つかりません"; exit 1; }
+    log_info "シミュレータ: $SIMULATOR_NAME ($UDID)"
     log_info "テストターゲット: $TEST_TARGET"
     log_info "ベンチマーク反復回数: $BENCHMARK_ITERATIONS"
     echo
     
     # 事前準備
-    log_info "事前準備: 全シミュレータをシャットダウン"
+    log_info "事前準備: 計測対象のシミュレータをシャットダウン"
     shutdown_simulator
     
     # コールドスタート測定
