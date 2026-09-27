@@ -139,23 +139,78 @@ Thank you for using Otetsudai Coin!
 
 ### App Store Connect
 
-- [ ] `asc-submission-prep` の dry-run 差分表を確認し、一括 OK
-- [ ] バージョン `1.1.4` を作成、ビルドを紐付け
-- [ ] What's New (ja § 2.1 / en § 2.4)・プロモーションテキスト (§ 2.2)・審査ノート (§ 2.3) を入力
-- [ ] 年齢制限: 「広告」=「はい」、ソーシャルメディア関連の新しい質問に回答 (人)
+- [x] `asc-submission-prep` の dry-run 差分表を確認し、一括 OK (2026-09-27、#225 コメント)
+- [x] バージョン `1.1.4` を作成、ビルドを紐付け (build **120**。Xcode Cloud の採番なので pbxproj の 119 とは別)
+- [x] What's New (ja § 2.1 / en § 2.4)・プロモーションテキスト (§ 2.2)・審査ノート (§ 2.3) を入力
+- [x] 年齢制限: 「広告」=「はい」、ソーシャルメディア関連の新しい質問に回答 (人)
 - [ ] App Privacy・輸出コンプライアンスを確認 (人)
 
 ### 提出
 
-- [ ] 「審査用に追加」→「審査へ提出」(人)
+- [x] 「審査用に追加」→「審査へ提出」(人、2026-09-27)
 
 ## 4. 完了後タスク
 
-- [ ] **承認されたら**すぐ `git tag -a v1.1.4 -m "v1.1.4" && git push origin v1.1.4` (承認前にタグを打たない。v1.1.3 はタグだけ先行して出荷と誤認された)
-- [ ] GitHub Release を作成 (§ 2.1 / § 2.4)
-- [ ] #225 を close、#50 の残り (en スクショ・What's New) を反映できていれば #50 も close
-- [ ] `release-retrospective` skill で振り返り
+- [x] **承認されたら**すぐ `git tag -a v1.1.4 -m "v1.1.4" && git push origin v1.1.4` (承認前にタグを打たない。v1.1.3 はタグだけ先行して出荷と誤認された) — 2026-09-28 に **`bb05668` (build 120 のビルド元)** へ付けて push。出荷後に merge した #228 / #230 は含めない
+- [ ] 公開後に iTunes Lookup で 1.1.4 を実測 — **validating**: US は 1.1.4 (2026-09-27T19:10:11Z 公開) を確認。JP は 2026-09-27T21:48Z 時点でまだ 1.1.2 を返す (公開から約 2.5 時間。次 session で再実測する)
+- [x] GitHub Release を作成 (§ 2.1 / § 2.4) — <https://github.com/es0612/OtetsudaiCoin/releases/tag/v1.1.4> (Latest)
+- [x] #225 を close、#50 も close (en スクショの差し替えは #231 に切り出し)
+- [x] `release-retrospective` skill で振り返り (§ 5)
 
 ## 5. 振り返り (Retrospective)
 
-> リリース完了後に `release-retrospective` skill で記入する。
+> 2026-09-28 に `release-retrospective` skill で記入。対象は公開中だった 1.1.2 → 1.1.4 の全期間 (v1.1.3 は未出荷のため統合)。
+> 対象 PR: **#83〜#230 の 90 本** (`v1.1.2` タグに含まれる #80〜#82 は除外)。うち約 30 本は「session の学びを CLAUDE.md へ追記する」docs/chore PR。
+> ステータス: 公開は **validating** (US で 1.1.4 を確認、JP の lookup は未反映。§ 4 参照)。
+
+### 数字で見るこのサイクル
+
+| 指標 | 値 |
+| --- | --- |
+| 前回の公開 → 今回の公開 | 2026-05-24 → 2026-09-27 (**126 日**) |
+| まとめて出した変更 | feat / fix / perf / refactor のコミット **104 件** (`v1.1.3..bb05668`) |
+| v1.1.3 の準備 (#98) → 実際の提出 | 2026-05-28 → 2026-09-27 (提出されないまま約 4 か月) |
+| 提出 → 公開 | 2026-09-27 05:31Z → 19:10Z (約 14 時間、reject なし) |
+| CLAUDE.md のサイズ (v1.1.2 → 現在) | 128 行 / 16 KB → 214 行 / **73 KB** (約 4.5 倍、毎 session 読み込まれる) |
+
+### 良かった点
+
+- **提出を 1 日で終えられた**: 9/27 の朝に #225 の前提 (1.1.3 未出荷) を実測 → bump PR (#227) → ASC 入力 (`asc-submission-prep`) → 提出までを同日に完了し、reject なしで承認された
+- **Core Data v1 → v4 の上書きインストールを提出前に確認した**: 3 段のモデル移行と、支払い履歴の UserDefaults → Core Data 移行 (#142) を 1.1.2 実ビルドからの上書きで検証し、データ保持と二重移行なしを確認した (#225 コメント)
+- **学びをその場で仕組みにした**: ASC の ja 絵文字拒否は、同日のうちに手順書・CLAUDE.md・`release-version-bump-check` skill へ反映した (#228)。session ごとの学びも約 30 本の PR で継続的に回収できた
+
+### 詰まった点 / 失敗
+
+- **v1.1.3 を出し忘れ、変更が 4 か月たまった**: #98 で準備して `v1.1.3` タグまで push したが、ASC への提出 (人の作業) が抜けた。タグと手順書があったため「出荷済み」と誤認し、9/27 の実測まで誰も気付かなかった。結果として 104 件の変更を 1 回で出すことになり、What's New の整理と上書きインストールの確認範囲 (v1 → v4) が大きくなった
+- **書いたルールがあっても同じ罠を繰り返した**: version bump 忘れ (v1.1.0→1.1.1 / v1.1.2→1.1.3 の 2 回)、XCUITest の Toggle タップ (#182 / #183 の 2 session 連続)、相対日付 fixture の flake (#112 / #114 / #115)。文章のルールは次の session で読まれるとは限らない
+- **v1.1.2 / v1.1.3 の振り返り (§ 6) は空欄のまま**だった。本 § 5 がこの 2 版の分も兼ねる
+
+### 想定外の発見
+
+- 過去に通った ja の絵文字 (✨🐛) が、今回は「無効な文字」として拒否された。実績は根拠にならない (#228)
+- ASC に紐付くビルド番号 (Xcode Cloud 採番の 120) と pbxproj の値 (119) は一致しない。タグは HEAD ではなく **ビルド元のコミット** (`bb05668`) に付ける必要があった
+- 公開直後の iTunes Lookup は国ごとに反映時間が違う (US は 1.1.4、JP は約 2.5 時間後も 1.1.2)。JP の lookup だけ見ると「未公開」と誤判定しうる
+
+### 未確認事項
+
+- 上書きインストール確認で、**お手伝いの絵文字アイコンが画面に表示されること**は未確認のまま (#225 の 2026-09-27 コメントで ⚠️)。公開済みの 1.1.4 を実機で開いて確認する
+- § 3 の「`release-version-bump-check.yml` が green」「ユニットテストが green」「ja / en 両方のロケールで起動」は、手順書上のチェックが付いていない (実施したかどうかの記録が無い)
+
+### 次サイクルへの遺産 (Action items)
+
+session ごとの学びはすでに CLAUDE.md / skill へ反映済みなので、テーマ別に出典だけ残す。
+
+| テーマ | 学び | 行き先 | 状態 |
+| --- | --- | --- | --- |
+| ASC / リリース | 承認後の version bump、年齢制限「広告」、絵文字 NG (ja / en)、公開中 version の実測 | CLAUDE.md「ASC 提出時の落とし穴」・`release-version-bump-check` skill (#87 / #99 / #226 / #228) | done |
+| ASC / リリース | ASC 入力の Chrome 経路化 (審査用の連絡先が引き継がれない件を含む) | global skill `asc-submission-prep` (#221) | done |
+| テストの flake / 日付 | 相対日付 fixture のピン留め、年境界テスト、`Date()` を内部で読むサービスの境界テスト | CLAUDE.md「iOS テスト flake 切り分け」(#114 / #116 / #159) | done |
+| View テスト | ViewInspector の blocker 回避 (findAll)、環境値の pure helper 化、Toggle のタップ位置 | CLAUDE.md「SwiftUI View テスト戦略」(#110 / #113 / #187 / #194 / #207) | done |
+| 実装の進め方 | 二段レビュー + 最終レビュー、subagent の foreground 実行、mutation 検証 | CLAUDE.md「Subagent / Task 実行ルール」ほか (#171 / #178 / #202 / #203) | done |
+| 撮影 script | 検証用スクショ基盤、udid 解決、appearance は boot 後に読む | `scripts/lib/common.sh`・CLAUDE.md (#214 / #219 / #222 / #223 / #230) | done |
+| 公開後 | en スクショを en 専用画像に差し替える | Issue #231 | idea |
+| 公開後 | JP の lookup で 1.1.4 を再実測する | 次 session (§ 4) | validating |
+| 公開後 | タグはビルド元のコミットに付ける | 本手順書 § 4 に記録 | done |
+| リリース周期 | 出し忘れで 126 日たまった → triage で「前回公開からの日数・未出荷の件数」を表示する | Issue #232 | idea |
+| CLAUDE.md | 73 KB に膨らんだ → 展示と収蔵庫に整理し、繰り返す罠 (version bump・Toggle・日付 fixture) を script / hook にする | Issue #233 | idea |
+| 公開後 | お手伝いの絵文字アイコンの画面表示を実機で確認する | 本節「未確認事項」 | validating |
