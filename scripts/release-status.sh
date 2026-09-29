@@ -80,7 +80,11 @@ fi
 
 jp_version="${jp%%$'\t'*}"
 jp_date="${jp#*$'\t'}"
-days=$(( (NOW_EPOCH - $(to_epoch "$jp_date")) / 86400 ))
+jp_epoch="$(to_epoch "$jp_date")" || {
+  echo "判定: unknown (公開日 '${jp_date}' を日付として読めない)"
+  exit 0
+}
+days=$(( (NOW_EPOCH - jp_epoch) / 86400 ))
 
 if [[ -n "$us" ]]; then
   us_version="${us%%$'\t'*}"
