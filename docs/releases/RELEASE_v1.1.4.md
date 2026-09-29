@@ -152,7 +152,7 @@ Thank you for using Otetsudai Coin!
 ## 4. 完了後タスク
 
 - [x] **承認されたら**すぐ `git tag -a v1.1.4 -m "v1.1.4" && git push origin v1.1.4` (承認前にタグを打たない。v1.1.3 はタグだけ先行して出荷と誤認された) — 2026-09-28 に **`bb05668` (build 120 のビルド元)** へ付けて push。出荷後に merge した #228 / #230 は含めない
-- [ ] 公開後に iTunes Lookup で 1.1.4 を実測 — **validating**: US は 1.1.4 (2026-09-27T19:10:11Z 公開) を確認。JP は 2026-09-27T21:48Z 時点でまだ 1.1.2 を返す (公開から約 2.5 時間。次 session で再実測する)
+- [x] 公開後に iTunes Lookup で 1.1.4 を実測 — **done**: US は 1.1.4 (2026-09-27T19:10:11Z 公開) を確認。JP は 2026-09-27T21:48Z 時点でまだ 1.1.2 を返したが (公開から約 2.5 時間)、2026-09-29 の再実測で JP も 1.1.4 (同じ公開日時) を返した
 - [x] GitHub Release を作成 (§ 2.1 / § 2.4) — <https://github.com/es0612/OtetsudaiCoin/releases/tag/v1.1.4> (Latest)
 - [x] #225 を close、#50 も close (en スクショの差し替えは #231 に切り出し)
 - [x] `release-retrospective` skill で振り返り (§ 5)
@@ -161,7 +161,7 @@ Thank you for using Otetsudai Coin!
 
 > 2026-09-28 に `release-retrospective` skill で記入。対象は公開中だった 1.1.2 → 1.1.4 の全期間 (v1.1.3 は未出荷のため統合)。
 > 対象 PR: **#83〜#230 の 90 本** (`v1.1.2` タグに含まれる #80〜#82 は除外)。うち約 30 本は「session の学びを CLAUDE.md へ追記する」docs/chore PR。
-> ステータス: 公開は **validating** (US で 1.1.4 を確認、JP の lookup は未反映。§ 4 参照)。
+> ステータス: 公開は **done** (US・JP とも lookup で 1.1.4 を確認。JP は 2026-09-29 に再実測。§ 4 参照)。
 
 ### 数字で見るこのサイクル
 
@@ -209,8 +209,8 @@ session ごとの学びはすでに CLAUDE.md / skill へ反映済みなので�
 | 実装の進め方 | 二段レビュー + 最終レビュー、subagent の foreground 実行、mutation 検証 | CLAUDE.md「Subagent / Task 実行ルール」ほか (#171 / #178 / #202 / #203) | done |
 | 撮影 script | 検証用スクショ基盤、udid 解決、appearance は boot 後に読む | `scripts/lib/common.sh`・CLAUDE.md (#214 / #219 / #222 / #223 / #230) | done |
 | 公開後 | en スクショを en 専用画像に差し替える | Issue #231 | idea |
-| 公開後 | JP の lookup で 1.1.4 を再実測する | 次 session (§ 4) | validating |
+| 公開後 | JP の lookup で 1.1.4 を再実測する | § 4 (2026-09-29 に JP も 1.1.4 を確認) | done |
 | 公開後 | タグはビルド元のコミットに付ける | 本手順書 § 4 に記録 | done |
-| リリース周期 | 出し忘れで 126 日たまった → triage で「前回公開からの日数・未出荷の件数」を表示する | Issue #232 | idea |
+| リリース周期 | 出し忘れで 126 日たまった → triage で「前回公開からの日数・未出荷の件数」を表示する | Issue #232 → `scripts/release-status.sh` (PR #237) | done |
 | CLAUDE.md | 73 KB に膨らんだ → 展示と収蔵庫に整理し、繰り返す罠 (version bump・Toggle・日付 fixture) を script / hook にする | Issue #233 | idea |
 | 公開後 | お手伝いの絵文字アイコンの画面表示を実機で確認する | 本節「未確認事項」 | validating |
