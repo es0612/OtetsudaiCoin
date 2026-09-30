@@ -13,14 +13,19 @@
 #   PR_LABELS  : Pull Request labels (JSON 配列。"release" ラベルがあると enforce mode)
 #   PBXPROJ    : 検査対象 pbxproj (デフォルト: app/OtetsudaiCoin.xcodeproj/project.pbxproj)
 #   BASE_REF   : 比較対象 ref (デフォルト: 直近の tag、無ければ origin/main)
+#   REQUIRE_BUMP_OVER_TAG : 1 のとき train-open mode。MARKETING_VERSION が最新の
+#                v* tag (version sort) より高くなければ失敗する。PR title / label は見ない。
+#                Xcode Cloud が main への push ごとに upload するため、承認済み (= tag 済み)
+#                の train のまま main を動かすと ITMS-90186 になる (#235 / #233)。
 #
 # Exit code:
 #   0: 問題なし (info / pass)
-#   1: enforce mode で違反検出
+#   1: enforce mode / train-open mode で違反検出
 
 set -euo pipefail
 
 PBXPROJ="${PBXPROJ:-app/OtetsudaiCoin.xcodeproj/project.pbxproj}"
+REQUIRE_BUMP_OVER_TAG="${REQUIRE_BUMP_OVER_TAG:-0}"
 PR_TITLE="${PR_TITLE:-}"
 PR_LABELS="${PR_LABELS:-[]}"
 
@@ -66,6 +71,14 @@ semver_gt() {
 
 if [[ -n "${BASE_REF:-}" ]]; then
   base_ref="$BASE_REF"
+elif [[ "$REQUIRE_BUMP_OVER_TAG" == "1" ]]; then
+  # train-open mode は「ASC で承認済みの最新 train」と比べたいので、到達可能な直近 tag
+  # (git describe) ではなく version sort の最大 tag を使う (release-status.sh と同じ基準)。
+  base_ref=$(git tag --list 'v*' --sort=-v:refname | head -n 1)
+  if [[ -z "$base_ref" ]]; then
+    echo "::error::train-open mode needs at least one v* tag (fetch-depth: 0 / git fetch --tags?)"
+    exit 1
+  fi
 elif base_ref=$(git describe --tags --abbrev=0 2>/dev/null); then
   :
 else
@@ -128,7 +141,13 @@ if [[ -n "$base_bv" ]] && [[ "$head_bv" =~ ^[0-9]+$ ]] && [[ "$base_bv" =~ ^[0-9
   bv_increased=true
 fi
 
-if $is_release_pr; then
+if [[ "$REQUIRE_BUMP_OVER_TAG" == "1" ]]; then
+  echo "Mode: train-open (MARKETING_VERSION must be greater than latest tag)"
+  if ! $mv_increased; then
+    echo "::error::MARKETING_VERSION ($head_mv) is not greater than the latest approved tag $base_ref ($base_mv). Xcode Cloud will upload builds to a closed train (ITMS-90186 / 90062). Merge a version bump PR first."
+    errors=$((errors + 1))
+  fi
+elif $is_release_pr; then
   echo "Mode: enforce (release PR detected)"
   if ! $mv_increased; then
     echo "::error::MARKETING_VERSION must be greater than base ($base_mv). Got: $head_mv"
