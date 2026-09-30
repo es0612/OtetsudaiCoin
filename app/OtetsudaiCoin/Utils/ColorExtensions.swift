@@ -15,6 +15,14 @@ extension Color {
         
         self.init(red: red, green: green, blue: blue)
     }
+
+    /// light / dark で別の hex を使う動的色 (#151 ダークモード3)
+    /// - Note: 固定 hex は dark の暗い背景でコントラストが落ちるため、背景上の文字・図形に使う色はこれで定義する
+    static func adaptive(light: String, dark: String, fallback: Color) -> Color {
+        let lightColor = UIColor(Color(hex: light) ?? fallback)
+        let darkColor = UIColor(Color(hex: dark) ?? fallback)
+        return Color(UIColor { $0.userInterfaceStyle == .dark ? darkColor : lightColor })
+    }
     
     /// カラーコントラスト比を計算（アクセシビリティ向上）
     /// - Parameter other: 比較対象の色

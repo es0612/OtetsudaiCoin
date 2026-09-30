@@ -25,4 +25,24 @@ final class BrandColorsTests: XCTestCase {
         let ratio = AccessibilityColors.brandSurfaceWarm.contrastRatio(with: .black)
         XCTAssertGreaterThanOrEqual(ratio, 4.5, "brandSurfaceWarm は淡背景 (actual: \(ratio))")
     }
+
+    // MARK: - primaryBlue (#151 ダークモード3)
+
+    /// 外観を指定して動的色を解決する (SwiftUI Color は trait 無しでは light で解決される)
+    private func resolved(_ color: Color, _ style: UIUserInterfaceStyle) -> Color {
+        Color(UIColor(color).resolvedColor(with: UITraitCollection(userInterfaceStyle: style)))
+    }
+
+    // primaryBlue は背景上の文字 (月のまとめの「回」の数字) と図形に使う
+    func testPrimaryBlueOnLightBackgroundMeetsAA() {
+        let ratio = resolved(AccessibilityColors.primaryBlue, .light).contrastRatio(with: .white)
+        XCTAssertGreaterThanOrEqual(ratio, 4.5, "light の白地 (actual: \(ratio))")
+    }
+
+    func testPrimaryBlueOnDarkCardBackgroundMeetsAA() {
+        // dark のカード背景 = secondarySystemGroupedBackground (#1C1C1E)
+        let darkCard = Color(hex: "#1C1C1E")!
+        let ratio = resolved(AccessibilityColors.primaryBlue, .dark).contrastRatio(with: darkCard)
+        XCTAssertGreaterThanOrEqual(ratio, 4.5, "dark のカード地 (actual: \(ratio))")
+    }
 }
