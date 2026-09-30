@@ -1,0 +1,34 @@
+name: Train Open Check
+
+# main の MARKETING_VERSION が最新の v* tag (= ASC で承認済みの train) より
+# 高いことを確認する。Xcode Cloud は main への push ごとに build を upload するので、
+# 承認後に bump しないまま docs 等を merge すると ITMS-90186 / 90062 で reject される
+# (#235 で 3 回目)。PR 時の version-bump-check.yml は tag 後に再実行されないため、
+# merge と tag push の時点で検査し、失敗メールで bump PR を先に出すよう知らせる (#233)。
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Verify train is open
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          # tag push でも tag の commit ではなく main の先頭を検査する
+          # (tag の commit では MARKETING_VERSION == tag で必ず失敗するため)
+          ref: main
+          fetch-depth: 0  # tag を含む完全な履歴が必要
+
+      - name: Run train open check
+        env:
+          REQUIRE_BUMP_OVER_TAG: '1'
+        run: bash scripts/version-bump-check.sh
