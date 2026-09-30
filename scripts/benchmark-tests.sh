@@ -17,21 +17,22 @@ TEST_TARGET="OtetsudaiCoinTests/AllowanceCalculatorTests"
 BENCHMARK_ITERATIONS="${BENCHMARK_ITERATIONS:-3}"
 UDID=""  # main で 1 台に決める (Issue #224)
 
-# カラー出力関数
+# カラー出力関数。ログは stderr に出す: measure_test_time は stdout で平均値を返し、
+# main が $(...) で受け取るため、ログが stdout に混ざると bc が Parse error になる (Issue #229)。
 log_info() {
-    echo -e "\033[0;34m[INFO]\033[0m $1"
+    echo -e "\033[0;34m[INFO]\033[0m $1" >&2
 }
 
 log_success() {
-    echo -e "\033[0;32m[SUCCESS]\033[0m $1"
+    echo -e "\033[0;32m[SUCCESS]\033[0m $1" >&2
 }
 
 log_warning() {
-    echo -e "\033[1;33m[WARNING]\033[0m $1"
+    echo -e "\033[1;33m[WARNING]\033[0m $1" >&2
 }
 
 log_error() {
-    echo -e "\033[0;31m[ERROR]\033[0m $1"
+    echo -e "\033[0;31m[ERROR]\033[0m $1" >&2
 }
 
 # 計測対象のシミュレータだけをシャットダウンする。`shutdown all` は並行して動く
@@ -126,9 +127,18 @@ main() {
     log_info "コールドスタート平均時間: ${cold_time}秒"
     log_info "ウォームスタート平均時間: ${warm_time}秒"
     
+    # 平均値が数値でなければ比較できない。黙って「改善効果なし」にせず失敗させる (Issue #229)
+    local t
+    for t in "$cold_time" "$warm_time"; do
+        if ! [[ "$t" =~ ^[0-9]*\.?[0-9]+$ ]]; then
+            log_error "平均時間が数値ではありません: '$t'"
+            exit 1
+        fi
+    done
+
     # 改善効果を計算
     local improvement=$(echo "scale=2; $cold_time - $warm_time" | bc)
-    local improvement_percent=$(echo "scale=1; ($improvement / $cold_time) * 100" | bc)
+    local improvement_percent=$(echo "scale=1; $improvement * 100 / $cold_time" | bc)
     
     if (( $(echo "$improvement > 0" | bc -l) )); then
         log_success "改善効果: ${improvement}秒短縮 (${improvement_percent}%改善)"
