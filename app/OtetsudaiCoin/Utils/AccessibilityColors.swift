@@ -12,8 +12,9 @@ struct AccessibilityColors {
     
     // MARK: - Primary Colors (WCAG AA準拠)
     
-    /// メインブルー（白背景でコントラスト比4.5:1以上）
-    static let primaryBlue = Color(hex: "#0066CC") ?? .blue
+    /// メインブルー（背景上の文字・図形用。light は白地で 5.6:1、dark は #1C1C1E 地で 6.0:1）
+    /// dark 値 #409CFF は iOS の高コントラスト時 systemBlue (dark)。白文字を載せる塗りには使わない
+    static let primaryBlue = Color.adaptive(light: "#0066CC", dark: "#409CFF", fallback: .blue)
     
     /// 濃いブルー（白背景でコントラスト比7:1以上 - AAA準拠）
     static let primaryBlueDark = Color(hex: "#004499") ?? .blue
