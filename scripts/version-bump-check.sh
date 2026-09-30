@@ -89,10 +89,18 @@ echo "Comparing against: $base_ref"
 
 # ---- read versions ----
 
-head_mv_list=$(extract_marketing_version "")
-head_bv_list=$(extract_build_version "")
+# grep が 0 件だと pipefail + set -e で無言 exit するため `|| true` で受け、
+# 下の -z チェックで原因をメッセージに出す (#242)。
+head_mv_list=$(extract_marketing_version "" || true)
+head_bv_list=$(extract_build_version "" || true)
 base_mv_list=$(extract_marketing_version "$base_ref" || true)
 base_bv_list=$(extract_build_version "$base_ref" || true)
+
+if [[ -z "$head_mv_list" || -z "$head_bv_list" ]]; then
+  [[ -z "$head_mv_list" ]] && echo "::error::MARKETING_VERSION not found in $PBXPROJ"
+  [[ -z "$head_bv_list" ]] && echo "::error::CURRENT_PROJECT_VERSION not found in $PBXPROJ"
+  exit 1
+fi
 
 # 6 箇所 (本体/Tests/UITests × Debug/Release) で揺れていないか確認
 errors=0
