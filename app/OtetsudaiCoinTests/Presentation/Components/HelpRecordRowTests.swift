@@ -74,6 +74,26 @@ final class HelpRecordRowTests: XCTestCase {
         }
     }
 
+    /// #151 提案3: 編集・削除アイコンは `.callout` (Dynamic Type 追従)。固定 `.system(size: 16)` へ戻る回帰を防ぐ。
+    ///
+    /// 行内には `.caption` の star.fill もあるので、Image 全体ではなくボタンごとに数える。
+    /// Image への `font()` は本リポ初出なので観測値を dump する。
+    func test_editAndDeleteButtons_useCalloutTextStyle() throws {
+        let view = makeView()
+
+        let buttons = try view.inspect().findAll(ViewType.Button.self)
+        let fontsPerButton = try buttons.map { button in
+            try button.findAll(ViewType.Image.self).compactMap { try? $0.font() }
+        }
+        let observed = "buttons=\(buttons.count) / fonts=\(fontsPerButton)"
+
+        XCTAssertEqual(buttons.count, 2, "編集・削除の 2 ボタンが見つからない (\(observed))")
+        for fonts in fontsPerButton {
+            XCTAssertEqual(fonts.count, 1, "ボタン内のアイコンの font を 1 つ読めない (\(observed))")
+            XCTAssertTrue(fonts.allSatisfy { $0 == .callout }, "アイコンが .callout ではない (\(observed))")
+        }
+    }
+
     /// タップ領域を広げても、それぞれのボタンが正しいコールバックに繋がっている。
     /// (frame を足す過程で onEdit / onDelete が入れ替わる事故を防ぐ)
     func test_buttonsInvokeTheirOwnCallbacks() throws {
