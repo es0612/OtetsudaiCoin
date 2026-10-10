@@ -109,14 +109,15 @@ struct RecordTutorialView: View {
     
     private var introStep: some View {
         VStack(spacing: 24) {
+            // #151 提案3: 円とアイコンを同じ倍率 (最大 1.3 倍) で育て、アイコンが円からはみ出さないようにする
             ZStack {
                 Circle()
                     .fill(AccessibilityColors.brandSecondary)
-                    .frame(width: 120, height: 120)
+                    .decorativeFrame(size: 120)
                     .shadow(radius: 10)
 
                 Image(systemName: "list.clipboard.fill")
-                    .font(.system(size: 50))
+                    .decorativeFont(size: 50)
                     .foregroundColor(.white)
             }
             
@@ -147,7 +148,7 @@ struct RecordTutorialView: View {
     private var selectChildStep: some View {
         VStack(spacing: 24) {
             Image(systemName: "person.2.circle.fill")
-                .font(.system(size: 80))
+                .decorativeFont(size: 80)
                 .foregroundColor(AccessibilityColors.brandPrimary)
             
             Text("お子様を選択")
@@ -204,12 +205,12 @@ struct RecordTutorialView: View {
                                                     HStack {
                                                         Spacer()
                                                         Image(systemName: "checkmark.circle.fill")
-                                                            .font(.system(size: 14))
+                                                            .decorativeFont(size: 14)
                                                             .foregroundColor(.white)
                                                             .background(
                                                                 Circle()
                                                                     .fill(Color.green)
-                                                                    .frame(width: 14, height: 14)
+                                                                    .decorativeFrame(size: 14)
                                                             )
                                                             .offset(x: 0, y: -1)
                                                     }
@@ -266,7 +267,7 @@ struct RecordTutorialView: View {
     private var selectTaskStep: some View {
         VStack(spacing: 24) {
             Image(systemName: "checklist")
-                .font(.system(size: 80))
+                .decorativeFont(size: 80)
                 .foregroundColor(.green)
             
             Text("お手伝いを選択")
@@ -352,14 +353,15 @@ struct RecordTutorialView: View {
     
     private var completionStep: some View {
         VStack(spacing: 24) {
+            // #151 提案3: 円とアイコンを同じ倍率 (最大 1.3 倍) で育て、アイコンが円からはみ出さないようにする
             ZStack {
                 Circle()
                     .fill(AccessibilityColors.brandPrimary)
-                    .frame(width: 120, height: 120)
+                    .decorativeFrame(size: 120)
                     .shadow(radius: 10)
 
                 Image(systemName: "trophy.fill")
-                    .font(.system(size: 50))
+                    .decorativeFont(size: 50)
                     .foregroundColor(.white)
             }
             
