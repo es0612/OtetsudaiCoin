@@ -21,7 +21,7 @@
 - 対象 14 件 (2026-10-11 に `grep -rn "\.system(size:" app/OtetsudaiCoin` で実測、すべて SF Symbol か Text):
   - 装飾アイコン 10 件: `HelpHistoryView.swift:170` (空状態 60) / `RecordTutorialView.swift:119` (円 120 内 50) `:150` (80) `:269` (80) `:362` (円 120 内 50) / `ChildTutorialView.swift:96` (円 120 内 50) `:127` (80) `:143` (60) `:181` (円 120 内 50) / `SplashScreenView.swift:63` (コイン 100 内 32 semibold)
   - 状態バッジ 1 件: `RecordTutorialView.swift:207` (60pt 固定アバター上の ✓ 14、背景円 14) → 固定サイズのアバターに載るので上限つき側
-  - ワードマーク 1 件: `SplashScreenView.swift:79` (「OtetsudaiCoin」36 bold rounded) → ロゴ扱いで上限つき側 (上限なしだと AX5 で約 63pt になり 13 文字が 430pt 幅に 1 行で収まらない)
+  - ワードマーク 1 件: `SplashScreenView.swift:79` (「OtetsudaiCoin」36 bold rounded) → ロゴ扱いで上限つき側 (上限なしだと AX5 で約 63pt (幅 約 417pt) になり 414pt 幅以下の端末で 1 行に収まらない)
   - 操作アイコン 2 件: `HelpHistoryView.swift:389` (✏️ 16) `:399` (🗑 16) → `.callout` で上限なし
 - 上限は **1.3 倍** (`DecorativeScale.maxFactor`)。下限は 1.0 倍 (小さい文字設定でも今より小さくしない。カレンダーの floor と同じ考え方)
 - 倍率の基準テキストスタイルは `.largeTitle` (チュートリアルの見出しと同じ。largeTitle は AX1 で約 1.29 倍、AX2 で約 1.41 倍なので、上限には AX1〜AX2 で達する)
@@ -307,6 +307,8 @@ git commit -m "fix(#151): 履歴の編集・削除アイコンと空状態アイ
 
 ### Task 3: チュートリアル 2 画面 (9 件)
 
+> 実行時の逸脱: この Task は 88d7287 で実施後、b0f3f2f で固定サイズへ戻した (冒頭「実行時の逸脱」と #246 を参照)
+
 **Files:**
 - Modify: `app/OtetsudaiCoin/Presentation/Views/Tutorial/RecordTutorialView.swift:115-120, 150, 207-212, 269, 358-363`
 - Modify: `app/OtetsudaiCoin/Presentation/Views/Tutorial/ChildTutorialView.swift:92-97, 127, 143, 177-182`
@@ -425,7 +427,7 @@ git commit -m "fix(#151): チュートリアルの装飾アイコンを上限 1.
 grep -rn -E '\.system\(size: *[0-9]' app/OtetsudaiCoin/Presentation
 ```
 
-Expected: 出力なし (Presentation 配下の数値リテラル指定 0 件。`DecorativeScale.swift` は Utils 配下で、かつ数値リテラルではない)
+Expected: 出力なし (逸脱後はチュートリアル 2 ファイルの 9 行が意図して残る) (Presentation 配下の数値リテラル指定 0 件。`DecorativeScale.swift` は Utils 配下で、かつ数値リテラルではない)
 
 ビルドは Task 3 Step 4 と同じコマンドで `** BUILD SUCCEEDED **`。
 
@@ -537,7 +539,7 @@ inline 実行でも省略しない (CLAUDE.md 2026-08-15 ルール)。`superpowe
 - [ ] **Step 7: PR 作成**
 
 `git status` で branch を再確認 → `gh pr list --head fix/151-dynamic-type-fixed-fonts` で既存 PR が無いことを確認 → push → `gh pr create`。PR body に含めるもの:
-- 対応した epic 項目 (提案3) と 14 件の内訳 (装飾 10 / バッジ 1 / ロゴ 1 → 上限 1.3 倍、操作 2 → `.callout` で上限なし)
+- 対応した epic 項目 (提案3) の一部: 追従 5/14 件 (履歴の操作 2・空状態 1 → `.callout` / 上限 1.3 倍、Splash のコインとロゴ → 上限 1.3 倍)。チュートリアル 9 件は意図して固定 (#246)
 - 検証境界: `@ScaledMetric` の配線は unit テスト対象外。clamp は `DecorativeScaleTests`、配線は撮影で確認
 - Step 4 の所見表
 - 未確認: 記録ありの履歴画面 (✏️ / 🗑) の AX 表示は撮影シーンに無く未目視
@@ -545,5 +547,5 @@ inline 実行でも省略しない (CLAUDE.md 2026-08-15 ルール)。`superpowe
 
 - [ ] **Step 8: merge 後**
 
-- #151 に進捗コメント (提案3 を done へ。残り: ダークモード1 Splash の背景グラデ / ダークモード3 の `brandSurfaceWarm`・橙の統一 / `focusIndicator` は使用 0 件の未使用トークン)
+- #151 に進捗コメント (提案3 は in-progress (履歴・Splash は done、チュートリアル 9 件は #246 の縦スクロール対応後に再検討)。残り: ダークモード1 Splash の背景グラデ / ダークモード3 の `brandSurfaceWarm`・橙の統一 / `focusIndicator` は使用 0 件の未使用トークン)
 - #238: ASC (ログイン済みの Chrome、読み取りのみ) で TestFlight 1.1.5 に新しいビルドが始まったことを確認し、コメントして close
