@@ -10,6 +10,12 @@
 
 **Spec:** GitHub Issue #151 本文「提案3: 固定サイズフォントを `.font(.title)` 等のスタイル or `@ScaledMetric` へ置換」+ 受け入れ条件「主要画面が Dynamic Type に追従する」。2026-10-11 triage で user が装飾アイコンの方針を「上限つきで拡大」に決定。先行計画: `docs/superpowers/plans/2026-08-31-issue-151-dynamic-type-subset.md` (カレンダー日セルの `@ScaledMetric` + clamp helper の型)。
 
+## 実行時の逸脱 (2026-10-11、Task 5 の撮影後に user 判断)
+
+- **チュートリアル 9 件 (Task 3) は固定サイズに戻した** (commit b0f3f2f が 88d7287 を revert し、理由コメントを追加)。AX 最大サイズの撮影で、1.3 倍にしたアイコンが説明文を 2 行 → 1 行に削り、「チュートリアルをスキップ」を画面外へ押し出した。チュートリアルは変更前から縦スクロールが無く AX 最大ではみ出しており (根本原因)、これは #246 で扱う。#246 で縦スクロールが入ったら、アイコンの追従を再検討する
+- この結果、Dynamic Type に追従したのは 14 件中 5 件 (履歴の操作アイコン 2・空状態 1、Splash のコイン中央アイコン 1・ロゴ 1。Splash はグロー 200 とコイン 100 の円も同じ倍率で育つ)。`.system(size: <数値>)` はチュートリアルの 9 行が意図して残る (各行にコメントあり)
+- Review Focus 1 は「悪化させない」をチュートリアルを固定に戻すことで満たす形になった
+
 ## Global Constraints
 
 - 対象 14 件 (2026-10-11 に `grep -rn "\.system(size:" app/OtetsudaiCoin` で実測、すべて SF Symbol か Text):
