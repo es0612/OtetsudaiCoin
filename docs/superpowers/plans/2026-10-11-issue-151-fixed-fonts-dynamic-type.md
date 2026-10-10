@@ -427,7 +427,7 @@ git commit -m "fix(#151): チュートリアルの装飾アイコンを上限 1.
 grep -rn -E '\.system\(size: *[0-9]' app/OtetsudaiCoin/Presentation
 ```
 
-Expected: 出力なし (逸脱後はチュートリアル 2 ファイルの 9 行が意図して残る) (Presentation 配下の数値リテラル指定 0 件。`DecorativeScale.swift` は Utils 配下で、かつ数値リテラルではない)
+Expected: 当初計画では出力なし。逸脱後はチュートリアル 2 ファイルの 9 行のみ (意図して固定、各行に理由コメント)。それ以外の Presentation 配下は 0 件 (`DecorativeScale.swift` は Utils 配下で、かつ数値リテラルではない)
 
 ビルドは Task 3 Step 4 と同じコマンドで `** BUILD SUCCEEDED **`。
 
