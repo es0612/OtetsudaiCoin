@@ -30,7 +30,7 @@
 
 ## Review Focus
 
-1. **AX 最大サイズ (`accessibility-extra-extra-extra-large`) でチュートリアルの「次へ」ボタンが画面外に押し出されない (少なくとも今より悪化しない)** — 装飾アイコンが上限なしで大きくなると縦スクロールの無いステップで起きる。→ Task 5 Step 3 の before/after 撮影 (12 / 13) で確認
+1. **AX 最大サイズ (`accessibility-extra-extra-extra-large`) でチュートリアルの「次へ」ボタンが画面外に押し出されない (少なくとも今より悪化しない)** — 装飾アイコンが上限なしで大きくなると縦スクロールの無いステップで起きる。80pt の単独アイコンは 2 ステップ目以降にあり、既存シーン 12 / 13 (各チュートリアルの最初のステップ = 円 120 + アイコン 50) には映らない → Task 5 Step 3 で一時 UITest により 2 ステップ目 (14 / 15) も撮って確認
 2. **既定サイズでは 14 件とも見た目が変わらない** (Splash のロゴも 36pt のまま) — → Task 1 の `test_size_atDefaultFactor_returnsBase` で倍率 1.0 → 基準値を固定、Task 5 Step 3 の既定サイズ撮影で目視
 3. **小さい文字設定 (xSmall 等) で装飾アイコンが今より縮まない** — → Task 1 の `test_size_belowDefault_isFlooredAtBase`
 4. **上限を超える倍率 (AX5 ≈ 1.76) でも 1.3 倍で止まる / 円とアイコンが同じ倍率で育つ (アイコンが円からはみ出さない)** — → Task 1 の `test_size_aboveCap_isClampedToMaxFactor` と、円とアイコンが同じ `DecorativeScale.size` を通ることを Task 3 / 4 のコードで担保
@@ -245,7 +245,16 @@ Expected: FAIL (`伸びる frame を 2 つ読めない` / `固定 frame が残�
 
 - [ ] **Step 3: Write minimal implementation**
 
-`HelpHistoryView.swift` の編集・削除ボタン (2 箇所とも同じ形):
+`HelpHistoryView.swift:378-380` の HStack 上のコメント (「44pt 幅 (アイコン 16pt + 左右 14pt ずつの余白)」) は、枠が最低 44pt で伸びる形になると計算が成り立たなくなるので書き換える:
+
+```swift
+            // #151: 各ボタンが最低 44pt 幅のタップ領域を持つため、ボタン間の 12pt は
+            // 視覚的に不要。4pt へ詰めてタスク名側の横幅を戻す。
+            // (提案3 でアイコンは .callout 追従になり、AX サイズでは枠ごと 44pt より広がる)
+            HStack(spacing: 4) {
+```
+
+編集・削除ボタン (2 箇所とも同じ形):
 
 ```swift
                 Button(action: onEdit) {
@@ -445,15 +454,42 @@ SP=/private/tmp/claude-501/-Users-shinya-workspace-claude-OtetsudaiCoin/bd5d20d9
 git worktree add "$SP/before" origin/main
 ```
 
-- [ ] **Step 3: 既定サイズと AX 最大サイズで before/after を撮る**
+- [ ] **Step 3a: 2 ステップ目を撮る一時 UITest を両方の tree に入れる (commit しない)**
 
-撮影 script と同じ simulator (名前 `iPhone 17 Pro Max`、Booted 優先) を選び、文字サイズを切り替えて 4 回撮る。元の文字サイズは最後に戻す。jq が asdf shim で壊れていたら `/usr/bin/jq` を使う (#96)。
+既存シーン 12 / 13 は各チュートリアルの最初のステップだけなので、80pt 単独アイコンのある 2 ステップ目が映らない。CLAUDE.md の PR #188/#189 の前例どおり、working tree だけの一時変更で「次へ」を 1 回タップして撮る。添付名は script の正規表現 `^verify-([0-9]{2})-([a-z-]+)` に合わせて 2 桁の番号にする (`12b` のような名前は黙って skip される)。
+
+`app/OtetsudaiCoinUITests/VerificationScreenshotUITests.swift` の `testCaptureTutorial` で、`attach(name: "verify-12-tutorial-child")` の直後に:
+
+```swift
+        nextButton.tap(); sleep(1)
+        attach(name: "verify-14-tutorial-child-step2")   // TEMP #151: 80pt 単独アイコンのステップ
+```
+
+`attach(name: "verify-13-tutorial-record")` の直後に:
+
+```swift
+        recordNext.tap(); sleep(1)
+        attach(name: "verify-15-tutorial-record-step2")  // TEMP #151: 80pt 単独アイコンのステップ
+```
+
+```bash
+SP=/private/tmp/claude-501/-Users-shinya-workspace-claude-OtetsudaiCoin/bd5d20d9-bdc2-4094-8755-a0a324cd489e/scratchpad
+git diff -- app/OtetsudaiCoinUITests > "$SP/temp-uitest.patch"
+git -C "$SP/before" apply "$SP/temp-uitest.patch"
+```
+
+AX 最大サイズで before の「次へ」が既に画面外にあり tap が失敗した場合は、それ自体を所見として記録する (after だけの問題ではないので、別課題として PR に書く)。
+
+- [ ] **Step 3b: 既定サイズと AX 最大サイズで before/after を撮る**
+
+撮影 script と同じ simulator (名前 `iPhone 17 Pro Max`、Booted 優先) を選び、文字サイズを切り替えて 4 回撮る。途中で失敗しても元の文字サイズへ戻るよう `trap` を置く (#217 の外観復元と同じ考え方)。jq が asdf shim で壊れていたら `/usr/bin/jq` を使う (#96)。
 
 ```bash
 SP=/private/tmp/claude-501/-Users-shinya-workspace-claude-OtetsudaiCoin/bd5d20d9-bdc2-4094-8755-a0a324cd489e/scratchpad
 UDID=$(xcrun simctl list devices available -j | /usr/bin/jq -r '[.devices[][] | select(.name == "iPhone 17 Pro Max" and .isAvailable)] | sort_by(.state != "Booted") | .[0].udid')
 xcrun simctl boot "$UDID" 2>/dev/null; xcrun simctl bootstatus "$UDID" -b >/dev/null
 ORIG=$(xcrun simctl ui "$UDID" content_size); echo "orig=$ORIG"
+trap 'xcrun simctl ui "$UDID" content_size "$ORIG"' EXIT
 for size in large accessibility-extra-extra-extra-large; do
   xcrun simctl ui "$UDID" content_size "$size"
   (cd "$SP/before" && /bin/bash scripts/capture-verification-screenshots.sh --appearance light) > "$SP/cap-before-$size.log" 2>&1
@@ -461,14 +497,15 @@ for size in large accessibility-extra-extra-extra-large; do
   /bin/bash scripts/capture-verification-screenshots.sh --appearance light > "$SP/cap-after-$size.log" 2>&1
   mkdir -p "$SP/shots/after-$size" && cp docs/screenshots/verification/light/*.png "$SP/shots/after-$size/"
 done
-xcrun simctl ui "$UDID" content_size "$ORIG"
 ```
+
+(1 つの Bash 呼び出しで実行する。`trap` は shell が終わる時に元の文字サイズへ戻す)
 
 撮影 script が別の UDID を選んだ場合 (Booted が無く並びが変わった等) に備え、`cap-*.log` に出る udid が `$UDID` と一致することを grep で確かめる。
 
 - [ ] **Step 4: 一次目視 (assistant が全枚数を Read して所見を表にする)**
 
-見るシーン: `00-splash` (best-effort)、`08-help-history` (空状態アイコン)、`12-tutorial-child`、`13-tutorial-record`。各シーンで before/after × 既定/AX の 4 枚を並べ、次を表に書く:
+見るシーン: `00-splash` (best-effort)、`08-help-history` (空状態アイコン)、`12-tutorial-child` / `13-tutorial-record` (円 120 + アイコン 50)、`14-tutorial-child-step2` / `15-tutorial-record-step2` (80pt 単独アイコン)。各シーンで before/after × 既定/AX の 4 枚を並べ、次を表に書く:
 
 | 観点 | 期待 |
 |---|---|
@@ -482,8 +519,9 @@ xcrun simctl ui "$UDID" content_size "$ORIG"
 - [ ] **Step 5: 後片付け**
 
 ```bash
+git checkout -- app/OtetsudaiCoinUITests   # Step 3a の一時 UITest を捨てる
 git worktree remove "$SP/before" --force && git worktree prune
-git status --short   # docs/screenshots/verification は gitignored なので何も出ない想定
+git status --short   # 何も出ない想定 (docs/screenshots/verification は gitignored)
 ```
 
 - [ ] **Step 6: 最終 whole-branch レビュー**
