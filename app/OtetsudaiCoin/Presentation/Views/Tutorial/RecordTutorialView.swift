@@ -109,15 +109,15 @@ struct RecordTutorialView: View {
     
     private var introStep: some View {
         VStack(spacing: 24) {
-            // #151 提案3: 円とアイコンを同じ倍率 (最大 1.3 倍) で育て、アイコンが円からはみ出さないようにする
+            // #151: 意図して固定サイズ。縦スクロールが無いため AX サイズで拡大すると説明文と「スキップ」を押し出す (実測)。縦スクロール対応は #246
             ZStack {
                 Circle()
                     .fill(AccessibilityColors.brandSecondary)
-                    .decorativeFrame(size: 120)
+                    .frame(width: 120, height: 120)
                     .shadow(radius: 10)
 
                 Image(systemName: "list.clipboard.fill")
-                    .decorativeFont(size: 50)
+                    .font(.system(size: 50))
                     .foregroundColor(.white)
             }
             
@@ -147,8 +147,9 @@ struct RecordTutorialView: View {
     
     private var selectChildStep: some View {
         VStack(spacing: 24) {
+            // #151: 意図して固定サイズ。縦スクロールが無いため AX サイズで拡大すると説明文と「スキップ」を押し出す (実測)。縦スクロール対応は #246
             Image(systemName: "person.2.circle.fill")
-                .decorativeFont(size: 80)
+                .font(.system(size: 80))
                 .foregroundColor(AccessibilityColors.brandPrimary)
             
             Text("お子様を選択")
@@ -204,13 +205,14 @@ struct RecordTutorialView: View {
                                                 VStack {
                                                     HStack {
                                                         Spacer()
+                                                        // #151: 意図して固定サイズ (60pt 固定のアバター上のバッジ。チュートリアルは #246 で縦スクロール対応後に再検討)
                                                         Image(systemName: "checkmark.circle.fill")
-                                                            .decorativeFont(size: 14)
+                                                            .font(.system(size: 14))
                                                             .foregroundColor(.white)
                                                             .background(
                                                                 Circle()
                                                                     .fill(Color.green)
-                                                                    .decorativeFrame(size: 14)
+                                                                    .frame(width: 14, height: 14)
                                                             )
                                                             .offset(x: 0, y: -1)
                                                     }
@@ -266,8 +268,9 @@ struct RecordTutorialView: View {
     
     private var selectTaskStep: some View {
         VStack(spacing: 24) {
+            // #151: 意図して固定サイズ。縦スクロールが無いため AX サイズで拡大すると説明文と「スキップ」を押し出す (実測)。縦スクロール対応は #246
             Image(systemName: "checklist")
-                .decorativeFont(size: 80)
+                .font(.system(size: 80))
                 .foregroundColor(.green)
             
             Text("お手伝いを選択")
@@ -353,15 +356,15 @@ struct RecordTutorialView: View {
     
     private var completionStep: some View {
         VStack(spacing: 24) {
-            // #151 提案3: 円とアイコンを同じ倍率 (最大 1.3 倍) で育て、アイコンが円からはみ出さないようにする
+            // #151: 意図して固定サイズ。縦スクロールが無いため AX サイズで拡大すると説明文と「スキップ」を押し出す (実測)。縦スクロール対応は #246
             ZStack {
                 Circle()
                     .fill(AccessibilityColors.brandPrimary)
-                    .decorativeFrame(size: 120)
+                    .frame(width: 120, height: 120)
                     .shadow(radius: 10)
 
                 Image(systemName: "trophy.fill")
-                    .decorativeFont(size: 50)
+                    .font(.system(size: 50))
                     .foregroundColor(.white)
             }
             
