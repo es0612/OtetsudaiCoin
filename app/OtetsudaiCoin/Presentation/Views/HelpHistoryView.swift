@@ -167,7 +167,7 @@ struct HelpHistoryView: View {
     private var emptyStateView: some View {
         VStack(spacing: 20) {
             Image(systemName: "list.clipboard")
-                .font(.system(size: 60))
+                .decorativeFont(size: 60)
                 .foregroundColor(.secondary)
 
             // #32: 「全データが無い」ではなく「今のフィルタには無い」ことを明示
@@ -376,19 +376,21 @@ struct HelpRecordRow: View {
             Spacer()
             
             // アクションボタン
-            // #151: 各ボタンが 44pt 幅 (アイコン 16pt + 左右 14pt ずつの余白) を
-            // 持つようになったため、ボタン間の 12pt は視覚的に不要。4pt へ詰めて
-            // タスク名側の横幅を戻す (アイコン間の実距離は 32pt 確保される)。
+            // #151: 各ボタンが最低 44pt 幅のタップ領域を持つため、ボタン間の 12pt は
+            // 視覚的に不要。4pt へ詰めてタスク名側の横幅を戻す。
+            // (提案3 でアイコンは .callout 追従になり、AX サイズでは枠ごと 44pt より広がる)
             HStack(spacing: 4) {
                 // 編集ボタン
                 // #151: アイコン実寸 (約 16pt) がそのままタップ領域だったため、
                 // HIG の最小 44×44pt まで広げる。contentShape で frame 全体を
                 // 当たり判定にする (frame だけではアイコンの形のまま)。
                 Button(action: onEdit) {
+                    // #151 提案3: .callout (既定 16pt) で Dynamic Type に追従。枠は min 44 にして
+                    // AX サイズでアイコンが育ったら枠も広がるようにする (固定 44 だと隣と重なる)。
                     Image(systemName: "pencil")
-                        .font(.system(size: 16))
+                        .font(.callout)
                         .foregroundColor(AccessibilityColors.brandPrimary)
-                        .frame(width: 44, height: 44)
+                        .frame(minWidth: 44, minHeight: 44)
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(PlainButtonStyle())
@@ -396,9 +398,9 @@ struct HelpRecordRow: View {
                 // 削除ボタン
                 Button(action: onDelete) {
                     Image(systemName: "trash")
-                        .font(.system(size: 16))
+                        .font(.callout)
                         .foregroundColor(.red)
-                        .frame(width: 44, height: 44)
+                        .frame(minWidth: 44, minHeight: 44)
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(PlainButtonStyle())

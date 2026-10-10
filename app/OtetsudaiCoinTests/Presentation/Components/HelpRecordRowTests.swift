@@ -42,8 +42,12 @@ final class HelpRecordRowTests: XCTestCase {
     /// 実寸（約 16〜20pt）がそのままタップ領域だった。しかも 2 つが 12pt 間隔で
     /// 横並びなので、押し間違いが起きやすい。
     ///
-    /// 失敗時に観測値を dump し、「frame が読めない」のか「値が足りない」のかを
-    /// 再実行なしで切り分けられるようにする。
+    /// #151 提案3 でアイコンを `.callout` (Dynamic Type 追従) にしたため、枠は固定 44 ではなく
+    /// `minWidth/minHeight: 44` にして、AX サイズでアイコンが育ったら枠も一緒に広がるようにした
+    /// (固定 44 のままだと Image が枠からはみ出して隣のボタンと重なる)。
+    ///
+    /// `flexFrame()` を Image に使うのは本リポ初出なので、観測値を dump し、
+    /// 「frame が読めない」のか「値が足りない」のかを再実行なしで切り分けられるようにする。
     func test_editAndDeleteButtons_meetMinimumTapTargetSize() throws {
         let minimumTapTarget: CGFloat = 44
         let view = makeView()
@@ -57,21 +61,36 @@ final class HelpRecordRowTests: XCTestCase {
         // frame を持たない兄弟 Image (star.fill) は compactMap で落ちる。
         // 行頭アイコンは #177 で Text 絵文字になったため Image 列挙に現れない。
         let images = try view.inspect().findAll(ViewType.Image.self)
-        let frames = images.compactMap { try? $0.fixedFrame() }
-        XCTAssertEqual(
-            frames.count, 2,
-            "編集・削除アイコンの frame を 2 つ読めない (images=\(images.count) / frames=\(frames.map { ($0.width, $0.height) }))"
-        )
+        let flexFrames = images.compactMap { try? $0.flexFrame() }
+        let fixedFrames = images.compactMap { try? $0.fixedFrame() }
+        let observed = "images=\(images.count) / flex=\(flexFrames.map { ($0.minWidth, $0.minHeight) }) / fixed=\(fixedFrames.map { ($0.width, $0.height) })"
 
-        for frame in frames {
-            XCTAssertGreaterThanOrEqual(
-                frame.width ?? 0, minimumTapTarget,
-                "アクションボタンの幅が 44pt 未満 / frames: \(frames.map { ($0.width, $0.height) })"
-            )
-            XCTAssertGreaterThanOrEqual(
-                frame.height ?? 0, minimumTapTarget,
-                "アクションボタンの高さが 44pt 未満 / frames: \(frames.map { ($0.width, $0.height) })"
-            )
+        XCTAssertEqual(flexFrames.count, 2, "編集・削除アイコンの伸びる frame を 2 つ読めない (\(observed))")
+        XCTAssertTrue(fixedFrames.isEmpty, "固定 frame が残っている (AX サイズでアイコンが枠からはみ出す) (\(observed))")
+
+        for frame in flexFrames {
+            XCTAssertGreaterThanOrEqual(frame.minWidth ?? 0, minimumTapTarget, "最小幅が 44pt 未満 (\(observed))")
+            XCTAssertGreaterThanOrEqual(frame.minHeight ?? 0, minimumTapTarget, "最小高さが 44pt 未満 (\(observed))")
+        }
+    }
+
+    /// #151 提案3: 編集・削除アイコンは `.callout` (Dynamic Type 追従)。固定 `.system(size: 16)` へ戻る回帰を防ぐ。
+    ///
+    /// 行内には `.caption` の star.fill もあるので、Image 全体ではなくボタンごとに数える。
+    /// Image への `font()` は本リポ初出なので観測値を dump する。
+    func test_editAndDeleteButtons_useCalloutTextStyle() throws {
+        let view = makeView()
+
+        let buttons = try view.inspect().findAll(ViewType.Button.self)
+        let fontsPerButton = try buttons.map { button in
+            try button.findAll(ViewType.Image.self).compactMap { try? $0.font() }
+        }
+        let observed = "buttons=\(buttons.count) / fonts=\(fontsPerButton)"
+
+        XCTAssertEqual(buttons.count, 2, "編集・削除の 2 ボタンが見つからない (\(observed))")
+        for fonts in fontsPerButton {
+            XCTAssertEqual(fonts.count, 1, "ボタン内のアイコンの font を 1 つ読めない (\(observed))")
+            XCTAssertTrue(fonts.allSatisfy { $0 == .callout }, "アイコンが .callout ではない (\(observed))")
         }
     }
 

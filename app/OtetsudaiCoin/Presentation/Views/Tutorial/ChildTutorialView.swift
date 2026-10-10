@@ -85,6 +85,7 @@ struct ChildTutorialView: View {
     
     private var welcomeStep: some View {
         VStack(spacing: 24) {
+            // #151: 意図して固定サイズ。縦スクロールが無いため AX サイズで拡大すると説明文と「スキップ」を押し出す (実測)。縦スクロール対応は #246
             // アニメーションアイコン
             ZStack {
                 Circle()
@@ -123,6 +124,7 @@ struct ChildTutorialView: View {
     
     private var addChildStep: some View {
         VStack(spacing: 24) {
+            // #151: 意図して固定サイズ。縦スクロールが無いため AX サイズで拡大すると説明文と「スキップ」を押し出す (実測)。縦スクロール対応は #246
             Image(systemName: "person.circle.fill")
                 .font(.system(size: 80))
                 .foregroundColor(AccessibilityColors.brandPrimary)
@@ -139,6 +141,7 @@ struct ChildTutorialView: View {
             
             if hasAddedChild {
                 VStack(spacing: 16) {
+                    // #151: 意図して固定サイズ。縦スクロールが無いため AX サイズで拡大すると説明文と「スキップ」を押し出す (実測)。縦スクロール対応は #246
                     Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: 60))
                         .foregroundColor(.green)
@@ -171,6 +174,7 @@ struct ChildTutorialView: View {
     
     private var completionStep: some View {
         VStack(spacing: 24) {
+            // #151: 意図して固定サイズ。縦スクロールが無いため AX サイズで拡大すると説明文と「スキップ」を押し出す (実測)。縦スクロール対応は #246
             ZStack {
                 Circle()
                     .fill(AccessibilityColors.brandSecondary)

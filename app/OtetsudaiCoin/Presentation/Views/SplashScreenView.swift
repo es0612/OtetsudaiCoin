@@ -40,7 +40,7 @@ struct SplashScreenView: View {
                                 endRadius: 120
                             )
                         )
-                        .frame(width: 200, height: 200)
+                        .decorativeFrame(size: 200)
                         .scaleEffect(coinScale)
                         .opacity(glowIntensity)
                     
@@ -56,11 +56,11 @@ struct SplashScreenView: View {
                                 endPoint: .bottomTrailing
                             )
                         )
-                        .frame(width: 100, height: 100)
+                        .decorativeFrame(size: 100)
                         .overlay(
                             // コインの中央アイコン
                             Image(systemName: "hands.sparkles")
-                                .font(.system(size: 32, weight: .semibold))
+                                .decorativeFont(size: 32, weight: .semibold)
                                 .foregroundColor(.white)
                                 .shadow(color: .black.opacity(0.2), radius: 1, x: 0, y: 1)
                         )
@@ -75,8 +75,13 @@ struct SplashScreenView: View {
                 
                 // アプリタイトル
                 VStack(spacing: 16) {
+                    // #151 提案3: ロゴ (ワードマーク) 扱いで上限 1.3 倍 (約 46.8pt、幅 約 313pt)。上限なしだと
+                    // AX5 で約 63pt (幅 約 417pt) になり 414pt 幅以下の端末で 1 行に収まらない。
+                    // lineLimit + minimumScaleFactor は 320pt 幅では余白 約 7pt のため保険
                     Text("OtetsudaiCoin")
-                        .font(.system(size: 36, weight: .bold, design: .rounded))
+                        .decorativeFont(size: 36, weight: .bold, design: .rounded)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
                         .foregroundColor(.white)
                         .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 2)
                         .opacity(titleOpacity)

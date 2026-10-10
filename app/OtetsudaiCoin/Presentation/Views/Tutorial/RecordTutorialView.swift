@@ -109,6 +109,7 @@ struct RecordTutorialView: View {
     
     private var introStep: some View {
         VStack(spacing: 24) {
+            // #151: 意図して固定サイズ。縦スクロールが無いため AX サイズで拡大すると説明文と「スキップ」を押し出す (実測)。縦スクロール対応は #246
             ZStack {
                 Circle()
                     .fill(AccessibilityColors.brandSecondary)
@@ -146,6 +147,7 @@ struct RecordTutorialView: View {
     
     private var selectChildStep: some View {
         VStack(spacing: 24) {
+            // #151: 意図して固定サイズ。縦スクロールが無いため AX サイズで拡大すると説明文と「スキップ」を押し出す (実測)。縦スクロール対応は #246
             Image(systemName: "person.2.circle.fill")
                 .font(.system(size: 80))
                 .foregroundColor(AccessibilityColors.brandPrimary)
@@ -203,6 +205,7 @@ struct RecordTutorialView: View {
                                                 VStack {
                                                     HStack {
                                                         Spacer()
+                                                        // #151: 意図して固定サイズ (60pt 固定のアバター上のバッジ。チュートリアルは #246 で縦スクロール対応後に再検討)
                                                         Image(systemName: "checkmark.circle.fill")
                                                             .font(.system(size: 14))
                                                             .foregroundColor(.white)
@@ -265,6 +268,7 @@ struct RecordTutorialView: View {
     
     private var selectTaskStep: some View {
         VStack(spacing: 24) {
+            // #151: 意図して固定サイズ。縦スクロールが無いため AX サイズで拡大すると説明文と「スキップ」を押し出す (実測)。縦スクロール対応は #246
             Image(systemName: "checklist")
                 .font(.system(size: 80))
                 .foregroundColor(.green)
@@ -352,6 +356,7 @@ struct RecordTutorialView: View {
     
     private var completionStep: some View {
         VStack(spacing: 24) {
+            // #151: 意図して固定サイズ。縦スクロールが無いため AX サイズで拡大すると説明文と「スキップ」を押し出す (実測)。縦スクロール対応は #246
             ZStack {
                 Circle()
                     .fill(AccessibilityColors.brandPrimary)
