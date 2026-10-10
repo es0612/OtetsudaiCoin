@@ -71,16 +71,16 @@ struct ChildTutorialView: View {
     
     private var welcomeStep: some View {
         VStack(spacing: 24) {
-            // #151: 意図して固定サイズ。縦スクロールが無いため AX サイズで拡大すると説明文と「スキップ」を押し出す (実測)。縦スクロール対応は #246
             // アニメーションアイコン
+            // #151 提案3: 円とアイコンを同じ倍率 (最大 1.3 倍) で育て、アイコンが円からはみ出さないようにする
             ZStack {
                 Circle()
                     .fill(AccessibilityColors.brandPrimary)
-                    .frame(width: 120, height: 120)
+                    .decorativeFrame(size: 120)
                     .shadow(radius: 10)
 
                 Image(systemName: "figure.2.and.child.holdinghands")
-                    .font(.system(size: 50))
+                    .decorativeFont(size: 50)
                     .foregroundColor(.white)
             }
             
@@ -110,9 +110,8 @@ struct ChildTutorialView: View {
     
     private var addChildStep: some View {
         VStack(spacing: 24) {
-            // #151: 意図して固定サイズ。縦スクロールが無いため AX サイズで拡大すると説明文と「スキップ」を押し出す (実測)。縦スクロール対応は #246
             Image(systemName: "person.circle.fill")
-                .font(.system(size: 80))
+                .decorativeFont(size: 80)
                 .foregroundColor(AccessibilityColors.brandPrimary)
             
             Text("最初のお子様を\n登録しましょう")
@@ -127,9 +126,8 @@ struct ChildTutorialView: View {
             
             if hasAddedChild {
                 VStack(spacing: 16) {
-                    // #151: 意図して固定サイズ。縦スクロールが無いため AX サイズで拡大すると説明文と「スキップ」を押し出す (実測)。縦スクロール対応は #246
                     Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 60))
+                        .decorativeFont(size: 60)
                         .foregroundColor(.green)
                     
                     Text("お子様が登録されました！")
@@ -160,15 +158,15 @@ struct ChildTutorialView: View {
     
     private var completionStep: some View {
         VStack(spacing: 24) {
-            // #151: 意図して固定サイズ。縦スクロールが無いため AX サイズで拡大すると説明文と「スキップ」を押し出す (実測)。縦スクロール対応は #246
+            // #151 提案3: 円とアイコンを同じ倍率 (最大 1.3 倍) で育て、アイコンが円からはみ出さないようにする
             ZStack {
                 Circle()
                     .fill(AccessibilityColors.brandSecondary)
-                    .frame(width: 120, height: 120)
+                    .decorativeFrame(size: 120)
                     .shadow(radius: 10)
 
                 Image(systemName: "star.fill")
-                    .font(.system(size: 50))
+                    .decorativeFont(size: 50)
                     .foregroundColor(.white)
             }
             
