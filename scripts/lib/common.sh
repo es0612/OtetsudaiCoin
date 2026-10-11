@@ -83,7 +83,8 @@ add_exit_handler() {
 _run_exit_handlers() {
   local handler
   for handler in "${_EXIT_HANDLERS[@]}"; do
-    "$handler"
+    # a failing handler must not skip the restores registered after it
+    "$handler" || true
   done
 }
 

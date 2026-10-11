@@ -7,6 +7,11 @@
 #                        (the clock / battery change between captures)
 #   differs y=A..B     — pixels differ below the status bar (rows A..B)
 #   size-differs       — the images have different dimensions
+#   missing in <after> — the PNG exists only in <before-dir>
+#   extra in <after>   — the PNG exists only in <after-dir>
+#
+# A missing or extra file fails the comparison: with partial captures (some
+# tests failed) the after side can silently have fewer shots.
 #
 # Use it to back a "default-size visuals are unchanged" claim with evidence:
 # capture before (origin/main) and after (the branch) with
@@ -24,14 +29,15 @@
 #                    the iPhone 17 Pro Max status bar at 3x; the clock is at
 #                    y=78..117)
 #
-# Exit: 0 if every compared pair is identical or status-bar-only, 1 if any
-# pair differs (or no pair was compared), 2 on usage errors.
+# Exit: 0 if every compared pair is identical or status-bar-only and both
+# folders hold the same file names; 1 if any pair differs, a file is missing or
+# extra, or no pair was compared; 2 on usage errors.
 # Requirements: macOS `sips` and /usr/bin/python3 (no third-party packages).
 
 set -euo pipefail
 
 usage() {
-  sed -n '2,30p' "$0" | sed 's/^# \{0,1\}//'
+  sed -n '2,36p' "$0" | sed 's/^# \{0,1\}//'
 }
 
 STATUS_BAR_PX=200
@@ -65,12 +71,14 @@ trap 'rm -rf "$TMP_DIR"' EXIT
 
 compared=0
 differs=0
+unmatched=0
 for before in "$BEFORE_DIR"/*.png; do
   [[ -e "$before" ]] || break
   name="$(basename "$before")"
   after="$AFTER_DIR/$name"
   if [[ ! -e "$after" ]]; then
     echo "$name: missing in $AFTER_DIR"
+    unmatched=$((unmatched + 1))
     continue
   fi
   # sips writes uncompressed BMP, so the bytes are the pixels (PNG bytes differ
@@ -118,9 +126,18 @@ PY
   esac
 done
 
-echo "==> compared $compared pair(s), $differs differ below the status bar"
+for after in "$AFTER_DIR"/*.png; do
+  [[ -e "$after" ]] || break
+  name="$(basename "$after")"
+  if [[ ! -e "$BEFORE_DIR/$name" ]]; then
+    echo "$name: extra in $AFTER_DIR"
+    unmatched=$((unmatched + 1))
+  fi
+done
+
+echo "==> compared $compared pair(s), $differs differ below the status bar, $unmatched missing/extra"
 if [[ $compared -eq 0 ]]; then
   echo "error: no PNG pairs to compare" >&2
   exit 1
 fi
-[[ $differs -eq 0 ]]
+[[ $differs -eq 0 && $unmatched -eq 0 ]]

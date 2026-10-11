@@ -146,19 +146,25 @@ for appearance in "${APPEARANCES[@]}"; do
     echo "error: [$appearance] xcodebuild test failed (exit=$xcode_exit). See $log" >&2
     echo "hint: xcrun xcresulttool get test-results tests --path \"$result_bundle\"" >&2
     FAILED_APPEARANCES+=("$appearance")
-    # A build failure leaves no result bundle; a test failure still has the
-    # attachments of the tests that ran, so place those instead of giving up.
+    # A test failure still leaves the attachments of the tests that ran, so
+    # place those instead of giving up. A build failure also writes a result
+    # bundle, but with no attachments — that case is caught after the export.
     if [[ ! -d "$result_bundle" ]]; then
-      echo "error: [$appearance] no result bundle (build failure?), nothing to export" >&2
+      echo "error: [$appearance] no result bundle, nothing to export" >&2
       continue
     fi
-    echo "==> [$appearance] Placing the attachments of the tests that ran"
   fi
 
   extract_dir="$TMP_ROOT/$appearance-extracted"
   mkdir -p "$extract_dir"
   echo "==> [$appearance] Exporting attachments"
   xcrun xcresulttool export attachments --path "$result_bundle" --output-path "$extract_dir"
+  # Keep the previous run's PNGs when there is nothing new to place
+  # (e.g. a build failure): place_attachments clears the folder first.
+  if ! "$JQ" -e '[.[].attachments[]] | length > 0' "$extract_dir/manifest.json" >/dev/null 2>&1; then
+    echo "error: [$appearance] no attachments in the result bundle (build failure?); kept $OUT_DIR/$appearance as is" >&2
+    continue
+  fi
 
   echo "==> [$appearance] Placing PNGs"
   place_attachments "$extract_dir/manifest.json" "$extract_dir" "$OUT_DIR/$appearance"
@@ -170,6 +176,6 @@ for appearance in "${APPEARANCES[@]}"; do
 done
 
 if [[ ${#FAILED_APPEARANCES[@]} -gt 0 ]]; then
-  echo "error: tests failed for: ${FAILED_APPEARANCES[*]} (PNGs above are partial)" >&2
+  echo "error: tests failed for: ${FAILED_APPEARANCES[*]} (PNGs above may be partial, or kept from a previous run — see the errors above)" >&2
   exit 1
 fi
