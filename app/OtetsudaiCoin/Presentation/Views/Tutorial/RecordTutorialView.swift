@@ -38,26 +38,10 @@ struct RecordTutorialView: View {
                     .progressViewStyle(LinearProgressViewStyle(tint: AccessibilityColors.brandPrimary))
                     .padding()
                 
-                Spacer()
-                
-                // メインコンテンツ
-                Group {
-                    switch currentStep {
-                    case 0:
-                        introStep
-                    case 1:
-                        selectChildStep
-                    case 2:
-                        selectTaskStep
-                    case 3:
-                        completionStep
-                    default:
-                        introStep
-                    }
+                // メインコンテンツ (縦に収まらないときだけスクロール、#246)
+                TutorialStepContainer(step: currentStep) {
+                    stepContent
                 }
-                .animation(.easeInOut(duration: 0.5), value: currentStep)
-                
-                Spacer()
                 
                 // ナビゲーションボタン
                 navigationButtons
@@ -304,7 +288,11 @@ struct RecordTutorialView: View {
                         }
                         .padding(.horizontal)
                     }
-                    .frame(maxHeight: 300)
+                    // idealHeight: TutorialStepContainer の ViewThatFits は理想の高さで「収まるか」を判定する。
+                    // maxHeight だけだと 300 で見積もられ、既定サイズでも「記録準備完了」が出た時点で
+                    // スクロール表示に切り替わる。既定サイズで実際に縮む高さ (約 255pt) より小さく申告し、
+                    // 今までどおり縮めて収める (#246)
+                    .frame(idealHeight: 200, maxHeight: 300)
                 }
                 
                 if hasSelectedTask && hasSelectedChild {
@@ -391,6 +379,24 @@ struct RecordTutorialView: View {
         .padding()
     }
     
+    private var stepContent: some View {
+        Group {
+            switch currentStep {
+            case 0:
+                introStep
+            case 1:
+                selectChildStep
+            case 2:
+                selectTaskStep
+            case 3:
+                completionStep
+            default:
+                introStep
+            }
+        }
+        .animation(.easeInOut(duration: 0.5), value: currentStep)
+    }
+
     private var navigationButtons: some View {
         VStack(spacing: 12) {
             HStack {

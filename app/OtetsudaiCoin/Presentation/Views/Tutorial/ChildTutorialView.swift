@@ -29,24 +29,10 @@ struct ChildTutorialView: View {
                     .progressViewStyle(LinearProgressViewStyle(tint: AccessibilityColors.brandPrimary))
                     .padding()
                 
-                Spacer()
-                
-                // メインコンテンツ
-                Group {
-                    switch currentStep {
-                    case 0:
-                        welcomeStep
-                    case 1:
-                        addChildStep
-                    case 2:
-                        completionStep
-                    default:
-                        welcomeStep
-                    }
+                // メインコンテンツ (縦に収まらないときだけスクロール、#246)
+                TutorialStepContainer(step: currentStep) {
+                    stepContent
                 }
-                .animation(.easeInOut(duration: 0.5), value: currentStep)
-                
-                Spacer()
                 
                 // ナビゲーションボタン
                 navigationButtons
@@ -209,6 +195,22 @@ struct ChildTutorialView: View {
         .padding()
     }
     
+    private var stepContent: some View {
+        Group {
+            switch currentStep {
+            case 0:
+                welcomeStep
+            case 1:
+                addChildStep
+            case 2:
+                completionStep
+            default:
+                welcomeStep
+            }
+        }
+        .animation(.easeInOut(duration: 0.5), value: currentStep)
+    }
+
     private var navigationButtons: some View {
         VStack(spacing: 12) {
             HStack {
