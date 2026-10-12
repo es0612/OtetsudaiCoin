@@ -18,6 +18,13 @@ struct ContentView: View {
     // in TutorialService. The splash never appears in ASC screenshots anyway.
     @State private var showSplashScreen = !ProcessInfo.processInfo.arguments.contains("--uitesting")
     
+    /// サンプルの子ども (太郎 / 花子) を用意するか。`--uitesting` に加え、チュートリアルを
+    /// 表示したまま子どもだけを用意したい検証撮影 (`--seed-sample-children`、Issue #246) でも true。
+    /// `--uitesting` はチュートリアル自体を飛ばすため、チュートリアルの撮影には使えない。
+    static func shouldSeedSampleChildren(arguments: [String] = ProcessInfo.processInfo.arguments) -> Bool {
+        arguments.contains("--uitesting") || arguments.contains("--seed-sample-children")
+    }
+
     // ファクトリーを使用した依存性注入
     private let repositoryFactory: RepositoryFactory
     private let viewModelFactory: ViewModelFactory
@@ -142,8 +149,8 @@ struct ContentView: View {
                 let existingChildren = try await childRepository.findAll()
                 let existingTasks = try await helpTaskRepository.findAll()
                 
-                // UIテスト実行時は事前にサンプルデータを作成
-                if ProcessInfo.processInfo.arguments.contains("--uitesting") {
+                // UIテスト・検証撮影の実行時は事前にサンプルデータを作成
+                if Self.shouldSeedSampleChildren() {
                     if existingChildren.isEmpty {
                         let sampleChildren = [
                             Child(id: UUID(), name: "太郎", themeColor: "#E8590C"),
