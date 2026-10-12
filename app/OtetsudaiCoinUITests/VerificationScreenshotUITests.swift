@@ -13,9 +13,10 @@
 //  - 出力は ASC artifact (docs/screenshots/asc/) に混ぜない
 //
 //  各テストメソッドは 1 cold launch。XCTest はアルファベット順に実行するため
-//  testCaptureTutorial (非 --uitesting 起動) が最後に走り、それまでの --uitesting
-//  起動で seed された太郎/花子が Core Data に残っている前提で Record tutorial を撮る
+//  testCaptureTutorial / testCaptureTutorialSteps (非 --uitesting 起動) が最後に走る
 //  (script 側で -parallel-testing-enabled NO を付け、clone simulator への分散を防ぐ)。
+//  testCaptureTutorial は記録チュートリアルへ直接起動するため、データが読み込まれず
+//  子どもが空の状態を撮る。各ステップは testCaptureTutorialSteps が本番と同じ流れで撮る (#246)。
 //
 
 import XCTest
@@ -107,12 +108,13 @@ final class VerificationScreenshotUITests: XCTestCase {
     private func tapHittableButton(containing text: String, in app: XCUIApplication) {
         let query = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", text))
         XCTAssertTrue(query.firstMatch.waitForExistence(timeout: 10), "button containing '\(text)' not found")
-        for _ in 0..<4 {
+        // 最大 4 回スワイプし、各スワイプの後 (と最初) に押せるボタンを探す
+        for attempt in 0...4 {
             if let button = query.allElementsBoundByIndex.first(where: { $0.isHittable }) {
                 button.tap()
                 return
             }
-            app.swipeUp()
+            if attempt < 4 { app.swipeUp() }
         }
         XCTFail("no hittable button containing '\(text)'. candidates=\(query.allElementsBoundByIndex.map { "\($0.label) \($0.frame)" })")
     }
