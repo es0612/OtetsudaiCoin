@@ -227,8 +227,11 @@ final class VerificationScreenshotUITests: XCTestCase {
         attach(name: "verify-13-tutorial-record")
     }
 
-    /// 14〜20: チュートリアルの全ステップ (Issue #246)。文字サイズを AX にして撮ると、
+    /// 14〜19: チュートリアルの各ステップ (Issue #246)。文字サイズを AX にして撮ると、
     /// 縦スクロール (TutorialStepContainer) で見出し・説明・ボタンが読める/押せるかを確かめられる。
+    ///
+    /// 「記録する」は押さない (記録の完了ステップは撮らない)。押すと Core Data に記録が残り、
+    /// 次の撮影の 06〜08 (ホーム・月のまとめ・履歴) の数字が毎回変わって before/after 比較が壊れるため。
     ///
     /// 記録チュートリアルには、子どもチュートリアルを「完了」して入る (本番と同じ流れ)。
     /// 記録チュートリアルのデータ読み込みは、表示が false → true に切り替わったときだけ
@@ -258,12 +261,5 @@ final class VerificationScreenshotUITests: XCTestCase {
         tapHittableButton(containing: "お風呂を入れる", in: app)
         sleep(1)
         attach(name: "verify-19-tutorial-record-step3-selected")
-        tapHittableButton(containing: "記録する", in: app)
-        sleep(4) // コインのアニメーション
-        // まだ重なっていればアニメーションの背景をタップして閉じる
-        app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.08)).tap()
-        tapEnabledButton("次へ", in: app)
-        sleep(1)
-        attach(name: "verify-20-tutorial-record-step4")
     }
 }
