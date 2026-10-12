@@ -76,6 +76,47 @@ final class VerificationScreenshotUITests: XCTestCase {
         return element
     }
 
+    /// チュートリアルを全ステップ撮るための起動 (Issue #246)。`--seed-sample-children` で
+    /// チュートリアルを出したまま太郎/花子を用意する (`--uitesting` はチュートリアルを飛ばす)。
+    private func launchTutorialAppWithChildren() -> XCUIApplication {
+        let app = XCUIApplication()
+        app.launchArguments += [
+            "--seed-sample-children",
+            "-hasLaunchedBefore", "NO",
+            "-hasCompletedChildTutorial", "NO",
+            "-hasCompletedRecordTutorial", "NO",
+            "-AppleLanguages", "(ja)",
+            "-AppleLocale", "ja_JP"
+        ]
+        app.launch()
+        return app
+    }
+
+    /// 「次へ」が有効になるのを待って押す。
+    private func tapEnabledButton(_ label: String, in app: XCUIApplication) {
+        let button = app.buttons[label]
+        XCTAssertTrue(button.waitForExistence(timeout: 10), "\(label) not found")
+        let enabled = expectation(for: NSPredicate(format: "isEnabled == true"), evaluatedWith: button)
+        wait(for: [enabled], timeout: 10)
+        button.tap()
+    }
+
+    /// チュートリアルの裏の Home にも同じ名前のボタン (太郎 など) があるため、押せるものを選ぶ。
+    /// AX サイズでは本文が縦スクロールになり、目的のボタンが下に隠れていることがあるので、
+    /// 見つかるまで上へスワイプする (タスク一覧は入れ子のスクロールで、最初のスワイプは一覧側が動く)。
+    private func tapHittableButton(containing text: String, in app: XCUIApplication) {
+        let query = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", text))
+        XCTAssertTrue(query.firstMatch.waitForExistence(timeout: 10), "button containing '\(text)' not found")
+        for _ in 0..<4 {
+            if let button = query.allElementsBoundByIndex.first(where: { $0.isHittable }) {
+                button.tap()
+                return
+            }
+            app.swipeUp()
+        }
+        XCTFail("no hittable button containing '\(text)'. candidates=\(query.allElementsBoundByIndex.map { "\($0.label) \($0.frame)" })")
+    }
+
     private func attach(name: String) {
         let screenshot = XCUIScreen.main.screenshot()
         let attachment = XCTAttachment(screenshot: screenshot)
@@ -184,5 +225,45 @@ final class VerificationScreenshotUITests: XCTestCase {
         XCTAssertTrue(recordNext.waitForExistence(timeout: 20), "record tutorial did not appear")
         sleep(1)
         attach(name: "verify-13-tutorial-record")
+    }
+
+    /// 14〜20: チュートリアルの全ステップ (Issue #246)。文字サイズを AX にして撮ると、
+    /// 縦スクロール (TutorialStepContainer) で見出し・説明・ボタンが読める/押せるかを確かめられる。
+    ///
+    /// 記録チュートリアルには、子どもチュートリアルを「完了」して入る (本番と同じ流れ)。
+    /// 記録チュートリアルのデータ読み込みは、表示が false → true に切り替わったときだけ
+    /// 走るため (TutorialContainerView)、記録チュートリアルから直接起動すると子どもが空になる
+    /// (上の verify-13 はこの空の状態を撮っている)。
+    func testCaptureTutorialSteps() throws {
+        let app = launchTutorialAppWithChildren()
+        XCTAssertTrue(app.buttons["次へ"].waitForExistence(timeout: 20), "child tutorial did not appear")
+        tapEnabledButton("次へ", in: app)
+        sleep(1)
+        attach(name: "verify-14-tutorial-child-step2")
+        tapEnabledButton("次へ", in: app)
+        sleep(1)
+        attach(name: "verify-15-tutorial-child-step3")
+        tapEnabledButton("完了", in: app)
+
+        XCTAssertTrue(app.buttons["次へ"].waitForExistence(timeout: 20), "record tutorial did not appear")
+        sleep(1)
+        attach(name: "verify-16-tutorial-record-step1")
+        tapEnabledButton("次へ", in: app)
+        sleep(1)
+        attach(name: "verify-17-tutorial-record-step2")
+        tapHittableButton(containing: "太郎", in: app)
+        tapEnabledButton("次へ", in: app)
+        sleep(1)
+        attach(name: "verify-18-tutorial-record-step3")
+        tapHittableButton(containing: "お風呂を入れる", in: app)
+        sleep(1)
+        attach(name: "verify-19-tutorial-record-step3-selected")
+        tapHittableButton(containing: "記録する", in: app)
+        sleep(4) // コインのアニメーション
+        // まだ重なっていればアニメーションの背景をタップして閉じる
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.08)).tap()
+        tapEnabledButton("次へ", in: app)
+        sleep(1)
+        attach(name: "verify-20-tutorial-record-step4")
     }
 }
