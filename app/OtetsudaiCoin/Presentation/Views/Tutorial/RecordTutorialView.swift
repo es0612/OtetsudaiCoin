@@ -38,26 +38,10 @@ struct RecordTutorialView: View {
                     .progressViewStyle(LinearProgressViewStyle(tint: AccessibilityColors.brandPrimary))
                     .padding()
                 
-                Spacer()
-                
-                // メインコンテンツ
-                Group {
-                    switch currentStep {
-                    case 0:
-                        introStep
-                    case 1:
-                        selectChildStep
-                    case 2:
-                        selectTaskStep
-                    case 3:
-                        completionStep
-                    default:
-                        introStep
-                    }
+                // メインコンテンツ (縦に収まらないときだけスクロール、#246)
+                TutorialStepContainer(step: currentStep) {
+                    stepContent
                 }
-                .animation(.easeInOut(duration: 0.5), value: currentStep)
-                
-                Spacer()
                 
                 // ナビゲーションボタン
                 navigationButtons
@@ -109,15 +93,15 @@ struct RecordTutorialView: View {
     
     private var introStep: some View {
         VStack(spacing: 24) {
-            // #151: 意図して固定サイズ。縦スクロールが無いため AX サイズで拡大すると説明文と「スキップ」を押し出す (実測)。縦スクロール対応は #246
+            // #151 提案3: 円とアイコンを同じ倍率 (最大 1.3 倍) で育て、アイコンが円からはみ出さないようにする
             ZStack {
                 Circle()
                     .fill(AccessibilityColors.brandSecondary)
-                    .frame(width: 120, height: 120)
+                    .decorativeFrame(size: 120)
                     .shadow(radius: 10)
 
                 Image(systemName: "list.clipboard.fill")
-                    .font(.system(size: 50))
+                    .decorativeFont(size: 50)
                     .foregroundColor(.white)
             }
             
@@ -147,9 +131,8 @@ struct RecordTutorialView: View {
     
     private var selectChildStep: some View {
         VStack(spacing: 24) {
-            // #151: 意図して固定サイズ。縦スクロールが無いため AX サイズで拡大すると説明文と「スキップ」を押し出す (実測)。縦スクロール対応は #246
             Image(systemName: "person.2.circle.fill")
-                .font(.system(size: 80))
+                .decorativeFont(size: 80)
                 .foregroundColor(AccessibilityColors.brandPrimary)
             
             Text("お子様を選択")
@@ -205,14 +188,13 @@ struct RecordTutorialView: View {
                                                 VStack {
                                                     HStack {
                                                         Spacer()
-                                                        // #151: 意図して固定サイズ (60pt 固定のアバター上のバッジ。チュートリアルは #246 で縦スクロール対応後に再検討)
                                                         Image(systemName: "checkmark.circle.fill")
-                                                            .font(.system(size: 14))
+                                                            .decorativeFont(size: 14)
                                                             .foregroundColor(.white)
                                                             .background(
                                                                 Circle()
                                                                     .fill(Color.green)
-                                                                    .frame(width: 14, height: 14)
+                                                                    .decorativeFrame(size: 14)
                                                             )
                                                             .offset(x: 0, y: -1)
                                                     }
@@ -268,9 +250,8 @@ struct RecordTutorialView: View {
     
     private var selectTaskStep: some View {
         VStack(spacing: 24) {
-            // #151: 意図して固定サイズ。縦スクロールが無いため AX サイズで拡大すると説明文と「スキップ」を押し出す (実測)。縦スクロール対応は #246
             Image(systemName: "checklist")
-                .font(.system(size: 80))
+                .decorativeFont(size: 80)
                 .foregroundColor(.green)
             
             Text("お手伝いを選択")
@@ -304,7 +285,11 @@ struct RecordTutorialView: View {
                         }
                         .padding(.horizontal)
                     }
-                    .frame(maxHeight: 300)
+                    // idealHeight: TutorialStepContainer の ViewThatFits は理想の高さで「収まるか」を判定する。
+                    // maxHeight だけだと 300 で見積もられ、既定サイズでも「記録準備完了」が出た時点で
+                    // スクロール表示に切り替わる。理想の高さを約 1 行分 (130) と小さく申告し、既定サイズでは
+                    // 今までどおり縮めて収める。200 では iPhone 17 (6.3 インチ) で収まらず切り替わった (#246 で実測)
+                    .frame(idealHeight: 130, maxHeight: 300)
                 }
                 
                 if hasSelectedTask && hasSelectedChild {
@@ -356,15 +341,15 @@ struct RecordTutorialView: View {
     
     private var completionStep: some View {
         VStack(spacing: 24) {
-            // #151: 意図して固定サイズ。縦スクロールが無いため AX サイズで拡大すると説明文と「スキップ」を押し出す (実測)。縦スクロール対応は #246
+            // #151 提案3: 円とアイコンを同じ倍率 (最大 1.3 倍) で育て、アイコンが円からはみ出さないようにする
             ZStack {
                 Circle()
                     .fill(AccessibilityColors.brandPrimary)
-                    .frame(width: 120, height: 120)
+                    .decorativeFrame(size: 120)
                     .shadow(radius: 10)
 
                 Image(systemName: "trophy.fill")
-                    .font(.system(size: 50))
+                    .decorativeFont(size: 50)
                     .foregroundColor(.white)
             }
             
@@ -391,6 +376,24 @@ struct RecordTutorialView: View {
         .padding()
     }
     
+    private var stepContent: some View {
+        Group {
+            switch currentStep {
+            case 0:
+                introStep
+            case 1:
+                selectChildStep
+            case 2:
+                selectTaskStep
+            case 3:
+                completionStep
+            default:
+                introStep
+            }
+        }
+        .animation(.easeInOut(duration: 0.5), value: currentStep)
+    }
+
     private var navigationButtons: some View {
         VStack(spacing: 12) {
             HStack {

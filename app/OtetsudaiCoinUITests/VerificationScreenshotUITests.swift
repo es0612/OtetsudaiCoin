@@ -13,9 +13,10 @@
 //  - 出力は ASC artifact (docs/screenshots/asc/) に混ぜない
 //
 //  各テストメソッドは 1 cold launch。XCTest はアルファベット順に実行するため
-//  testCaptureTutorial (非 --uitesting 起動) が最後に走り、それまでの --uitesting
-//  起動で seed された太郎/花子が Core Data に残っている前提で Record tutorial を撮る
+//  testCaptureTutorial / testCaptureTutorialSteps (非 --uitesting 起動) が最後に走る
 //  (script 側で -parallel-testing-enabled NO を付け、clone simulator への分散を防ぐ)。
+//  testCaptureTutorial は記録チュートリアルへ直接起動するため、データが読み込まれず
+//  子どもが空の状態を撮る。各ステップは testCaptureTutorialSteps が本番と同じ流れで撮る (#246)。
 //
 
 import XCTest
@@ -74,6 +75,48 @@ final class VerificationScreenshotUITests: XCTestCase {
             XCTFail("button containing '\(text)' not found. buttons=\(labels)")
         }
         return element
+    }
+
+    /// チュートリアルを全ステップ撮るための起動 (Issue #246)。`--seed-sample-children` で
+    /// チュートリアルを出したまま太郎/花子を用意する (`--uitesting` はチュートリアルを飛ばす)。
+    private func launchTutorialAppWithChildren() -> XCUIApplication {
+        let app = XCUIApplication()
+        app.launchArguments += [
+            "--seed-sample-children",
+            "-hasLaunchedBefore", "NO",
+            "-hasCompletedChildTutorial", "NO",
+            "-hasCompletedRecordTutorial", "NO",
+            "-AppleLanguages", "(ja)",
+            "-AppleLocale", "ja_JP"
+        ]
+        app.launch()
+        return app
+    }
+
+    /// 「次へ」が有効になるのを待って押す。
+    private func tapEnabledButton(_ label: String, in app: XCUIApplication) {
+        let button = app.buttons[label]
+        XCTAssertTrue(button.waitForExistence(timeout: 10), "\(label) not found")
+        let enabled = expectation(for: NSPredicate(format: "isEnabled == true"), evaluatedWith: button)
+        wait(for: [enabled], timeout: 10)
+        button.tap()
+    }
+
+    /// チュートリアルの裏の Home にも同じ名前のボタン (太郎 など) があるため、押せるものを選ぶ。
+    /// AX サイズでは本文が縦スクロールになり、目的のボタンが下に隠れていることがあるので、
+    /// 見つかるまで上へスワイプする (タスク一覧は入れ子のスクロールで、最初のスワイプは一覧側が動く)。
+    private func tapHittableButton(containing text: String, in app: XCUIApplication) {
+        let query = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", text))
+        XCTAssertTrue(query.firstMatch.waitForExistence(timeout: 10), "button containing '\(text)' not found")
+        // 最大 4 回スワイプし、各スワイプの後 (と最初) に押せるボタンを探す
+        for attempt in 0...4 {
+            if let button = query.allElementsBoundByIndex.first(where: { $0.isHittable }) {
+                button.tap()
+                return
+            }
+            if attempt < 4 { app.swipeUp() }
+        }
+        XCTFail("no hittable button containing '\(text)'. candidates=\(query.allElementsBoundByIndex.map { "\($0.label) \($0.frame)" })")
     }
 
     private func attach(name: String) {
@@ -184,5 +227,41 @@ final class VerificationScreenshotUITests: XCTestCase {
         XCTAssertTrue(recordNext.waitForExistence(timeout: 20), "record tutorial did not appear")
         sleep(1)
         attach(name: "verify-13-tutorial-record")
+    }
+
+    /// 14〜19: チュートリアルの各ステップ (Issue #246)。文字サイズを AX にして撮ると、
+    /// 縦スクロール (TutorialStepContainer) で見出し・説明・ボタンが読める/押せるかを確かめられる。
+    ///
+    /// 「記録する」は押さない (記録の完了ステップは撮らない)。押すと Core Data に記録が残り、
+    /// 次の撮影の 06〜08 (ホーム・月のまとめ・履歴) の数字が毎回変わって before/after 比較が壊れるため。
+    ///
+    /// 記録チュートリアルには、子どもチュートリアルを「完了」して入る (本番と同じ流れ)。
+    /// 記録チュートリアルのデータ読み込みは、表示が false → true に切り替わったときだけ
+    /// 走るため (TutorialContainerView)、記録チュートリアルから直接起動すると子どもが空になる
+    /// (上の verify-13 はこの空の状態を撮っている)。
+    func testCaptureTutorialSteps() throws {
+        let app = launchTutorialAppWithChildren()
+        XCTAssertTrue(app.buttons["次へ"].waitForExistence(timeout: 20), "child tutorial did not appear")
+        tapEnabledButton("次へ", in: app)
+        sleep(1)
+        attach(name: "verify-14-tutorial-child-step2")
+        tapEnabledButton("次へ", in: app)
+        sleep(1)
+        attach(name: "verify-15-tutorial-child-step3")
+        tapEnabledButton("完了", in: app)
+
+        XCTAssertTrue(app.buttons["次へ"].waitForExistence(timeout: 20), "record tutorial did not appear")
+        sleep(1)
+        attach(name: "verify-16-tutorial-record-step1")
+        tapEnabledButton("次へ", in: app)
+        sleep(1)
+        attach(name: "verify-17-tutorial-record-step2")
+        tapHittableButton(containing: "太郎", in: app)
+        tapEnabledButton("次へ", in: app)
+        sleep(1)
+        attach(name: "verify-18-tutorial-record-step3")
+        tapHittableButton(containing: "お風呂を入れる", in: app)
+        sleep(1)
+        attach(name: "verify-19-tutorial-record-step3-selected")
     }
 }
