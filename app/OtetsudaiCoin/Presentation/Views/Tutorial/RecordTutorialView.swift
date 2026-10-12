@@ -287,9 +287,9 @@ struct RecordTutorialView: View {
                     }
                     // idealHeight: TutorialStepContainer の ViewThatFits は理想の高さで「収まるか」を判定する。
                     // maxHeight だけだと 300 で見積もられ、既定サイズでも「記録準備完了」が出た時点で
-                    // スクロール表示に切り替わる。既定サイズで実際に縮む高さ (約 255pt) より小さく申告し、
-                    // 今までどおり縮めて収める (#246)
-                    .frame(idealHeight: 200, maxHeight: 300)
+                    // スクロール表示に切り替わる。理想の高さを約 1 行分 (130) と小さく申告し、既定サイズでは
+                    // 今までどおり縮めて収める。200 では iPhone 17 (6.3 インチ) で収まらず切り替わった (#246 で実測)
+                    .frame(idealHeight: 130, maxHeight: 300)
                 }
                 
                 if hasSelectedTask && hasSelectedChild {
