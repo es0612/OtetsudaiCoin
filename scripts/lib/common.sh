@@ -1,6 +1,7 @@
 # shellcheck shell=bash
-# Shared helpers for the screenshot capture scripts
-# (capture-asc-screenshots.sh / capture-verification-screenshots.sh).
+# Shared helpers for the screenshot scripts
+# (capture-asc-screenshots.sh / capture-verification-screenshots.sh /
+# compare-screenshots.sh).
 # Source it via ${BASH_SOURCE[0]} so it resolves regardless of the caller's cwd:
 #
 #   SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -123,4 +124,38 @@ set_content_size_and_restore_on_exit() {
 _restore_content_size() {
   xcrun simctl ui "$_CONTENT_SIZE_UDID" content_size "$ORIG_CONTENT_SIZE" >/dev/null 2>&1 \
     || echo "warn: could not restore simulator content size to $ORIG_CONTENT_SIZE" >&2
+}
+
+# Keys of capture-meta.txt that change what is drawn. compare-screenshots.sh
+# refuses to compare folders that differ in any of them; commit / worktree /
+# udid / captured_at are expected to differ and are informational only.
+# runtime is included because several simulators share a device name with
+# different iOS versions (iPhone 17 Pro Max on iOS 26.2 / 26.4 / 26.5 here).
+CAPTURE_CONDITION_KEYS="content_size device runtime appearance"
+
+# Writes <dest_dir>/capture-meta.txt next to the PNGs, so a folder later used as
+# the before/after side of compare-screenshots.sh says how it was captured.
+# content_size and appearance are read back from the simulator (not taken from
+# the options), because without --content-size the run uses whatever size the
+# device was left at. Call while the device is booted and still set up for the
+# run — the exit handlers restore both settings afterwards. Requires $JQ.
+# See Issue #256.
+write_capture_meta() {
+  local dest_dir="$1" udid="$2" device="$3" runtime worktree
+  runtime="$(xcrun simctl list devices -j \
+    | "$JQ" -r --arg u "$udid" '.devices | to_entries[] | select(any(.value[]; .udid == $u)) | .key' \
+    | head -1)"
+  if [[ -z "$(git status --porcelain 2>/dev/null)" ]]; then worktree="clean"; else worktree="dirty"; fi
+  {
+    echo "# Capture conditions written by capture-verification-screenshots.sh (Issue #256)."
+    echo "content_size=$(xcrun simctl ui "$udid" content_size 2>/dev/null)"
+    echo "device=$device"
+    echo "runtime=$runtime"
+    echo "appearance=$(xcrun simctl ui "$udid" appearance 2>/dev/null)"
+    echo "udid=$udid"
+    echo "commit=$(git rev-parse HEAD 2>/dev/null)"
+    echo "worktree=$worktree"
+    echo "captured_at=$(date +%Y-%m-%dT%H:%M:%S%z)"
+  } > "$dest_dir/capture-meta.txt"
+  echo "  wrote $dest_dir/capture-meta.txt"
 }

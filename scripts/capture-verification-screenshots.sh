@@ -16,6 +16,11 @@
 #   accessibility-extra-extra-extra-large) and restores it on exit. Omit it to
 #   leave the current size untouched. Categories: see `xcrun simctl ui`.
 #
+#   Each output folder also gets capture-meta.txt (content size / device /
+#   iOS runtime / appearance read back from the simulator, plus commit and
+#   time). compare-screenshots.sh stops when the two folders differ in those
+#   conditions (Issue #256).
+#
 #   If some tests fail (e.g. Settings buttons pushed off-screen at AX sizes),
 #   the attachments of the tests that ran are still placed, then the script
 #   exits 1 after listing the failing tests (Issue #248).
@@ -39,7 +44,7 @@ APPEARANCE_MODE="both"
 CONTENT_SIZE=""
 
 usage() {
-  sed -n '2,29p' "$0" | sed 's/^# \{0,1\}//'
+  sed -n '2,34p' "$0" | sed 's/^# \{0,1\}//'
 }
 
 while [[ $# -gt 0 ]]; do
@@ -96,6 +101,9 @@ echo "==> Using simulator: $DEVICE_NAME ($UDID)"
 boot_and_restore_appearance_on_exit "$UDID"
 if [[ -n "$CONTENT_SIZE" ]]; then
   set_content_size_and_restore_on_exit "$UDID" "$CONTENT_SIZE" || exit 1
+else
+  # The size persists per device, so an earlier AX run can leave it enlarged.
+  echo "==> Content size: $(xcrun simctl ui "$UDID" content_size 2>/dev/null) (the simulator's current setting; pass --content-size to pin it)"
 fi
 
 TMP_ROOT="$(mktemp -d)"
@@ -168,6 +176,7 @@ for appearance in "${APPEARANCES[@]}"; do
 
   echo "==> [$appearance] Placing PNGs"
   place_attachments "$extract_dir/manifest.json" "$extract_dir" "$OUT_DIR/$appearance"
+  write_capture_meta "$OUT_DIR/$appearance" "$UDID" "$DEVICE_NAME"
 done
 
 echo "==> Done. Output:"

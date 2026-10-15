@@ -22,31 +22,46 @@
 # distance varies) and 09-task-management (the AdMob test banner). A "differs"
 # there is not evidence of a regression unless the change touches that screen.
 #
+# Before comparing pixels, it reads capture-meta.txt in both folders (written
+# by capture-verification-screenshots.sh) and stops when the capture
+# conditions differ — content_size / device / runtime / appearance. A before
+# folder left over from an AX-size run otherwise shows up as "every scene
+# differs" (Issue #256). A folder without capture-meta.txt is reported as
+# "conditions unknown" and the comparison goes on.
+#
 # Usage:
 #   scripts/compare-screenshots.sh <before-dir> <after-dir> [--status-bar-px N]
+#                                  [--allow-condition-mismatch]
 #
 #   --status-bar-px  rows from the top treated as status bar (default 200 =
 #                    the iPhone 17 Pro Max status bar at 3x; the clock is at
 #                    y=78..117)
+#   --allow-condition-mismatch
+#                    compare anyway when the capture conditions differ (prints
+#                    the differences as a warning)
 #
 # Exit: 0 if every compared pair is identical or status-bar-only and both
 # folders hold the same file names; 1 if any pair differs, a file is missing or
-# extra, or no pair was compared; 2 on usage errors.
+# extra, or no pair was compared; 2 on usage errors; 3 when the capture
+# conditions differ (without --allow-condition-mismatch).
 # Requirements: macOS `sips` and /usr/bin/python3 (no third-party packages).
 
 set -euo pipefail
 
 usage() {
-  sed -n '2,36p' "$0" | sed 's/^# \{0,1\}//'
+  sed -n '2,47p' "$0" | sed 's/^# \{0,1\}//'
 }
 
 STATUS_BAR_PX=200
+ALLOW_CONDITION_MISMATCH=0
 POSITIONAL=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --status-bar-px)
       [[ $# -ge 2 ]] || { echo "error: --status-bar-px needs a value" >&2; exit 2; }
       STATUS_BAR_PX="$2"; shift 2 ;;
+    --allow-condition-mismatch)
+      ALLOW_CONDITION_MISMATCH=1; shift ;;
     -h|--help)
       usage; exit 0 ;;
     -*)
@@ -65,6 +80,51 @@ for dir in "$BEFORE_DIR" "$AFTER_DIR"; do
   [[ -d "$dir" ]] || { echo "error: not a directory: $dir" >&2; exit 2; }
 done
 [[ "$STATUS_BAR_PX" =~ ^[0-9]+$ ]] || { echo "error: --status-bar-px must be a number (got: $STATUS_BAR_PX)" >&2; exit 2; }
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib/common.sh
+source "$SCRIPT_DIR/lib/common.sh"
+
+# Prints the value of <key> in <dir>/capture-meta.txt (empty if absent).
+meta_value() {
+  grep -m1 "^$2=" "$1/capture-meta.txt" 2>/dev/null | cut -d= -f2- || true
+}
+
+check_capture_conditions() {
+  local dir key before_value after_value mismatches=0 unknown=0 details=""
+  for dir in "$BEFORE_DIR" "$AFTER_DIR"; do
+    if [[ ! -f "$dir/capture-meta.txt" ]]; then
+      echo "warn: no capture-meta.txt in $dir — capture conditions unknown (captured before Issue #256?)" >&2
+      unknown=1
+    fi
+  done
+  [[ $unknown -eq 0 ]] || return 0
+
+  for key in $CAPTURE_CONDITION_KEYS; do
+    before_value="$(meta_value "$BEFORE_DIR" "$key")"
+    after_value="$(meta_value "$AFTER_DIR" "$key")"
+    if [[ "$before_value" != "$after_value" ]]; then
+      details+="  $key: before=${before_value:-(none)} after=${after_value:-(none)}"$'\n'
+      mismatches=$((mismatches + 1))
+    fi
+  done
+  if [[ $mismatches -eq 0 ]]; then
+    echo "==> capture conditions match: content_size=$(meta_value "$BEFORE_DIR" content_size)" \
+      "device=$(meta_value "$BEFORE_DIR" device) appearance=$(meta_value "$BEFORE_DIR" appearance)"
+    echo "    before commit=$(meta_value "$BEFORE_DIR" commit) / after commit=$(meta_value "$AFTER_DIR" commit)"
+    return 0
+  fi
+  if [[ $ALLOW_CONDITION_MISMATCH -eq 1 ]]; then
+    echo "warn: capture conditions differ in $mismatches item(s); comparing anyway (--allow-condition-mismatch):" >&2
+    printf '%s' "$details" >&2
+    return 0
+  fi
+  echo "error: capture conditions differ in $mismatches item(s), so the pixels would differ for that reason alone:" >&2
+  printf '%s' "$details" >&2
+  echo "hint: recapture one side with the same options (e.g. --content-size large), or pass --allow-condition-mismatch" >&2
+  exit 3
+}
+check_capture_conditions
 
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
