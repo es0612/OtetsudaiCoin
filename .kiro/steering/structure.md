@@ -2,117 +2,58 @@
 
 ## ルートディレクトリ構成
 
-```
+```text
 OtetsudaiCoin/
-├── app/                    # メインアプリケーション
-├── scripts/                # 開発用スクリプト
-├── .kiro/                  # Kiro仕様駆動開発
-│   ├── steering/           # ステアリングドキュメント
-│   └── specs/              # 仕様ドキュメント
-├── .claude/                # Claude Code設定
-│   └── commands/           # カスタムコマンド
-├── README.md               # プロジェクトREADME
-├── CLAUDE.md               # Claude開発ガイド
-├── PRIVACY_POLICY.md       # プライバシーポリシー
-└── LICENSE                 # ライセンス
+├── app/                    # Xcode プロジェクト（下記）
+├── scripts/                # 開発用スクリプト（下記）
+├── docs/                   # GitHub Pages・リリース手順書 (releases/)・スクショ (screenshots/)・superpowers の spec/plan
+├── fastlane/               # ASC メタデータ (metadata/)
+├── .github/workflows/      # CI
+├── .kiro/steering/         # ステアリングドキュメント（自動では読み込まれない）
+├── .claude/commands/       # カスタムコマンド
+├── README.md
+├── CLAUDE.md               # Claude 開発ガイド
+├── PRIVACY_POLICY.md
+└── LICENSE
 ```
 
 ## app/ ディレクトリ構造（クリーンアーキテクチャ）
 
-```
+```text
 app/
-├── OtetsudaiCoin.xcodeproj             # Xcodeプロジェクト
-│
-├── OtetsudaiCoin/                      # メインアプリ
-│   ├── OtetsudaiCoinApp.swift          # アプリエントリポイント
-│   ├── ContentView.swift                # ルートビュー
-│   ├── Persistence.swift                # Core Data設定
-│   │
-│   ├── Data/                            # データ層
-│   │   ├── Repositories/                # Repository実装
-│   │   │   ├── CoreDataChildRepository.swift
-│   │   │   ├── CoreDataHelpRecordRepository.swift
-│   │   │   ├── CoreDataHelpTaskRepository.swift
-│   │   │   └── InMemoryAllowancePaymentRepository.swift
-│   │   └── Utils/                       # データユーティリティ
-│   │
-│   ├── Domain/                          # ドメイン層
-│   │   ├── Entities/                    # エンティティ定義
-│   │   │   ├── Child.swift
-│   │   │   ├── HelpRecord.swift
-│   │   │   ├── HelpTask.swift
-│   │   │   └── AllowancePayment.swift
-│   │   ├── Repositories/                # Repositoryプロトコル
-│   │   │   ├── ChildRepositoryProtocol.swift
-│   │   │   ├── HelpRecordRepositoryProtocol.swift
-│   │   │   ├── HelpTaskRepositoryProtocol.swift
-│   │   │   └── AllowancePaymentRepositoryProtocol.swift
-│   │   └── Services/                    # ビジネスロジック
-│   │       ├── AllowanceCalculator.swift
-│   │       ├── MonthlyResetService.swift
-│   │       ├── SoundService.swift
-│   │       ├── TutorialService.swift
-│   │       ├── UnpaidAllowanceDetectorService.swift
-│   │       └── SampleDataService.swift
-│   │
-│   ├── Presentation/                    # プレゼンテーション層
-│   │   ├── ViewModels/                  # ViewModel
-│   │   │   ├── Base/                    # 基底ViewModel
-│   │   │   ├── HomeViewModel.swift
-│   │   │   ├── RecordViewModel.swift
-│   │   │   ├── ChildManagementViewModel.swift
-│   │   │   ├── TaskManagementViewModel.swift
-│   │   │   ├── HelpHistoryViewModel.swift
-│   │   │   ├── MonthlyHistoryViewModel.swift
-│   │   │   └── HelpRecordEditViewModel.swift
-│   │   ├── Views/                       # SwiftUIビュー
-│   │   │   ├── HomeView.swift
-│   │   │   ├── RecordView.swift
-│   │   │   ├── ChildManagementView.swift
-│   │   │   ├── TaskManagementView.swift
-│   │   │   ├── HelpHistoryView.swift
-│   │   │   ├── MonthlyHistoryView.swift
-│   │   │   └── HelpRecordEditView.swift
-│   │   └── Components/                  # 再利用コンポーネント
-│   │       ├── ChildCard.swift
-│   │       ├── TaskRow.swift
-│   │       └── CoinAnimation.swift
-│   │
-│   ├── Resources/                       # リソース
-│   │   └── Sounds/                      # 効果音ファイル
-│   │       ├── coin.mp3
-│   │       └── success.mp3
-│   │
-│   ├── Utils/                           # 共通ユーティリティ
-│   │   ├── ErrorMessageConverter.swift
-│   │   └── DateExtensions.swift
-│   │
-│   ├── Assets.xcassets/                 # アセット
-│   │   ├── AppIcon.appiconset/
-│   │   └── AccentColor.colorset/
-│   │
-│   └── OtetsudaiCoin.xcdatamodeld/      # Core Dataモデル
-│       └── OtetsudaiCoin.xcdatamodel
-│
-├── OtetsudaiCoinTests/                  # 単体テスト
-│   ├── Data/                            # データ層テスト
-│   ├── Domain/                          # ドメイン層テスト
-│   │   └── Services/
-│   ├── Presentation/                    # プレゼンテーション層テスト
-│   │   ├── ViewModels/
-│   │   ├── Components/
-│   │   └── Views/
-│   └── Helpers/                         # テストヘルパー
-│
-└── OtetsudaiCoinUITests/                # UIテスト
+├── OtetsudaiCoin.xcodeproj/
+├── OtetsudaiCoin/                   # メインアプリ（単一モジュール）
+│   ├── Data/Repositories/           # Core Data によるリポジトリ実装 (CoreData[Entity]Repository)
+│   ├── Domain/
+│   │   ├── Entities/                # ドメインモデル
+│   │   ├── Repositories/            # リポジトリのプロトコル ([Entity]Repository)
+│   │   └── Services/                # ビジネスロジック
+│   ├── Presentation/
+│   │   ├── Components/              # 画面をまたぐ部品
+│   │   ├── ViewModels/ (Base/)      # @Observable ViewModel と基底クラス
+│   │   └── Views/ (Components/, Tutorial/)
+│   ├── Resources/Sounds/            # 効果音
+│   ├── Utils/                       # レイヤー横断のユーティリティ・デザイントークン
+│   ├── en.lproj/, ja.lproj/
+│   └── OtetsudaiCoin.xcdatamodeld/  # Core Data モデル（バージョン付き）
+├── OtetsudaiCoinTests/              # 単体テスト: Data/ Domain/ (Services/) Helpers/ Localization/ Presentation/ (Components/ ViewModels/ Views/) Utils/
+└── OtetsudaiCoinUITests/            # UI テスト・スクショ撮影 (ASCScreenshotUITests / VerificationScreenshotUITests)
 ```
+
+ファイル単位の一覧は載せない（コードの変更ですぐ古くなるため）。実際のファイルは `find app/OtetsudaiCoin -name '*.swift'` で確認する。
 
 ## scripts/ ディレクトリ構造
 
-```
+```text
 scripts/
-├── prepare-simulator.sh            # シミュレータ事前起動
-└── benchmark-tests.sh              # パフォーマンスベンチマーク
+├── lib/common.sh                         # 共通関数 (resolve_jq / resolve_udid ほか)
+├── capture-asc-screenshots.sh            # ASC 提出用スクショ撮影
+├── capture-verification-screenshots.sh   # 検証用スクショ撮影（外観・文字サイズ切替）
+├── compare-screenshots.sh                # 検証スクショの before/after 比較
+├── release-status.sh                     # 公開中 version と未出荷件数
+├── version-bump-check.sh                 # リリース PR の version bump 検査 (CI)
+├── prepare-simulator.sh                  # シミュレータ事前起動
+└── benchmark-tests.sh                    # テスト実行時間の計測
 ```
 
 ## レイヤー別の責務
@@ -156,10 +97,11 @@ scripts/
 ```
 
 ### Repositories
-```
-CoreData[Entity]Repository.swift    # Core Data実装
-InMemory[Entity]Repository.swift    # テスト用実装
-例: CoreDataChildRepository.swift, InMemoryAllowancePaymentRepository.swift
+```text
+[Entity]Repository.swift            # Domain/Repositories/ のプロトコル
+CoreData[Entity]Repository.swift    # Data/Repositories/ の Core Data 実装
+Mock[Entity]Repository              # テスト用のモック（OtetsudaiCoinTests/Helpers/TestMocks.swift）
+例: ChildRepository.swift, CoreDataChildRepository.swift, MockChildRepository
 ```
 
 ### Views
@@ -169,9 +111,9 @@ InMemory[Entity]Repository.swift    # テスト用実装
 ```
 
 ### Components
-```
-[Component]Component.swift または [Component].swift
-例: ChildCard.swift, TaskRow.swift
+```text
+[Component]View.swift または [Component].swift
+例: TaskCardView.swift, CoinAnimationView.swift, StatisticsCard.swift
 ```
 
 ### Tests
@@ -188,8 +130,8 @@ InMemory[Entity]Repository.swift    # テスト用実装
 **例**: お小遣い管理機能
 - `Domain/Services/AllowanceCalculator.swift`
 - `Domain/Entities/AllowancePayment.swift`
-- `Presentation/ViewModels/MonthlyHistoryViewModel.swift`
-- `Presentation/Views/MonthlyHistoryView.swift`
+- `Presentation/ViewModels/MonthlySummaryViewModel.swift`
+- `Presentation/Views/MonthlySummaryView.swift`
 
 ### レイヤー分離の厳守
 レイヤー間の境界を越えない配置を徹底します。
@@ -211,14 +153,16 @@ Data/Repositories/CoreDataChildRepository.swift
 テストは本体と同じ階層構造を維持します。
 
 **本体**:
-```
-app/OtetsudaiCoin/Domain/Services/AllowanceCalculator.swift
+```text
+app/OtetsudaiCoin/Domain/Services/MonthlyResetService.swift
 ```
 
 **テスト**:
+```text
+app/OtetsudaiCoinTests/Domain/Services/MonthlyResetServiceTests.swift
 ```
-app/OtetsudaiCoinTests/Domain/Services/AllowanceCalculatorTests.swift
-```
+
+（例外もある: `AllowanceCalculatorTests.swift` は `OtetsudaiCoinTests/Domain/` 直下にある。テストを探すときは `find app -name '<対象>Tests.swift'` で全階層を探す）
 
 ## Import組織
 
@@ -229,40 +173,19 @@ Presentation → Domain ← Data
    Utils      Resources
 ```
 
-### Import例
+### Import
+アプリは単一モジュールなので、層ごとの `import Domain` のような import は無い（書くとビルドが通らない）。層の境界は import では強制されないため、ディレクトリ配置と命名で守る。
 
-**Presentation層のファイル**:
 ```swift
-import Foundation
-import SwiftUI
-import Domain  // ドメイン層のみインポート可能
-```
-
-**Data層のファイル**:
-```swift
-import Foundation
-import CoreData
-import Domain  // ドメイン層のみインポート可能
-```
-
-**Domain層のファイル**:
-```swift
-import Foundation
-// 他層への依存なし
-```
-
-### Import順序規約
-```swift
-// 1. Foundation/UIKit
+// 1. Apple のフレームワーク
 import Foundation
 import SwiftUI
 
-// 2. 外部ライブラリ
-import ViewInspector
+// 2. 外部ライブラリ（GoogleMobileAds、テストでは ViewInspector）
+import GoogleMobileAds
 
-// 3. プロジェクト内モジュール（階層順）
-import Domain
-import Presentation
+// テストターゲットではアプリ本体を @testable で読む
+@testable import OtetsudaiCoin
 ```
 
 ## ファイル配置ルール
@@ -305,7 +228,7 @@ OtetsudaiCoinTests/Helpers/に配置します。
 ### Repository パターン原則
 - **抽象化**: データソースの実装詳細を隠蔽
 - **テスタビリティ**: モック実装による単体テスト
-- **切り替え可能**: Core Data ⇔ InMemory の容易な切り替え
+- **差し替え可能**: テストでは Mock[Entity]Repository に差し替える
 
 ## 特殊なディレクトリ
 
@@ -317,7 +240,7 @@ OtetsudaiCoinTests/Helpers/に配置します。
 ### Utils/ ディレクトリ
 レイヤー横断的なユーティリティを配置します。
 
-**例**: `ErrorMessageConverter.swift`, `DateExtensions.swift`
+**例**: `ErrorMessageConverter.swift`, `TimeStringFormatter.swift`
 
 ### Helpers/ ディレクトリ（テスト専用）
 テストヘルパー、モック、ファクトリーを配置します。

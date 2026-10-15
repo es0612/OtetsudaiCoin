@@ -193,7 +193,7 @@
 ### 新しい機能群
 - **お小遣い管理システム**: AllowanceCalculator + AllowancePayment
 - **記録編集機能**: HelpRecordEditViewModel + HelpRecordEditView
-- **月別履歴管理**: MonthlyHistoryViewModel + MonthlyHistoryView
+- **月のまとめ**: MonthlySummaryViewModel + MonthlySummaryView
 - **チュートリアルシステム**: TutorialService + 段階的ガイダンス
 - **サンプルデータ生成**: SampleDataService（開発・テスト用）
 

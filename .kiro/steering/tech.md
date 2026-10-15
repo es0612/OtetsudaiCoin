@@ -54,7 +54,7 @@ Data (Repository実装 + Core Data)
 - **CoreDataChildRepository**: 子供データ管理
 - **CoreDataHelpRecordRepository**: お手伝い記録管理
 - **CoreDataHelpTaskRepository**: タスクデータ管理
-- **InMemoryAllowancePaymentRepository**: お小遣い支払い記録（メモリ内）
+- **CoreDataAllowancePaymentRepository**: お小遣い支払い記録（#142 で InMemory から移行）
 
 ## ビジネスロジック層
 
@@ -86,19 +86,28 @@ Data (Repository実装 + Core Data)
 
 ## 開発コマンド
 
+### simulator の指定
+機種名は Xcode の更新で無くなることがあり（以前の `iPhone 16` は今は 0 台）、同じ名前の端末が複数あると `name=` 指定ではどれが選ばれるか決まらない。使う前に `xcrun simctl list devices available | grep iPhone` で実在を確かめ、UDID で指定する。
+
+```bash
+UDID=$(xcrun simctl list devices available | grep -m1 'iPhone 17 Pro Max (' | grep -oE '[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}')
+```
+
+repo の script は `scripts/lib/common.sh` の `resolve_udid` で同じことをしている（起動済みの端末を優先）。
+
 ### テスト実行
 ```bash
-# 全テスト実行
+# 全テスト実行（結果は判定行を grep する。詳細は CLAUDE.md「iOS テスト flake 切り分け」）
 xcodebuild test \
   -project app/OtetsudaiCoin.xcodeproj \
   -scheme OtetsudaiCoin \
-  -destination 'platform=iOS Simulator,name=iPhone 16'
+  -destination "id=$UDID"
 
 # 特定のテスト実行
 xcodebuild test \
   -project app/OtetsudaiCoin.xcodeproj \
   -scheme OtetsudaiCoin \
-  -destination 'platform=iOS Simulator,name=iPhone 16' \
+  -destination "id=$UDID" \
   -only-testing:OtetsudaiCoinTests/AllowanceCalculatorTests
 ```
 
@@ -108,28 +117,26 @@ xcodebuild test \
 xcodebuild build \
   -project app/OtetsudaiCoin.xcodeproj \
   -scheme OtetsudaiCoin \
-  -destination 'platform=iOS Simulator,name=iPhone 16'
+  -destination "id=$UDID"
 
 # クリーンビルド
 xcodebuild clean build \
   -project app/OtetsudaiCoin.xcodeproj \
   -scheme OtetsudaiCoin \
-  -destination 'platform=iOS Simulator,name=iPhone 16'
+  -destination "id=$UDID"
 ```
 
 ### シミュレータ管理
 ```bash
-# シミュレータ事前起動（テスト高速化）
-./scripts/prepare-simulator.sh -s "iPhone 16"
+# シミュレータ事前起動（テスト高速化。既定は iPhone 17、同名が複数あれば起動済みを優先）
+./scripts/prepare-simulator.sh -s "iPhone 17 Pro Max"
 
 # シミュレータ一覧
 xcrun simctl list devices available
 
-# シミュレータ起動
-xcrun simctl boot "iPhone 16"
-
-# シミュレータシャットダウン
-xcrun simctl shutdown all
+# シミュレータ起動 / シャットダウン（UDID で指定する。`shutdown all` は並行セッションの端末まで落とすので使わない）
+xcrun simctl boot "$UDID"
+xcrun simctl shutdown "$UDID"
 ```
 
 ### パフォーマンステスト

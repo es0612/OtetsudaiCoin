@@ -1,51 +1,19 @@
-# Claude Code Spec-Driven Development
+# OtetsudaiCoin 開発ガイド
 
-Kiro-style Spec Driven Development implementation using claude code slash commands, hooks and agents.
-
-## Project Context
-
-### Paths
-- Steering: `.kiro/steering/`
-- Specs: `.kiro/specs/`
-- Commands: `.claude/commands/`
-
-### Steering vs Specification
-
-**Steering** (`.kiro/steering/`) - Guide AI with project-wide rules and context
-**Specs** (`.kiro/specs/`) - Formalize development process for individual features
-
-### Active Specifications
-- Check `.kiro/specs/` for active specifications
-- Use `/kiro:spec-status [feature-name]` to check progress
+## 開発の流れ
+- 実際の運用は superpowers の skill の流れ: `daily-issue-triage`（セッションの入口で issue を整理）→ `superpowers:brainstorming`（設計を決める）→ `superpowers:writing-plans` → `superpowers:subagent-driven-development` か `superpowers:executing-plans` → `superpowers:finishing-a-development-branch`。レビューの段階は下の「Subagent / Task 実行ルール」に従う
+- XS / S の修正（1 ファイルのバグ・docs）は plan を省いて直接直してよい
+- `.kiro/specs/` と `/kiro:spec-*` / `/kiro:steering` は使わない（2025-10 の導入以降 spec は 0 件。`/kiro:steering` はこの CLAUDE.md の節を書き換えてしまう。コマンドの整理は #233）
 
 ## Development Guidelines
 - Think in English, but generate responses in Japanese (思考は英語、回答の生成は日本語で行うように)
 
-## Workflow
-
-### Phase 0: Steering (Optional)
-`/kiro:steering` - Create/update steering documents
-`/kiro:steering-custom` - Create custom steering for specialized contexts
-
-Note: Optional for new features or small additions. You can proceed directly to spec-init.
-
-### Phase 1: Specification Creation
-1. `/kiro:spec-init [detailed description]` - Initialize spec with detailed project description
-2. `/kiro:spec-requirements [feature]` - Generate requirements document
-3. `/kiro:spec-design [feature]` - Interactive: "Have you reviewed requirements.md? [y/N]"
-4. `/kiro:spec-tasks [feature]` - Interactive: Confirms both requirements and design review
-
-### Phase 2: Progress Tracking
-`/kiro:spec-status [feature]` - Check current progress and phases
-
-## Development Rules
-1. **Consider steering**: Run `/kiro:steering` before major development (optional for new features)
-2. **Follow 3-phase approval workflow**: Requirements → Design → Tasks → Implementation
-3. **Approval required**: Each phase requires human review (interactive prompt or manual)
-4. **No skipping phases**: Design requires approved requirements; Tasks require approved design
-5. **Update task status**: Mark tasks as completed when working on them
-6. **Keep steering current**: Run `/kiro:steering` after significant changes
-7. **Check spec compliance**: Use `/kiro:spec-status` to verify alignment
+## Steering（`.kiro/steering/`）
+自動では読み込まれない。必要な作業のときに Read する:
+- `product.md`: プロダクトの目的・機能・対象ユーザー
+- `tech.md`: 技術スタックと xcodebuild / simulator のコマンド例
+- `structure.md`: ディレクトリ構成・レイヤーの責務・命名規則
+- `issue-triage-rules.md`: `daily-issue-triage` の実行時に最初に読む（優先度の語彙・リリース規約）
 
 ## Git / PR 運用ルール
 - **feature branch に追加 commit する前**に、対応する PR が merge 済みでないかを `gh pr view <PR> --json mergedAt,state` で確認する。merge 後にローカル branch へ commit すると main に届かず、follow-up PR が必要になる。
@@ -190,27 +158,3 @@ Note: Optional for new features or small additions. You can proceed directly to 
 - このため write 操作が **0 件しか成功しなかった場合に notify を呼ぶと、直前に `setError(...)` でセットした errorMessage が消えてしまう**。write が 1 件以上成功したときだけ notify する設計にする (`if !successIds.isEmpty { notify() }`)。
 - `successMessage` は `setLoading(true)` で消えないので、success のみ気にする既存パターン (`recordHelp` 等) では問題化しなかった。一括 / batch 系の新規実装で踏みやすい罠。
 - **reload trigger は data-lifecycle の入り口に集約する**: read-only な derived state (counts, summaries 等) を新規追加する場合、reload trigger は `loadData` 末尾 / `selectXxx` 末尾 / 依存値の `onChange` / 既存 `notifyXxxUpdated` observer 経路 にだけ置く。`recordXxx` / `recordBulkXxx` などの write 操作内で直接 reload を呼ばない。reload を 1 経路に統一することで、上記の `setLoading(true)` による errorMessage クリアの罠を踏まず、同一データの重複 fetch も避けられる (#73 で確立)。
-
-## Steering Configuration
-
-### Current Steering Files
-Managed by `/kiro:steering` command. Updates here reflect command changes.
-
-### Active Steering Files
-- `product.md`: Always included - Product context and business objectives
-- `tech.md`: Always included - Technology stack and architectural decisions
-- `structure.md`: Always included - File organization and code patterns
-
-### Custom Steering Files
-<!-- Added by /kiro:steering-custom command -->
-<!-- Format:
-- `filename.md`: Mode - Pattern(s) - Description
-  Mode: Always|Conditional|Manual
-  Pattern: File patterns for Conditional mode
--->
-
-### Inclusion Modes
-- **Always**: Loaded in every interaction (default)
-- **Conditional**: Loaded for specific file patterns (e.g., "*.test.js")
-- **Manual**: Reference with `@filename.md` syntax
-
