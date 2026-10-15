@@ -15,8 +15,8 @@
 //  各テストメソッドは 1 cold launch。XCTest はアルファベット順に実行するため
 //  testCaptureTutorial / testCaptureTutorialSteps (非 --uitesting 起動) が最後に走る
 //  (script 側で -parallel-testing-enabled NO を付け、clone simulator への分散を防ぐ)。
-//  testCaptureTutorial は記録チュートリアルへ直接起動するため、データが読み込まれず
-//  子どもが空の状態を撮る。各ステップは testCaptureTutorialSteps が本番と同じ流れで撮る (#246)。
+//  記録チュートリアルは testCaptureTutorialSteps が本番と同じ流れ (子どもチュートリアルを
+//  完了して入る) で撮る (#246)。直接起動で撮っていた verify-13 は #252 で廃止 (13 は欠番)。
 //
 
 import XCTest
@@ -51,11 +51,11 @@ final class VerificationScreenshotUITests: XCTestCase {
     /// 非 --uitesting 起動で Splash → Tutorial を表示させる。
     /// `-key value` 形式の launch args は UserDefaults.standard を per-launch で上書きする
     /// (simulator の erase 不要)。CLAUDE.md「Tutorial / sheet など初回状態でしか出ない UI の視覚検証」参照。
-    private func launchTutorialApp(childCompleted: Bool) -> XCUIApplication {
+    private func launchTutorialApp() -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments += [
             "-hasLaunchedBefore", "NO",
-            "-hasCompletedChildTutorial", childCompleted ? "YES" : "NO",
+            "-hasCompletedChildTutorial", "NO",
             "-hasCompletedRecordTutorial", "NO",
             "-AppleLanguages", "(ja)",
             "-AppleLocale", "ja_JP"
@@ -209,24 +209,20 @@ final class VerificationScreenshotUITests: XCTestCase {
         attach(name: "verify-11-notification-settings")
     }
 
-    /// 00-splash / 12-tutorial-child / 13-tutorial-record
+    /// 00-splash / 12-tutorial-child
+    ///
+    /// 13 は欠番 (#252)。以前は「子ども完了済み・未起動」の launch args で記録チュートリアルへ
+    /// 直接起動して撮っていたが、本番ではこの組み合わせにならない (`hasLaunchedBefore` は
+    /// TutorialService の init で書かれ、2 回目以降の起動では `showTutorial = !hasCompletedChildTutorial`
+    /// なので記録チュートリアル自体が出ない)。同じ画面は verify-16 が本番と同じ流れで撮る。
     func testCaptureTutorial() throws {
-        // Child tutorial 経路: 起動直後は SplashScreenView (2.5 秒) が出ているので先に撮る (best-effort)
-        let childApp = launchTutorialApp(childCompleted: false)
+        // 起動直後は SplashScreenView (2.5 秒) が出ているので先に撮る (best-effort)
+        let app = launchTutorialApp()
         attach(name: "verify-00-splash")
-        let nextButton = childApp.buttons["次へ"]
+        let nextButton = app.buttons["次へ"]
         XCTAssertTrue(nextButton.waitForExistence(timeout: 20), "child tutorial did not appear")
         sleep(1)
         attach(name: "verify-12-tutorial-child")
-        childApp.terminate()
-
-        // Record tutorial 経路: child 完了済み扱いで起動すると shouldShowRecordTutorial が true になる
-        // (TutorialService.swift:84-86)
-        let recordApp = launchTutorialApp(childCompleted: true)
-        let recordNext = recordApp.buttons["次へ"]
-        XCTAssertTrue(recordNext.waitForExistence(timeout: 20), "record tutorial did not appear")
-        sleep(1)
-        attach(name: "verify-13-tutorial-record")
     }
 
     /// 14〜19: チュートリアルの各ステップ (Issue #246)。文字サイズを AX にして撮ると、
@@ -237,8 +233,8 @@ final class VerificationScreenshotUITests: XCTestCase {
     ///
     /// 記録チュートリアルには、子どもチュートリアルを「完了」して入る (本番と同じ流れ)。
     /// 記録チュートリアルのデータ読み込みは、表示が false → true に切り替わったときだけ
-    /// 走るため (TutorialContainerView)、記録チュートリアルから直接起動すると子どもが空になる
-    /// (上の verify-13 はこの空の状態を撮っている)。
+    /// 走る (TutorialContainerView)。launch args で記録チュートリアルへ直接起動すると子どもが
+    /// 空になるが、本番ではその状態にならない (#252)。
     func testCaptureTutorialSteps() throws {
         let app = launchTutorialAppWithChildren()
         XCTAssertTrue(app.buttons["次へ"].waitForExistence(timeout: 20), "child tutorial did not appear")
