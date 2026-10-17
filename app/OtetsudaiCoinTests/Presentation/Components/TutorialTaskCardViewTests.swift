@@ -78,6 +78,22 @@ final class TutorialTaskCardViewTests: XCTestCase {
         XCTAssertEqual(TutorialTaskCardView.cardMaxWidth(isAccessibilitySize: true), .infinity)
     }
 
+    func testRecordActionStaysAfterTheListAtDefaultSizes() {
+        XCTAssertFalse(TutorialTaskCardView.placesRecordActionBelowSelectedCard(isAccessibilitySize: false))
+    }
+
+    func testRecordActionFollowsTheSelectedCardAtAccessibilitySizes() {
+        XCTAssertTrue(TutorialTaskCardView.placesRecordActionBelowSelectedCard(isAccessibilitySize: true))
+    }
+
+    func testUnselectedCardUsesFixedSpacerAtDefaultSizes() {
+        XCTAssertFalse(TutorialTaskCardView.reservesCheckmarkSpace(isAccessibilitySize: false))
+    }
+
+    func testUnselectedCardReservesCheckmarkSpaceAtAccessibilitySizes() {
+        XCTAssertTrue(TutorialTaskCardView.reservesCheckmarkSpace(isAccessibilitySize: true))
+    }
+
     func testListScrollsInsideItsOwnWindowAtDefaultSizes() {
         XCTAssertTrue(TutorialTaskCardView.usesNestedScroll(isAccessibilitySize: false))
     }

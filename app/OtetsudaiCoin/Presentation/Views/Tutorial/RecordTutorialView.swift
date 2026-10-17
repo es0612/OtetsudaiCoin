@@ -261,9 +261,57 @@ struct RecordTutorialView: View {
                         recordViewModel.selectTask(task)
                     }
                 )
+                // 1 列の LazyVGrid なので、帯はカードの次の行に入る
+                if showsRecordActionBelow(task) {
+                    recordActionPanel
+                }
             }
         }
         .padding(.horizontal)
+    }
+
+    private func showsRecordActionBelow(_ task: HelpTask) -> Bool {
+        TutorialTaskCardView.placesRecordActionBelowSelectedCard(
+            isAccessibilitySize: dynamicTypeSize.isAccessibilitySize
+        ) && hasSelectedChild && recordViewModel.selectedTask?.id == task.id
+    }
+
+    private var recordActionPanel: some View {
+        VStack(spacing: 12) {
+            HStack {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundColor(.green)
+                Text("記録準備完了！")
+                    .foregroundColor(.green)
+                    .fontWeight(.semibold)
+            }
+
+            Button(action: {
+                recordViewModel.recordHelp()
+            }) {
+                HStack {
+                    Image(systemName: "plus.circle.fill")
+                    Text("記録する")
+                }
+            }
+            .successButton()
+            .disabled(hasRecorded)
+
+            if hasRecorded {
+                HStack {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.green)
+                    Text("記録完了！アニメーションを確認してください")
+                        .foregroundColor(.green)
+                        .fontWeight(.semibold)
+                }
+            }
+        }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: AppRadius.medium)
+                .fill(Color.green.opacity(0.1))
+        )
     }
 
     private var selectTaskStep: some View {
@@ -300,42 +348,11 @@ struct RecordTutorialView: View {
                     }
                 }
                 
-                if hasSelectedTask && hasSelectedChild {
-                    VStack(spacing: 12) {
-                        HStack {
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundColor(.green)
-                            Text("記録準備完了！")
-                                .foregroundColor(.green)
-                                .fontWeight(.semibold)
-                        }
-                        
-                        Button(action: {
-                            recordViewModel.recordHelp()
-                        }) {
-                            HStack {
-                                Image(systemName: "plus.circle.fill")
-                                Text("記録する")
-                            }
-                        }
-                        .successButton()
-                        .disabled(hasRecorded)
-                        
-                        if hasRecorded {
-                            HStack {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundColor(.green)
-                                Text("記録完了！アニメーションを確認してください")
-                                    .foregroundColor(.green)
-                                    .fontWeight(.semibold)
-                            }
-                        }
-                    }
-                    .padding()
-                    .background(
-                        RoundedRectangle(cornerRadius: AppRadius.medium)
-                            .fill(Color.green.opacity(0.1))
-                    )
+                if hasSelectedTask && hasSelectedChild
+                    && !TutorialTaskCardView.placesRecordActionBelowSelectedCard(
+                        isAccessibilitySize: dynamicTypeSize.isAccessibilitySize
+                    ) {
+                    recordActionPanel
                 }
             }
             .padding()
@@ -473,6 +490,18 @@ struct TutorialTaskCardView: View {
         !isAccessibilitySize
     }
 
+    // 入れ子スクロールをやめると「記録する」が 10 枚のカードの下へ押し出され、選んだ直後に
+    // 見えなくなった (#253 の最終レビュー)。AX サイズでは選んだカードのすぐ下に出す。
+    static func placesRecordActionBelowSelectedCard(isAccessibilitySize: Bool) -> Bool {
+        isAccessibilitySize
+    }
+
+    // 高さが中身に合わせて変わる AX サイズでは、選ぶたびにチェックの分だけカードが伸びて
+    // 下のカードがずれる。未選択でも透明なチェックで高さを取っておく。
+    static func reservesCheckmarkSpace(isAccessibilitySize: Bool) -> Bool {
+        isAccessibilitySize
+    }
+
     var body: some View {
         Button(action: onTap) {
             VStack(spacing: 12) {
@@ -490,6 +519,11 @@ struct TutorialTaskCardView: View {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.title3)
                         .foregroundColor(AccessibilityColors.brandPrimary)
+                        .accessibilityHidden(true)
+                } else if Self.reservesCheckmarkSpace(isAccessibilitySize: dynamicTypeSize.isAccessibilitySize) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.title3)
+                        .hidden()
                         .accessibilityHidden(true)
                 } else {
                     Spacer()
