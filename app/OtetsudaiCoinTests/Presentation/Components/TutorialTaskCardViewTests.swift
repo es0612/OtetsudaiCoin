@@ -70,6 +70,14 @@ final class TutorialTaskCardViewTests: XCTestCase {
         XCTAssertNil(TutorialTaskCardView.nameLineLimit(isAccessibilitySize: true))
     }
 
+    func testCardWidthFollowsContentAtDefaultSizes() {
+        XCTAssertNil(TutorialTaskCardView.cardMaxWidth(isAccessibilitySize: false))
+    }
+
+    func testCardFillsTheColumnAtAccessibilitySizes() {
+        XCTAssertEqual(TutorialTaskCardView.cardMaxWidth(isAccessibilitySize: true), .infinity)
+    }
+
     func testListScrollsInsideItsOwnWindowAtDefaultSizes() {
         XCTAssertTrue(TutorialTaskCardView.usesNestedScroll(isAccessibilitySize: false))
     }

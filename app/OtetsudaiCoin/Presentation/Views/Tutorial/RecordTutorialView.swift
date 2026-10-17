@@ -462,6 +462,11 @@ struct TutorialTaskCardView: View {
         isAccessibilitySize ? nil : 2
     }
 
+    // 1 列にするとカードの幅が名前の長さでばらばらになるため、AX サイズでは列いっぱいにそろえる。
+    static func cardMaxWidth(isAccessibilitySize: Bool) -> CGFloat? {
+        isAccessibilitySize ? .infinity : nil
+    }
+
     // AX 最大では一覧の窓 (理想の高さ 130) にカードが 1 枚も丸ごと入らなかった (#253 で撮影)。
     // AX サイズでは一覧を入れ子にせず全件を並べ、収まらない分は TutorialStepContainer の縦スクロールに任せる。
     static func usesNestedScroll(isAccessibilitySize: Bool) -> Bool {
@@ -492,6 +497,9 @@ struct TutorialTaskCardView: View {
                 }
             }
             .padding()
+            .frame(
+                maxWidth: Self.cardMaxWidth(isAccessibilitySize: dynamicTypeSize.isAccessibilitySize)
+            )
             .frame(height: Self.cardHeight(isAccessibilitySize: dynamicTypeSize.isAccessibilitySize))
             .background(
                 RoundedRectangle(cornerRadius: AppRadius.large)
