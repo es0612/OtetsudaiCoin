@@ -68,12 +68,33 @@ final class VerificationScreenshotUITests: XCTestCase {
     /// button label に畳み込まれて exact match を外すことがあるため CONTAINS で探す。
     /// 見つからない場合は全 button label を XCTFail メッセージに載せて 1 回の red で原因を掴む
     /// (CLAUDE.md PR #183 の診断パターン)。
+    /// AX サイズでは List が画面外の行を作らないので、見つかるまでスクロールする (#261)。
     private func buttonContaining(_ text: String, in app: XCUIApplication, timeout: TimeInterval = 5) -> XCUIElement {
-        let element = app.buttons.containing(NSPredicate(format: "label CONTAINS %@", text)).firstMatch
-        if !element.waitForExistence(timeout: timeout) {
-            let labels = app.buttons.allElementsBoundByIndex.map(\.label)
-            XCTFail("button containing '\(text)' not found. buttons=\(labels)")
+        let query = app.buttons.containing(NSPredicate(format: "label CONTAINS %@", text))
+        _ = query.firstMatch.waitForExistence(timeout: timeout)
+        return revealButton(query, named: text, in: app)
+    }
+
+    /// `query.firstMatch` が押せる状態 (exists && isHittable) になるまでスワイプして返す。
+    /// List は画面外の行を accessibility tree に出さないため、waitForExistence だけでは見つからない (#261)。
+    /// 行き過ぎると上の行が消えるので、最初と各スワイプの後に毎回確認する。
+    private func revealButton(
+        _ query: XCUIElementQuery,
+        named name: String,
+        in app: XCUIApplication,
+        scrollingDown: Bool = true,
+        maxSwipes: Int = 4
+    ) -> XCUIElement {
+        let element = query.firstMatch
+        for attempt in 0...maxSwipes {
+            if element.exists && element.isHittable { return element }
+            if attempt < maxSwipes {
+                if scrollingDown { app.swipeUp() } else { app.swipeDown() }
+                sleep(1)
+            }
         }
+        let labels = app.buttons.allElementsBoundByIndex.map(\.label)
+        XCTFail("button '\(name)' not found after \(maxSwipes) swipes. buttons=\(labels)")
         return element
     }
 
@@ -188,8 +209,13 @@ final class VerificationScreenshotUITests: XCTestCase {
         closeButton.tap()
         sleep(1)
 
-        let addChild = app.buttons["add_child_button"]
-        XCTAssertTrue(addChild.waitForExistence(timeout: 5), "add child button missing")
+        // AX サイズでは「お手伝いリストを編集」を探して下へスクロールしているので、上へ戻して探す
+        let addChild = revealButton(
+            app.buttons.matching(identifier: "add_child_button"),
+            named: "add_child_button",
+            in: app,
+            scrollingDown: false
+        )
         addChild.tap()
         let cancelButton = app.buttons["cancel_button"]
         XCTAssertTrue(cancelButton.waitForExistence(timeout: 5), "child form sheet did not open")
