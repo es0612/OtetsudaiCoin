@@ -6,6 +6,7 @@ struct RecordTutorialView: View {
     @State private var currentStep = 0
     @State private var selectedTabForDemo = 1 // 記録タブ
     @State private var showCoinAnimation = false
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     
     let totalSteps = 4
     
@@ -248,6 +249,23 @@ struct RecordTutorialView: View {
         .padding()
     }
     
+    private var taskGrid: some View {
+        LazyVGrid(columns: TutorialTaskCardView.gridColumns(
+            isAccessibilitySize: dynamicTypeSize.isAccessibilitySize
+        ), spacing: 12) {
+            ForEach(recordViewModel.availableTasks, id: \.id) { task in
+                TutorialTaskCardView(
+                    task: task,
+                    isSelected: recordViewModel.selectedTask?.id == task.id,
+                    onTap: {
+                        recordViewModel.selectTask(task)
+                    }
+                )
+            }
+        }
+        .padding(.horizontal)
+    }
+
     private var selectTaskStep: some View {
         VStack(spacing: 24) {
             Image(systemName: "checklist")
@@ -268,28 +286,18 @@ struct RecordTutorialView: View {
                     .font(.headline)
                 
                 if !recordViewModel.availableTasks.isEmpty {
-                    ScrollView {
-                        LazyVGrid(columns: [
-                            GridItem(.flexible()),
-                            GridItem(.flexible())
-                        ], spacing: 12) {
-                            ForEach(recordViewModel.availableTasks, id: \.id) { task in
-                                TutorialTaskCardView(
-                                    task: task,
-                                    isSelected: recordViewModel.selectedTask?.id == task.id,
-                                    onTap: {
-                                        recordViewModel.selectTask(task)
-                                    }
-                                )
-                            }
+                    if TutorialTaskCardView.usesNestedScroll(isAccessibilitySize: dynamicTypeSize.isAccessibilitySize) {
+                        ScrollView {
+                            taskGrid
                         }
-                        .padding(.horizontal)
+                        // idealHeight: TutorialStepContainer の ViewThatFits は理想の高さで「収まるか」を判定する。
+                        // maxHeight だけだと 300 で見積もられ、既定サイズでも「記録準備完了」が出た時点で
+                        // スクロール表示に切り替わる。理想の高さを約 1 行分 (130) と小さく申告し、既定サイズでは
+                        // 今までどおり縮めて収める。200 では iPhone 17 (6.3 インチ) で収まらず切り替わった (#246 で実測)
+                        .frame(idealHeight: 130, maxHeight: 300)
+                    } else {
+                        taskGrid
                     }
-                    // idealHeight: TutorialStepContainer の ViewThatFits は理想の高さで「収まるか」を判定する。
-                    // maxHeight だけだと 300 で見積もられ、既定サイズでも「記録準備完了」が出た時点で
-                    // スクロール表示に切り替わる。理想の高さを約 1 行分 (130) と小さく申告し、既定サイズでは
-                    // 今までどおり縮めて収める。200 では iPhone 17 (6.3 インチ) で収まらず切り替わった (#246 で実測)
-                    .frame(idealHeight: 130, maxHeight: 300)
                 }
                 
                 if hasSelectedTask && hasSelectedChild {
@@ -437,6 +445,28 @@ struct TutorialTaskCardView: View {
     let task: HelpTask
     let isSelected: Bool
     let onTap: () -> Void
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    // AX サイズでは 2 列・高さ 120 固定に名前が収まらず「下の…」と切れ、アイコンとチェックも
+    // カードの外へはみ出していた (#253)。AX サイズのときだけ 1 列にし、カードの高さと名前の行数を
+    // 中身に合わせる。既定サイズは今までどおり (撮影でピクセル一致を確認)。
+    static func gridColumns(isAccessibilitySize: Bool) -> [GridItem] {
+        Array(repeating: GridItem(.flexible()), count: isAccessibilitySize ? 1 : 2)
+    }
+
+    static func cardHeight(isAccessibilitySize: Bool) -> CGFloat? {
+        isAccessibilitySize ? nil : 120
+    }
+
+    static func nameLineLimit(isAccessibilitySize: Bool) -> Int? {
+        isAccessibilitySize ? nil : 2
+    }
+
+    // AX 最大では一覧の窓 (理想の高さ 130) にカードが 1 枚も丸ごと入らなかった (#253 で撮影)。
+    // AX サイズでは一覧を入れ子にせず全件を並べ、収まらない分は TutorialStepContainer の縦スクロールに任せる。
+    static func usesNestedScroll(isAccessibilitySize: Bool) -> Bool {
+        !isAccessibilitySize
+    }
 
     var body: some View {
         Button(action: onTap) {
@@ -449,7 +479,7 @@ struct TutorialTaskCardView: View {
                     .fontWeight(.medium)
                     .multilineTextAlignment(.center)
                     .foregroundColor(.primary)
-                    .lineLimit(2)
+                    .lineLimit(Self.nameLineLimit(isAccessibilitySize: dynamicTypeSize.isAccessibilitySize))
 
                 if isSelected {
                     Image(systemName: "checkmark.circle.fill")
@@ -462,7 +492,7 @@ struct TutorialTaskCardView: View {
                 }
             }
             .padding()
-            .frame(height: 120)
+            .frame(height: Self.cardHeight(isAccessibilitySize: dynamicTypeSize.isAccessibilitySize))
             .background(
                 RoundedRectangle(cornerRadius: AppRadius.large)
                     // #151: このカードはグラデ背景 + .ultraThinMaterial パネル (:345) の上に

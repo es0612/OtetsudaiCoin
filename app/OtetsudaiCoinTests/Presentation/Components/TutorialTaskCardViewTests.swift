@@ -42,4 +42,40 @@ final class TutorialTaskCardViewTests: XCTestCase {
         try assertBrandPrimaryIconAndCardFills(view)
     }
 
+    // MARK: - AX サイズのレイアウト (#253)
+    // dynamicTypeSize は ViewInspector から注入できないため、判定を static helper で検証する
+    // (CLAUDE.md「@Environment(\.isEnabled) など環境値駆動の見た目分岐」)。環境値の配線は撮影で確認する。
+
+    func testGridUsesTwoColumnsAtDefaultSizes() {
+        XCTAssertEqual(TutorialTaskCardView.gridColumns(isAccessibilitySize: false).count, 2)
+    }
+
+    func testGridUsesOneColumnAtAccessibilitySizes() {
+        XCTAssertEqual(TutorialTaskCardView.gridColumns(isAccessibilitySize: true).count, 1)
+    }
+
+    func testCardKeepsFixedHeightAtDefaultSizes() {
+        XCTAssertEqual(TutorialTaskCardView.cardHeight(isAccessibilitySize: false), 120)
+    }
+
+    func testCardSizesToContentAtAccessibilitySizes() {
+        XCTAssertNil(TutorialTaskCardView.cardHeight(isAccessibilitySize: true))
+    }
+
+    func testNameLimitedToTwoLinesAtDefaultSizes() {
+        XCTAssertEqual(TutorialTaskCardView.nameLineLimit(isAccessibilitySize: false), 2)
+    }
+
+    func testNameHasNoLineLimitAtAccessibilitySizes() {
+        XCTAssertNil(TutorialTaskCardView.nameLineLimit(isAccessibilitySize: true))
+    }
+
+    func testListScrollsInsideItsOwnWindowAtDefaultSizes() {
+        XCTAssertTrue(TutorialTaskCardView.usesNestedScroll(isAccessibilitySize: false))
+    }
+
+    func testListLeavesScrollingToTheStepAtAccessibilitySizes() {
+        XCTAssertFalse(TutorialTaskCardView.usesNestedScroll(isAccessibilitySize: true))
+    }
+
 }
