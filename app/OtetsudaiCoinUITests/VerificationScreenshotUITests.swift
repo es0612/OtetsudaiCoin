@@ -515,7 +515,11 @@ final class VerificationScreenshotUITests: XCTestCase {
         // swipe で戻すと、押した時点で帯が見えていて修正なしでも通ってしまった (mutation 検証で確認)。
         // 帯がカードの下に入るのは AX サイズのときだけ (既定サイズは一覧の下の固定位置なので、窓の外へ送れない)。
         // 文字サイズは simulator の設定なので、テストランナー側の設定で判定する
-        guard UIApplication.shared.preferredContentSizeCategory.isAccessibilityCategory else { return }
+        guard UIApplication.shared.preferredContentSizeCategory.isAccessibilityCategory else {
+            // 判定が外れて黙って飛ばしたことに気づけるよう、xcresult に残す
+            XCTContext.runActivity(named: "skip verify-25 (re-tap): not an AX content size") { _ in }
+            return
+        }
         let windowBottom = app.buttons["戻る"].frame.minY - 16
         let shift = windowBottom - recordButton.frame.minY + 40
         let origin = app.coordinate(withNormalizedOffset: .zero)

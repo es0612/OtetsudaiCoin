@@ -107,4 +107,42 @@ final class RecordButtonBarTests: XCTestCase {
     func test_showsSelectionStatus_atAccessibilitySize_isFalse() {
         XCTAssertFalse(RecordButtonBar.showsSelectionStatus(isAccessibilitySize: true))
     }
+
+    /// 既定サイズでは説明文が画面に出ているので、ボタンに VoiceOver のヒントは付けない.
+    func test_recordButtonHint_atDefaultSize_isNil() {
+        let bar = RecordButtonBar(viewModel: viewModel)
+        XCTAssertNil(bar.recordButtonHint(isAccessibilitySize: false))
+    }
+
+    /// AX サイズで何も選んでいないとき、ボタンが押せない理由をヒントで読み上げる.
+    func test_recordButtonHint_atAccessibilitySize_withoutSelection_explainsWhatToSelect() {
+        let bar = RecordButtonBar(viewModel: viewModel)
+        XCTAssertEqual(
+            bar.recordButtonHint(isAccessibilitySize: true),
+            String(localized: "お手伝いする人とタスクを選んでください")
+        )
+    }
+
+    /// AX サイズの単発モードでは、画面から消した「誰の・どのお手伝い・何コイン」をヒントで読み上げる.
+    func test_recordButtonHint_atAccessibilitySize_singleSelection_includesChildAndCoins() {
+        viewModel.selectedChild = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+        viewModel.selectedTask = HelpTask(id: UUID(), name: "お皿洗い", isActive: true, coinRate: 15)
+
+        let hint = RecordButtonBar(viewModel: viewModel).recordButtonHint(isAccessibilitySize: true) ?? ""
+        XCTAssertTrue(hint.contains("太郎") && hint.contains("15"), "hint: \(hint)")
+    }
+
+    /// AX サイズの一括モードでは、画面から消した合計コインをヒントで読み上げる.
+    func test_recordButtonHint_atAccessibilitySize_bulkMode_includesTotalCoins() {
+        let tasks = [
+            HelpTask(id: UUID(), name: "A", isActive: true, coinRate: 15),
+            HelpTask(id: UUID(), name: "B", isActive: true, coinRate: 20)
+        ]
+        viewModel.availableTasks = tasks
+        viewModel.toggleBulkMode()
+        viewModel.selectedTaskIds = Set(tasks.map(\.id))
+
+        let hint = RecordButtonBar(viewModel: viewModel).recordButtonHint(isAccessibilitySize: true) ?? ""
+        XCTAssertTrue(hint.contains("35"), "hint: \(hint)")
+    }
 }
