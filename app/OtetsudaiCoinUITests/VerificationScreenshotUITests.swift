@@ -17,6 +17,8 @@
 //  (script 側で -parallel-testing-enabled NO を付け、clone simulator への分散を防ぐ)。
 //  記録チュートリアルは testCaptureTutorialSteps が本番と同じ流れ (子どもチュートリアルを
 //  完了して入る) で撮る (#246)。直接起動で撮っていた verify-13 は #252 で廃止 (13 は欠番)。
+//  記録タブのタスク一覧・子どもカードのバッジ・一括モードは testCaptureRecordTasks が
+//  verify-20〜22 として撮る (#260)。
 //
 
 import XCTest
@@ -140,6 +142,121 @@ final class VerificationScreenshotUITests: XCTestCase {
         XCTFail("no hittable button containing '\(text)'. candidates=\(query.allElementsBoundByIndex.map { "\($0.label) \($0.frame)" })")
     }
 
+    /// 記録タブのカード (子ども / タスク) を、画面下の記録バーに隠れていない部分を押して選ぶ (#260)。
+    ///
+    /// AX サイズでは記録バーの説明文が 4 行ほどに折り返し、バーが画面の半分近くを占める。
+    /// バーの裏のカードも isHittable は true になるので、そのまま tap() するとバー (最悪は
+    /// record_button) を押してしまう。そこで:
+    /// - 縦の ScrollView の枠 (= ナビゲーションバーの下から記録バーの上まで) を「見える窓」とし、
+    ///   カードを窓の中へ動かしてから押す。カードが窓より大きいときは、窓の中に見えている部分を押す
+    /// - スクロールは慣性のないドラッグ (最後に止める) で行う。swipeUp は 1 回で縦 400pt 級の
+    ///   カードを窓ごと通り過ぎ、LazyVGrid から外れて見つからなくなるため
+    /// - 押す・ドラッグする座標は、どれも record_button の上端より上であることを assert する
+    /// `expectSelected` が true なら、押した後にカードの選択状態 (.isSelected trait) を確かめる
+    /// (説明文の上を押して何も起きなかった場合を見逃さないため)。ChildCardView はこの trait を持たない。
+    private func tapCardAboveRecordBar(
+        containing text: String,
+        in app: XCUIApplication,
+        expectSelected: Bool = true,
+        maxScrolls: Int = 10
+    ) {
+        let recordButton = app.buttons["record_button"]
+        XCTAssertTrue(recordButton.waitForExistence(timeout: 5), "record_button not found")
+        let scroll = app.scrollViews.containing(.switch, identifier: "bulk_mode_toggle").firstMatch
+        XCTAssertTrue(scroll.waitForExistence(timeout: 5), "record tab ScrollView not found")
+        let query = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", text))
+
+        for _ in 0...maxScrolls {
+            let topBound = app.navigationBars.firstMatch.frame.maxY
+            let barTop = scroll.frame.maxY
+            let buttonTop = recordButton.frame.minY
+            XCTAssertTrue(
+                topBound < barTop && barTop <= buttonTop,
+                "unexpected layout. nav.maxY=\(topBound) scroll=\(scroll.frame) record_button=\(recordButton.frame) scrollViews=\(app.scrollViews.allElementsBoundByIndex.map(\.frame))"
+            )
+            let window = barTop - topBound
+
+            // isHittable: 裏の Home タブにある同名ボタン (太郎 など) を除く
+            guard let card = query.allElementsBoundByIndex.first(where: { $0.isHittable && $0.frame.intersects(scroll.frame) }) else {
+                dragContent(up: window * 0.6, in: app, topBound: topBound, barTop: barTop, buttonTop: buttonTop)
+                continue
+            }
+            let frame = card.frame
+            let fits = frame.height <= window - 16
+            let sliceTop = max(frame.minY, topBound)
+            let sliceBottom = min(frame.maxY, barTop)
+            if (fits && frame.minY >= topBound && frame.maxY <= barTop) || (!fits && sliceBottom - sliceTop >= 60) {
+                let tapY = (sliceTop + sliceBottom) / 2
+                XCTAssertLessThan(tapY, buttonTop, "tap point would hit the record bar")
+                card.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: (tapY - frame.minY) / frame.height)).tap()
+                sleep(1)
+                if expectSelected {
+                    XCTAssertTrue(
+                        card.isSelected,
+                        "card '\(text)' was tapped but is not selected. card=\(card.frame) window=\(topBound)..\(barTop)"
+                    )
+                }
+                return
+            }
+            // カードの上端を窓の上端へ寄せる (窓より大きいカードも、上から見えるようにする)
+            let delta = min(max(frame.minY - (topBound + 8), -(window - 20)), window - 20)
+            dragContent(up: delta, in: app, topBound: topBound, barTop: barTop, buttonTop: buttonTop)
+        }
+        XCTFail("card containing '\(text)' not brought above the record bar after \(maxScrolls) scrolls. candidates=\(query.allElementsBoundByIndex.map { "\($0.label) \($0.frame)" }) scroll=\(scroll.frame) record_button=\(recordButton.frame)")
+    }
+
+    /// 記録タブの内容を、見える窓 1 枚分 (重なり 20pt) だけ上へ送る。
+    private func scrollRecordPage(in app: XCUIApplication) {
+        let scroll = app.scrollViews.containing(.switch, identifier: "bulk_mode_toggle").firstMatch
+        let topBound = app.navigationBars.firstMatch.frame.maxY
+        let barTop = scroll.frame.maxY
+        dragContent(
+            up: barTop - topBound - 20,
+            in: app,
+            topBound: topBound,
+            barTop: barTop,
+            buttonTop: app.buttons["record_button"].frame.minY
+        )
+    }
+
+    /// カードの下端が記録バーの上に出るまで内容を上へ送る (下端がすでに窓の中なら何もしない)。
+    private func scrollCardBottomIntoWindow(containing text: String, in app: XCUIApplication) {
+        let scroll = app.scrollViews.containing(.switch, identifier: "bulk_mode_toggle").firstMatch
+        let card = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", text))
+            .allElementsBoundByIndex.first(where: { $0.isHittable && $0.frame.intersects(scroll.frame) })
+        guard let card else {
+            XCTFail("card containing '\(text)' not on screen")
+            return
+        }
+        let topBound = app.navigationBars.firstMatch.frame.maxY
+        let barTop = scroll.frame.maxY
+        let overflow = card.frame.maxY - (barTop - 8)
+        guard overflow > 0 else { return }
+        dragContent(
+            up: min(overflow, barTop - topBound - 20),
+            in: app,
+            topBound: topBound,
+            barTop: barTop,
+            buttonTop: app.buttons["record_button"].frame.minY
+        )
+    }
+
+    /// 内容を `up` pt だけ上へ (負なら下へ) 動かす。押しっぱなしで止めて慣性を消す。
+    /// x = 8 は内容の左余白 (16pt) の中で、カードや Toggle を押さない。
+    private func dragContent(up distance: CGFloat, in app: XCUIApplication, topBound: CGFloat, barTop: CGFloat, buttonTop: CGFloat) {
+        let startY = distance > 0 ? barTop - 10 : topBound + 10
+        let endY = startY - distance
+        XCTAssertLessThan(max(startY, endY), buttonTop, "drag would touch the record bar")
+        let origin = app.coordinate(withNormalizedOffset: .zero)
+        origin.withOffset(CGVector(dx: 8, dy: startY)).press(
+            forDuration: 0.05,
+            thenDragTo: origin.withOffset(CGVector(dx: 8, dy: endY)),
+            withVelocity: .slow,
+            thenHoldForDuration: 0.3
+        )
+        sleep(1)
+    }
+
     private func attach(name: String) {
         let screenshot = XCUIScreen.main.screenshot()
         let attachment = XCTAttachment(screenshot: screenshot)
@@ -233,6 +350,52 @@ final class VerificationScreenshotUITests: XCTestCase {
         entry.tap()
         sleep(2)
         attach(name: "verify-11-notification-settings")
+    }
+
+    /// 20-record-child-selected / 21-record-tasks-p1〜p5 / 22-record-tasks-bulk (#260)
+    ///
+    /// 記録タブのタスク一覧と子どもカードのバッジを AX サイズで確かめるためのシーン。
+    /// 「記録する」(record_button) は押さない (Core Data に記録が残り 06〜08 の数字が揺れる)。
+    func testCaptureRecordTasks() throws {
+        let app = launchMainApp()
+        app.tabBars.buttons.element(boundBy: 1).tap()
+        sleep(2)
+
+        // 太郎は最初から選ばれている。カードを窓の中へ動かしてバッジが写るようにする
+        tapCardAboveRecordBar(containing: "太郎", in: app, expectSelected: false)
+        attach(name: "verify-20-record-child-selected")
+
+        tapCardAboveRecordBar(containing: "下の子の面倒を見る", in: app)
+        attach(name: "verify-21-record-tasks-p1")
+        // ここから一括モードを ON にするまで record_button は押せる状態。ページ送りのドラッグも
+        // 一括モードの行へ戻る swipeDown (画面中央から始まる) も、記録バーより上で行う。
+        // AX 最大ではカード 1 段がほぼ窓 1 枚分なので、10 件 (5 段) を見るには 5 枚要る。
+        // AX 最大では app.swipeUp() が内容を動かさなかった (p1〜p3 がピクセル一致) ため、ドラッグで送る
+        for page in 2...5 {
+            scrollRecordPage(in: app)
+            attach(name: "verify-21-record-tasks-p\(page)")
+        }
+
+        // 画面上端の一括モードの行まで戻して ON にする。行の中心は Toggle のラベルの上で
+        // 値が変わらないので、右端のスイッチを座標で押す (CLAUDE.md の Toggle の罠)
+        let bulkToggle = revealButton(
+            app.switches.matching(identifier: "bulk_mode_toggle"),
+            named: "bulk_mode_toggle",
+            in: app,
+            scrollingDown: false,
+            maxSwipes: 6
+        )
+        bulkToggle.coordinate(withNormalizedOffset: CGVector(dx: 0.92, dy: 0.5)).tap()
+        sleep(1)
+        XCTAssertEqual(
+            bulkToggle.value as? String, "1",
+            "bulk mode did not turn on. switches=\(app.switches.allElementsBoundByIndex.map { "\($0.identifier) '\($0.label)' \($0.value ?? "nil") \($0.frame)" })"
+        )
+        tapCardAboveRecordBar(containing: "お風呂を入れる", in: app)
+        // AX 最大ではカードが窓より高く、一番下の「選択中」/「選択」がバーの裏に隠れるので、
+        // カードの下端を窓の下端へ合わせてから撮る (既定サイズでは動かない)
+        scrollCardBottomIntoWindow(containing: "お風呂を入れる", in: app)
+        attach(name: "verify-22-record-tasks-bulk")
     }
 
     /// 00-splash / 12-tutorial-child
