@@ -45,4 +45,16 @@ final class ChildCardViewTests: XCTestCase {
             "選択カードの背景がテーマカラーの淡色でない / observed fills: \(fills)"
         )
     }
+
+    // MARK: - AX サイズのレイアウト (#260)
+    // dynamicTypeSize は ViewInspector から注入できないため、判定を static helper で検証する
+    // (CLAUDE.md「@Environment(\.isEnabled) など環境値駆動の見た目分岐」)。環境値の配線は撮影で確認する。
+
+    func testCardKeepsFixedWidthAtDefaultSizes() {
+        XCTAssertEqual(ChildCardView.cardWidth(isAccessibilitySize: false), 120)
+    }
+
+    func testCardWidthFollowsContentAtAccessibilitySizes() {
+        XCTAssertNil(ChildCardView.cardWidth(isAccessibilitySize: true))
+    }
 }

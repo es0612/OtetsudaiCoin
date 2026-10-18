@@ -4,7 +4,14 @@ struct ChildCardView: View {
     let child: Child
     let isSelected: Bool
     let onTap: () -> Void
-    
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    // AX 最大では幅 120 固定に「選択中」「タップして選択」が入らず、1 文字ずつ縦に折り返していた (#260)。
+    // 横スクロールの中なので、AX サイズのときだけ幅を中身に合わせる。既定サイズは今までどおり。
+    static func cardWidth(isAccessibilitySize: Bool) -> CGFloat? {
+        isAccessibilitySize ? nil : 120
+    }
+
     var body: some View {
         Button(action: onTap) {
             VStack(spacing: 8) {
@@ -41,7 +48,7 @@ struct ChildCardView: View {
                 }
             }
             .padding()
-            .frame(width: 120)
+            .frame(width: Self.cardWidth(isAccessibilitySize: dynamicTypeSize.isAccessibilitySize))
             .background(
                 RoundedRectangle(cornerRadius: AppRadius.medium)
                     // #151: 未選択時は gray.opacity(0.05) だとダークモードで地に沈むため適応色を使う

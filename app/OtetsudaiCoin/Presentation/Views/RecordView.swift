@@ -3,7 +3,15 @@ import SwiftUI
 struct RecordView: View {
     @Bindable var viewModel: RecordViewModel
     @State private var showCoinAnimation = false
-    
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    // AX 最大では 2 列のカードにタスク名が収まらず「下の子の面…」と切れ (10 件中 7 件)、
+    // 「10コイン」や一括モードの「選択中」も折り返していた (#260)。AX サイズのときだけ 1 列にする
+    // (チュートリアルの TutorialTaskCardView.gridColumns と同じ考え方、#253)。既定サイズは今までどおり。
+    static func taskGridColumns(isAccessibilitySize: Bool) -> [GridItem] {
+        Array(repeating: GridItem(.flexible()), count: isAccessibilitySize ? 1 : 2)
+    }
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
@@ -200,10 +208,9 @@ struct RecordView: View {
                     .cornerRadius(AppRadius.medium)
                     .padding(.horizontal)
             } else {
-                LazyVGrid(columns: [
-                    GridItem(.flexible()),
-                    GridItem(.flexible())
-                ], spacing: 12) {
+                LazyVGrid(columns: Self.taskGridColumns(
+                    isAccessibilitySize: dynamicTypeSize.isAccessibilitySize
+                ), spacing: 12) {
                     ForEach(viewModel.availableTasks, id: \.id) { task in
                         TaskCardView(
                             task: task,

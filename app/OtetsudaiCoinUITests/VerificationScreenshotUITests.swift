@@ -219,6 +219,15 @@ final class VerificationScreenshotUITests: XCTestCase {
         )
     }
 
+    /// カードが画面にあり、その下端が記録バーより上 (見える窓の中) にあるか。
+    private func isCardBottomInWindow(containing text: String, in app: XCUIApplication) -> Bool {
+        let scroll = app.scrollViews.containing(.switch, identifier: "bulk_mode_toggle").firstMatch
+        let card = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", text))
+            .allElementsBoundByIndex.first(where: { $0.isHittable && $0.frame.intersects(scroll.frame) })
+        guard let card else { return false }
+        return card.frame.maxY <= scroll.frame.maxY
+    }
+
     /// カードの下端が記録バーの上に出るまで内容を上へ送る (下端がすでに窓の中なら何もしない)。
     private func scrollCardBottomIntoWindow(containing text: String, in app: XCUIApplication) {
         let scroll = app.scrollViews.containing(.switch, identifier: "bulk_mode_toggle").firstMatch
@@ -352,7 +361,7 @@ final class VerificationScreenshotUITests: XCTestCase {
         attach(name: "verify-11-notification-settings")
     }
 
-    /// 20-record-child-selected / 21-record-tasks-p1〜p5 / 22-record-tasks-bulk (#260)
+    /// 20-record-child-selected / 20-record-child-unselected / 21-record-tasks-p1〜pN / 22-record-tasks-bulk (#260)
     ///
     /// 記録タブのタスク一覧と子どもカードのバッジを AX サイズで確かめるためのシーン。
     /// 「記録する」(record_button) は押さない (Core Data に記録が残り 06〜08 の数字が揺れる)。
@@ -364,17 +373,29 @@ final class VerificationScreenshotUITests: XCTestCase {
         // 太郎は最初から選ばれている。カードを窓の中へ動かしてバッジが写るようにする
         tapCardAboveRecordBar(containing: "太郎", in: app, expectSelected: false)
         attach(name: "verify-20-record-child-selected")
+        // AX サイズでは子どもカードが中身の幅になり (#260)、花子のカードが画面の右へはみ出す。
+        // 子どもの行を左へ送って「タップして選択」の全体を撮る (既定サイズでは動かず 20 と同じ画面)
+        let hanako = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "花子"))
+            .allElementsBoundByIndex.first(where: { $0.isHittable })
+        XCTAssertNotNil(hanako, "花子 card not on screen")
+        hanako?.swipeLeft()
+        sleep(1)
+        attach(name: "verify-20-record-child-unselected")
 
         tapCardAboveRecordBar(containing: "下の子の面倒を見る", in: app)
         attach(name: "verify-21-record-tasks-p1")
         // ここから一括モードを ON にするまで record_button は押せる状態。ページ送りのドラッグも
         // 一括モードの行へ戻る swipeDown (画面中央から始まる) も、記録バーより上で行う。
-        // AX 最大ではカード 1 段がほぼ窓 1 枚分なので、10 件 (5 段) を見るには 5 枚要る。
+        // 10 件すべてのタスク名を見るため、最後のタスクの下端が窓に入るまでページを送る。
+        // 枚数は文字サイズで変わる (AX 最大では 1 列のカード 1 枚がほぼ窓 1 枚分)。
         // AX 最大では app.swipeUp() が内容を動かさなかった (p1〜p3 がピクセル一致) ため、ドラッグで送る
-        for page in 2...5 {
+        var page = 1
+        while page < 12 && !isCardBottomInWindow(containing: "自分の部屋の掃除", in: app) {
             scrollRecordPage(in: app)
+            page += 1
             attach(name: "verify-21-record-tasks-p\(page)")
         }
+        XCTAssertTrue(isCardBottomInWindow(containing: "自分の部屋の掃除", in: app), "last task not reached in \(page) pages")
 
         // 画面上端の一括モードの行まで戻して ON にする。行の中心は Toggle のラベルの上で
         // 値が変わらないので、右端のスイッチを座標で押す (CLAUDE.md の Toggle の罠)
@@ -385,6 +406,12 @@ final class VerificationScreenshotUITests: XCTestCase {
             scrollingDown: false,
             maxSwipes: 6
         )
+        // 行がナビゲーションバーの裏にかかっていると、タップがバー側に取られて値が変わらない。
+        // 一番上 (大きなタイトルが出る位置) まで戻す
+        for _ in 0..<3 where bulkToggle.frame.minY < app.navigationBars.firstMatch.frame.maxY {
+            app.swipeDown()
+            sleep(1)
+        }
         bulkToggle.coordinate(withNormalizedOffset: CGVector(dx: 0.92, dy: 0.5)).tap()
         sleep(1)
         XCTAssertEqual(
