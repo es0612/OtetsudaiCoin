@@ -6,6 +6,8 @@ struct RecordTutorialView: View {
     @State private var currentStep = 0
     @State private var selectedTabForDemo = 1 // 記録タブ
     @State private var showCoinAnimation = false
+    // カードを押したとき・ステップが変わったときに進め、帯へのスクロールをやり直させる (#265)
+    @State private var recordActionScrollSerial = 0
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     
     let totalSteps = 4
@@ -40,7 +42,11 @@ struct RecordTutorialView: View {
                     .padding()
                 
                 // メインコンテンツ (縦に収まらないときだけスクロール、#246)
-                TutorialStepContainer(step: currentStep, scrollTarget: recordActionScrollTarget) {
+                TutorialStepContainer(
+                    step: currentStep,
+                    scrollTarget: recordActionScrollTarget,
+                    scrollSerial: recordActionScrollSerial
+                ) {
                     stepContent
                 }
                 
@@ -63,6 +69,12 @@ struct RecordTutorialView: View {
                     themeColor: selectedChild.themeColor
                 )
             }
+        }
+        .onChange(of: currentStep) {
+            // ステップが変わると本文は先頭へ戻る (TutorialStepContainer の .id(step))。帯のあるステップへ
+            // 戻ってきたときに、帯まで連れて行き直す。本文 (stepContent) はステップごとに作り直され、
+            // そこに付けた onChange は発火しないので、ステップを跨いで残るここに置く (#265)
+            recordActionScrollSerial += 1
         }
         .onChange(of: recordViewModel.isLoading) { oldValue, newValue in
             // データロード完了時に自動的に子供を選択（onChange重複実行を防ぐため条件を厳密化）
@@ -259,6 +271,7 @@ struct RecordTutorialView: View {
                     isSelected: recordViewModel.selectedTask?.id == task.id,
                     onTap: {
                         recordViewModel.selectTask(task)
+                        recordActionScrollSerial += 1
                     }
                 )
                 // 1 列の LazyVGrid なので、帯はカードの次の行に入る

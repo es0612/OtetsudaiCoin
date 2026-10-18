@@ -150,7 +150,7 @@ final class VerificationScreenshotUITests: XCTestCase {
 
     /// 記録タブのカード (子ども / タスク) を、画面下の記録バーに隠れていない部分を押して選ぶ (#260)。
     ///
-    /// AX サイズでは記録バーの説明文が 4 行ほどに折り返し、バーが画面の半分近くを占める。
+    /// AX サイズでは記録バーがボタンだけになる (#265) が、それでもカードの一部はバーの裏に入る。
     /// バーの裏のカードも isHittable は true になるので、そのまま tap() するとバー (最悪は
     /// record_button) を押してしまう。そこで:
     /// - 縦の ScrollView の枠 (= ナビゲーションバーの下から記録バーの上まで) を「見える窓」とし、
@@ -447,7 +447,8 @@ final class VerificationScreenshotUITests: XCTestCase {
         attach(name: "verify-12-tutorial-child")
     }
 
-    /// 14〜19 / 23: チュートリアルの各ステップ (Issue #246)。23 は一番下のカードを選んだとき (#262)。文字サイズを AX にして撮ると、
+    /// 14〜19 / 23〜25: チュートリアルの各ステップ (Issue #246)。23 は一番下のカードを選んだとき (#262)、
+    /// 24 / 25 はステップを 3 → 2 → 3 と戻ったとき・選択済みのカードを再タップしたとき (#265)。文字サイズを AX にして撮ると、
     /// 縦スクロール (TutorialStepContainer) で見出し・説明・ボタンが読める/押せるかを確かめられる。
     ///
     /// 「記録する」は押さない (記録の完了ステップは撮らない)。押すと Core Data に記録が残り、
@@ -495,6 +496,58 @@ final class VerificationScreenshotUITests: XCTestCase {
         XCTAssertTrue(
             recordButton.waitForExistence(timeout: 5) && recordButton.isHittable,
             "記録する not on screen after selecting 自分の部屋の掃除. frame=\(recordButton.frame)"
+        )
+
+        // ステップを 3 → 2 → 3 と戻っても、選んだカードの下の帯へ連れて行くこと (#265)。
+        // ステップが変わると本文は先頭へ戻り、一番下のカードの帯は画面の外になる
+        tapEnabledButton("戻る", in: app)
+        sleep(1)
+        tapEnabledButton("次へ", in: app)
+        sleep(2)
+        attach(name: "verify-24-tutorial-record-step3-returned")
+        XCTAssertTrue(
+            recordButton.waitForExistence(timeout: 5) && recordButton.isHittable,
+            "記録する not on screen after returning to step 3. frame=\(recordButton.frame)"
+        )
+
+        // 選択済みのカードをもう一度押しても、帯へ連れて行くこと (#265)。
+        // 慣性のないドラッグで本文を下へ送り、「カードは見えているが帯は窓の外」にしてから押す。
+        // swipe で戻すと、押した時点で帯が見えていて修正なしでも通ってしまった (mutation 検証で確認)。
+        // 帯がカードの下に入るのは AX サイズのときだけ (既定サイズは一覧の下の固定位置なので、窓の外へ送れない)。
+        // 文字サイズは simulator の設定なので、テストランナー側の設定で判定する
+        guard UIApplication.shared.preferredContentSizeCategory.isAccessibilityCategory else {
+            // 判定が外れて黙って飛ばしたことに気づけるよう、xcresult に残す
+            XCTContext.runActivity(named: "skip verify-25 (re-tap): not an AX content size") { _ in }
+            return
+        }
+        let windowBottom = app.buttons["戻る"].frame.minY - 16
+        let shift = windowBottom - recordButton.frame.minY + 40
+        let origin = app.coordinate(withNormalizedOffset: .zero)
+        origin.withOffset(CGVector(dx: 8, dy: 200)).press(
+            forDuration: 0.05,
+            thenDragTo: origin.withOffset(CGVector(dx: 8, dy: 200 + shift)),
+            withVelocity: .slow,
+            thenHoldForDuration: 0.3
+        )
+        sleep(1)
+        let card = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "自分の部屋の掃除"))
+            .allElementsBoundByIndex.first(where: { $0.isHittable && $0.frame.minY < windowBottom - 60 })
+        XCTAssertFalse(
+            recordButton.exists && recordButton.isHittable && recordButton.frame.maxY <= windowBottom,
+            "precondition: 記録する should be below the window before re-tapping. frame=\(recordButton.frame) windowBottom=\(windowBottom)"
+        )
+        XCTAssertNotNil(card, "precondition: 自分の部屋の掃除 should be visible. windowBottom=\(windowBottom) shift=\(shift)")
+        if let card {
+            let frame = card.frame
+            // 見えている部分の中央を押す (上端 120pt はプログレスバーより下)
+            let tapY = (max(frame.minY, 120) + min(frame.maxY, windowBottom)) / 2
+            card.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: (tapY - frame.minY) / frame.height)).tap()
+        }
+        sleep(2)
+        attach(name: "verify-25-tutorial-record-step3-retapped")
+        XCTAssertTrue(
+            recordButton.waitForExistence(timeout: 5) && recordButton.isHittable,
+            "記録する not on screen after re-tapping 自分の部屋の掃除. frame=\(recordButton.frame)"
         )
     }
 }

@@ -143,4 +143,13 @@ final class TutorialTaskCardViewTests: XCTestCase {
         )
     }
 
+    // TutorialStepContainer は TutorialScrollRequest の変化でスクロールする。スクロール先が同じでも
+    // serial が進めば別の値になり、選択済みカードの再タップやステップの往復でもスクロールし直す (#265)
+    func testScrollRequestChangesWhenOnlySerialAdvances() {
+        XCTAssertNotEqual(
+            TutorialScrollRequest(target: "recordAction-a", serial: 0),
+            TutorialScrollRequest(target: "recordAction-a", serial: 1)
+        )
+    }
+
 }
