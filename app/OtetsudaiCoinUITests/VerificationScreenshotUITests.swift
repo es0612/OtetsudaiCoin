@@ -127,17 +127,23 @@ final class VerificationScreenshotUITests: XCTestCase {
 
     /// チュートリアルの裏の Home にも同じ名前のボタン (太郎 など) があるため、押せるものを選ぶ。
     /// AX サイズでは本文が縦スクロールになり、目的のボタンが下に隠れていることがあるので、
-    /// 見つかるまで上へスワイプする (タスク一覧は入れ子のスクロールで、最初のスワイプは一覧側が動く)。
-    private func tapHittableButton(containing text: String, in app: XCUIApplication) {
+    /// 見つかるまで上へスワイプする (既定サイズではタスク一覧が入れ子のスクロールで、最初のスワイプは
+    /// 一覧側が動く。AX サイズは #253 以降入れ子なし)。
+    /// 一覧は LazyVGrid なので、画面から遠いカード (一番下の「自分の部屋の掃除」など) はスクロールして
+    /// 近づくまで存在しない。最初の存在待ちで止めず、スワイプしながら探す (#262)。
+    private func tapHittableButton(containing text: String, in app: XCUIApplication, maxSwipes: Int = 8) {
         let query = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", text))
-        XCTAssertTrue(query.firstMatch.waitForExistence(timeout: 10), "button containing '\(text)' not found")
-        // 最大 4 回スワイプし、各スワイプの後 (と最初) に押せるボタンを探す
-        for attempt in 0...4 {
+        _ = query.firstMatch.waitForExistence(timeout: 10)
+        // 各スワイプの後 (と最初) に押せるボタンを探す
+        for attempt in 0...maxSwipes {
             if let button = query.allElementsBoundByIndex.first(where: { $0.isHittable }) {
                 button.tap()
                 return
             }
-            if attempt < 4 { app.swipeUp() }
+            if attempt < maxSwipes {
+                app.swipeUp()
+                sleep(1)
+            }
         }
         XCTFail("no hittable button containing '\(text)'. candidates=\(query.allElementsBoundByIndex.map { "\($0.label) \($0.frame)" })")
     }
@@ -441,7 +447,7 @@ final class VerificationScreenshotUITests: XCTestCase {
         attach(name: "verify-12-tutorial-child")
     }
 
-    /// 14〜19: チュートリアルの各ステップ (Issue #246)。文字サイズを AX にして撮ると、
+    /// 14〜19 / 23: チュートリアルの各ステップ (Issue #246)。23 は一番下のカードを選んだとき (#262)。文字サイズを AX にして撮ると、
     /// 縦スクロール (TutorialStepContainer) で見出し・説明・ボタンが読める/押せるかを確かめられる。
     ///
     /// 「記録する」は押さない (記録の完了ステップは撮らない)。押すと Core Data に記録が残り、
@@ -475,5 +481,20 @@ final class VerificationScreenshotUITests: XCTestCase {
         tapHittableButton(containing: "お風呂を入れる", in: app)
         sleep(1)
         attach(name: "verify-19-tutorial-record-step3-selected")
+        // スワイプせずに「記録する」が画面内にあること (#262: AX では帯が選んだカードの下に出て、そこへ自動スクロールする)
+        let recordButton = app.buttons["記録する"]
+        XCTAssertTrue(
+            recordButton.waitForExistence(timeout: 5) && recordButton.isHittable,
+            "記録する not on screen after selecting お風呂を入れる. frame=\(recordButton.frame)"
+        )
+
+        // 一番下のカードを選んでも、帯が画面の外に出ないこと (#262)
+        tapHittableButton(containing: "自分の部屋の掃除", in: app)
+        sleep(1)
+        attach(name: "verify-23-tutorial-record-step3-last-selected")
+        XCTAssertTrue(
+            recordButton.waitForExistence(timeout: 5) && recordButton.isHittable,
+            "記録する not on screen after selecting 自分の部屋の掃除. frame=\(recordButton.frame)"
+        )
     }
 }
