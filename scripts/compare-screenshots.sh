@@ -60,7 +60,9 @@
 set -euo pipefail
 
 usage() {
-  sed -n '2,47p' "$0" | sed 's/^# \{0,1\}//'
+  # Print the whole header comment (line 2 up to the first non-comment line), so
+  # adding lines to the header does not cut the usage text short.
+  awk 'NR == 1 { next } !/^#/ { exit } { print }' "$0" | sed 's/^# \{0,1\}//'
 }
 
 STATUS_BAR_PX=200
