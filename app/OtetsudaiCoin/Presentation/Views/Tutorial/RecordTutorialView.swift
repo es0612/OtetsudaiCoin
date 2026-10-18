@@ -40,7 +40,7 @@ struct RecordTutorialView: View {
                     .padding()
                 
                 // メインコンテンツ (縦に収まらないときだけスクロール、#246)
-                TutorialStepContainer(step: currentStep) {
+                TutorialStepContainer(step: currentStep, scrollTarget: recordActionScrollTarget) {
                     stepContent
                 }
                 
@@ -264,6 +264,7 @@ struct RecordTutorialView: View {
                 // 1 列の LazyVGrid なので、帯はカードの次の行に入る
                 if showsRecordActionBelow(task) {
                     recordActionPanel
+                        .id(recordActionScrollTarget)
                 }
             }
         }
@@ -271,9 +272,23 @@ struct RecordTutorialView: View {
     }
 
     private func showsRecordActionBelow(_ task: HelpTask) -> Bool {
-        TutorialTaskCardView.placesRecordActionBelowSelectedCard(
-            isAccessibilitySize: dynamicTypeSize.isAccessibilitySize
-        ) && hasSelectedChild && recordViewModel.selectedTask?.id == task.id
+        recordActionPlacement == .belowSelectedCard && recordViewModel.selectedTask?.id == task.id
+    }
+
+    // 「記録する」の帯をどこに出すか (#262)。一覧の中 (選んだカードの下) と一覧の下の 2 か所の条件を 1 つにまとめる
+    private var recordActionPlacement: TutorialTaskCardView.RecordActionPlacement {
+        TutorialTaskCardView.recordActionPlacement(
+            isAccessibilitySize: dynamicTypeSize.isAccessibilitySize,
+            hasSelectedChild: hasSelectedChild,
+            hasSelectedTask: hasSelectedTask
+        )
+    }
+
+    private var recordActionScrollTarget: String? {
+        TutorialTaskCardView.recordActionScrollTarget(
+            placement: recordActionPlacement,
+            selectedTaskID: recordViewModel.selectedTask?.id
+        )
     }
 
     private var recordActionPanel: some View {
@@ -308,6 +323,7 @@ struct RecordTutorialView: View {
             }
         }
         .padding()
+        .frame(maxWidth: TutorialTaskCardView.recordActionMaxWidth(isAccessibilitySize: dynamicTypeSize.isAccessibilitySize))
         .background(
             RoundedRectangle(cornerRadius: AppRadius.medium)
                 .fill(Color.green.opacity(0.1))
@@ -335,23 +351,20 @@ struct RecordTutorialView: View {
                 
                 if !recordViewModel.availableTasks.isEmpty {
                     if TutorialTaskCardView.usesNestedScroll(isAccessibilitySize: dynamicTypeSize.isAccessibilitySize) {
-                        ScrollView {
-                            taskGrid
-                        }
-                        // idealHeight: TutorialStepContainer の ViewThatFits は理想の高さで「収まるか」を判定する。
+                        // 入れ子の一覧の idealHeight: TutorialStepContainer の ViewThatFits は理想の高さで「収まるか」を判定する。
                         // maxHeight だけだと 300 で見積もられ、既定サイズでも「記録準備完了」が出た時点で
                         // スクロール表示に切り替わる。理想の高さを約 1 行分 (130) と小さく申告し、既定サイズでは
                         // 今までどおり縮めて収める。200 では iPhone 17 (6.3 インチ) で収まらず切り替わった (#246 で実測)
+                        ScrollView {
+                            taskGrid
+                        }
                         .frame(idealHeight: 130, maxHeight: 300)
                     } else {
                         taskGrid
                     }
                 }
                 
-                if hasSelectedTask && hasSelectedChild
-                    && !TutorialTaskCardView.placesRecordActionBelowSelectedCard(
-                        isAccessibilitySize: dynamicTypeSize.isAccessibilitySize
-                    ) {
+                if recordActionPlacement == .belowList {
                     recordActionPanel
                 }
             }
@@ -500,6 +513,34 @@ struct TutorialTaskCardView: View {
     // 下のカードがずれる。未選択でも透明なチェックで高さを取っておく。
     static func reservesCheckmarkSpace(isAccessibilitySize: Bool) -> Bool {
         isAccessibilitySize
+    }
+
+    // 「記録する」の帯の表示条件 (#262)。子どもとタスクが選ばれたときだけ出し、AX サイズでは
+    // 選んだカードのすぐ下、既定サイズでは一覧の下に出す。
+    enum RecordActionPlacement: Equatable {
+        case hidden, belowSelectedCard, belowList
+    }
+
+    static func recordActionPlacement(
+        isAccessibilitySize: Bool,
+        hasSelectedChild: Bool,
+        hasSelectedTask: Bool
+    ) -> RecordActionPlacement {
+        guard hasSelectedChild && hasSelectedTask else { return .hidden }
+        return placesRecordActionBelowSelectedCard(isAccessibilitySize: isAccessibilitySize)
+            ? .belowSelectedCard : .belowList
+    }
+
+    // AX サイズでは帯がカードの間に入るので、カード (cardMaxWidth) と同じく列いっぱいにそろえる (#262)。
+    static func recordActionMaxWidth(isAccessibilitySize: Bool) -> CGFloat? {
+        isAccessibilitySize ? .infinity : nil
+    }
+
+    // 一番下のカードを選ぶと帯が画面の外に出る (#262)。帯がカードの下に入るときだけ、選んだタスクごとに
+    // 別のスクロール先を返し、TutorialStepContainer がそこまでスクロールする。
+    static func recordActionScrollTarget(placement: RecordActionPlacement, selectedTaskID: UUID?) -> String? {
+        guard placement == .belowSelectedCard, let selectedTaskID else { return nil }
+        return "recordAction-\(selectedTaskID.uuidString)"
     }
 
     var body: some View {

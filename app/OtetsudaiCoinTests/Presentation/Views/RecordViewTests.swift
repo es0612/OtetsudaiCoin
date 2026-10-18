@@ -50,4 +50,16 @@ final class RecordViewTests: XCTestCase {
         XCTAssertTrue(viewModel.isBulkMode)
     }
 
+    // MARK: - AX サイズのレイアウト (#260)
+    // dynamicTypeSize は ViewInspector から注入できないため、判定を static helper で検証する
+    // (CLAUDE.md「@Environment(\.isEnabled) など環境値駆動の見た目分岐」)。環境値の配線は撮影で確認する。
+
+    func test_taskGrid_usesTwoColumns_atDefaultSizes() {
+        XCTAssertEqual(RecordView.taskGridColumns(isAccessibilitySize: false).count, 2)
+    }
+
+    func test_taskGrid_usesOneColumn_atAccessibilitySizes() {
+        XCTAssertEqual(RecordView.taskGridColumns(isAccessibilitySize: true).count, 1)
+    }
+
 }

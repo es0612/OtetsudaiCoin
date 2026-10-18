@@ -102,4 +102,45 @@ final class TutorialTaskCardViewTests: XCTestCase {
         XCTAssertFalse(TutorialTaskCardView.usesNestedScroll(isAccessibilitySize: true))
     }
 
+    // MARK: - 記録する帯 (#262)
+
+    func testRecordActionPlacementTable() {
+        typealias P = TutorialTaskCardView.RecordActionPlacement
+        func f(_ ax: Bool, _ child: Bool, _ task: Bool) -> P {
+            TutorialTaskCardView.recordActionPlacement(isAccessibilitySize: ax, hasSelectedChild: child, hasSelectedTask: task)
+        }
+        XCTAssertEqual(f(false, true, true), P.belowList)
+        XCTAssertEqual(f(true, true, true), P.belowSelectedCard)
+        XCTAssertEqual(f(false, false, true), P.hidden)
+        XCTAssertEqual(f(true, false, true), P.hidden)
+        XCTAssertEqual(f(false, true, false), P.hidden)
+        XCTAssertEqual(f(true, true, false), P.hidden)
+    }
+
+    func testRecordActionKeepsContentWidthAtDefaultSizes() {
+        XCTAssertNil(TutorialTaskCardView.recordActionMaxWidth(isAccessibilitySize: false))
+    }
+
+    func testRecordActionFillsTheColumnAtAccessibilitySizes() {
+        XCTAssertEqual(TutorialTaskCardView.recordActionMaxWidth(isAccessibilitySize: true), .infinity)
+    }
+
+    func testScrollTargetOnlyWhenBelowSelectedCard() {
+        let id = UUID()
+        XCTAssertEqual(
+            TutorialTaskCardView.recordActionScrollTarget(placement: .belowSelectedCard, selectedTaskID: id),
+            "recordAction-\(id.uuidString)"
+        )
+        XCTAssertNil(TutorialTaskCardView.recordActionScrollTarget(placement: .belowList, selectedTaskID: id))
+        XCTAssertNil(TutorialTaskCardView.recordActionScrollTarget(placement: .hidden, selectedTaskID: id))
+        XCTAssertNil(TutorialTaskCardView.recordActionScrollTarget(placement: .belowSelectedCard, selectedTaskID: nil))
+    }
+
+    func testScrollTargetChangesWithTheSelectedTask() {
+        XCTAssertNotEqual(
+            TutorialTaskCardView.recordActionScrollTarget(placement: .belowSelectedCard, selectedTaskID: UUID()),
+            TutorialTaskCardView.recordActionScrollTarget(placement: .belowSelectedCard, selectedTaskID: UUID())
+        )
+    }
+
 }
