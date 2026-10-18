@@ -22,6 +22,17 @@
 # distance varies) and 09-task-management (the AdMob test banner). A "differs"
 # there is not evidence of a regression unless the change touches that screen.
 #
+# Measured again 2026-10-18 (main 5c3d19c captured twice, default size, light;
+# PR #266). Besides 03 / 05 / 09, these also differed between the two runs:
+#   00-splash               y=788..2504  (the splash animation frame)
+#   06-home-selected        y=2829..2843 (15 rows at the bottom edge)
+#   07-monthly-summary      y=2829..2843 (15 rows at the bottom edge)
+#   08-help-history         y=201..2843  (32 scattered rows)
+#   11-notification-settings y=2547..2867 (once in two pairs)
+#   21-record-tasks-p2      y=1378..2283 (the drag paging distance varies)
+# To judge a "differs" on any other scene, capture the base commit twice and
+# compare those two folders first: a scene that differs there is noise.
+#
 # Before comparing pixels, it reads capture-meta.txt in both folders (written
 # by capture-verification-screenshots.sh) and stops when the capture
 # conditions differ — content_size / device / runtime / appearance. A before
