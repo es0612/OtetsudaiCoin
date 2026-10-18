@@ -5,10 +5,20 @@ import SwiftUI
 /// 深く traverse できないため、独立 component に切り出して structural test を可能にする。
 struct RecordButtonBar: View {
     @Bindable var viewModel: RecordViewModel
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    // AX 最大では説明文が 4 行に折り返し (「10コイン」も「10コイ/ン」に折れる)、バーが画面の約 45% を
+    // 占めてスクロールできる高さが約 420pt しか残らなかった (#265)。AX サイズのときだけ説明文を出さず
+    // ボタンだけにする。選んだ内容とコイン数はカード側 (✓ と枠の色) で分かる。既定サイズは今までどおり。
+    static func showsSelectionStatus(isAccessibilitySize: Bool) -> Bool {
+        !isAccessibilitySize
+    }
 
     var body: some View {
         VStack(spacing: 8) {
-            selectionStatusView
+            if Self.showsSelectionStatus(isAccessibilitySize: dynamicTypeSize.isAccessibilitySize) {
+                selectionStatusView
+            }
 
             Button(action: {
                 if viewModel.isBulkMode {

@@ -95,4 +95,16 @@ final class RecordButtonBarTests: XCTestCase {
         let bar = RecordButtonBar(viewModel: viewModel)
         XCTAssertTrue(bar.recordButtonDisabled, "selectedTaskIds が空なら disabled")
     }
+
+    // MARK: - AX サイズ (#265)
+
+    /// 既定サイズでは今までどおり、選択状態の説明文をボタンの上に出す.
+    func test_showsSelectionStatus_atDefaultSize_isTrue() {
+        XCTAssertTrue(RecordButtonBar.showsSelectionStatus(isAccessibilitySize: false))
+    }
+
+    /// AX サイズでは説明文を出さず、ボタンだけにする (説明文が 4 行に折り返し、バーが画面の約 45% を占めていた).
+    func test_showsSelectionStatus_atAccessibilitySize_isFalse() {
+        XCTAssertFalse(RecordButtonBar.showsSelectionStatus(isAccessibilitySize: true))
+    }
 }
