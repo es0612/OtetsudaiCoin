@@ -114,7 +114,7 @@ Thank you for using Otetsudai Coin!
 
 ## 4. 完了後タスク
 
-- [ ] **承認されたら**すぐ `git tag -a v1.1.5 -m "v1.1.5"` を **紐付けたビルドのビルド元 commit** に付けて push (承認前にタグを打たない)
+- [ ] **承認されたら**すぐ `git tag -a v1.1.5 -m "v1.1.5" <ビルド元 commit> && git push origin v1.1.5` (ビルド元は build 135 の `6f4e261`) (承認前にタグを打たない)
 - [ ] **承認されたら**、次の version (1.1.6) への bump PR を他の PR より先に merge する (Xcode Cloud の train closed 対策、#235)
 - [ ] 公開後に `scripts/release-status.sh` で 1.1.5 を実測
 - [ ] GitHub Release を作成 (§ 2.1 / § 2.3)
