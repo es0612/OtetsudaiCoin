@@ -6,6 +6,13 @@ struct TaskCardView: View {
     var isBulkMode: Bool = false
     var existingCount: Int = 0
     let onTap: () -> Void
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    // #265: 1 列にするとカードの幅が名前の長さでばらばらになるため、AX サイズでは列いっぱいにそろえる
+    // (チュートリアルの TutorialTaskCardView.cardMaxWidth と同じ考え方、#253)。既定サイズは今までどおり。
+    static func cardMaxWidth(isAccessibilitySize: Bool) -> CGFloat? {
+        isAccessibilitySize ? .infinity : nil
+    }
 
     var body: some View {
         Button(action: onTap) {
@@ -19,6 +26,7 @@ struct TaskCardView: View {
                 }
             }
             .padding()
+            .frame(maxWidth: Self.cardMaxWidth(isAccessibilitySize: dynamicTypeSize.isAccessibilitySize))
             // #151: AX サイズの Dynamic Type で内容がクリップしないよう下方向へ伸ばせるようにする
             .frame(minHeight: 150)
             .background(cardBackground)
