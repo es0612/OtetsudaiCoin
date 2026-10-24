@@ -6,9 +6,11 @@
 <title>アイコン候補の比較</title>
 <!--
   #18 の物差し「29px でも手とコインと分かること」を確かめるための比較ページ。
-  画像は 2026-10-24 に Gemini で生成。7 案（A〜D, A1〜A3）から A1 を採用し、ここには A1 だけを置く。
+  画像は 2026-10-24 に Gemini で生成。7 案（A〜D, A1〜A3）から A1 を採用した（a1-adult-fingertips.jpeg が生成元）。
+  このページは AppIcon.appiconset の 3 枚（ライト／ダーク／ティンテッド）を並べる。
+  旧アイコンは `git show addea02:app/OtetsudaiCoin/Assets.xcassets/AppIcon.appiconset/AppIcon2.png` で取り出せる。
   プロンプトと落選案の比較結果は #18 の 2026-10-24 のコメントにある。
-  `open docs/design/app-icon/2026-10-24/compare.html` でブラウザに直接開ける（現行アイコンは相対パスで参照している）。
+  `open docs/design/app-icon/2026-10-24/compare.html` でブラウザに直接開ける（アイコンは appiconset を相対パスで参照している）。
   角丸は iOS のマスクに近い border-radius 22.37% で近似している（実機の squircle とは少し違う）。
 -->
 <style>
@@ -34,7 +36,7 @@
 </style>
 </head>
 <body>
-<h1>アイコン候補の比較（#18・採用案 A1）</h1>
+<h1>新しいアプリアイコン（#18・A1）</h1>
 <p class="note">29 / 60 / 180 は CSS px です。29px は設定画面のアイコンの大きさにあたります。</p>
 <div class="theme">
   背景:
@@ -47,16 +49,22 @@
   </thead>
   <tbody>
     <tr>
-      <td class="label">現行<small>AppIcon2.png（¥ ＋ ハート）</small></td>
-      <td><img class="icon s29" src="../../../../app/OtetsudaiCoin/Assets.xcassets/AppIcon.appiconset/AppIcon2.png" alt="現行 29px"></td>
-      <td><img class="icon s60" src="../../../../app/OtetsudaiCoin/Assets.xcassets/AppIcon.appiconset/AppIcon2.png" alt="現行 60px"></td>
-      <td><img class="icon s180" src="../../../../app/OtetsudaiCoin/Assets.xcassets/AppIcon.appiconset/AppIcon2.png" alt="現行 180px"></td>
+      <td class="label">ライト<small>AppIcon-light.png</small></td>
+      <td><img class="icon s29" src="../../../../app/OtetsudaiCoin/Assets.xcassets/AppIcon.appiconset/AppIcon-light.png" alt="ライト 29px"></td>
+      <td><img class="icon s60" src="../../../../app/OtetsudaiCoin/Assets.xcassets/AppIcon.appiconset/AppIcon-light.png" alt="ライト 60px"></td>
+      <td><img class="icon s180" src="../../../../app/OtetsudaiCoin/Assets.xcassets/AppIcon.appiconset/AppIcon-light.png" alt="ライト 180px"></td>
     </tr>
     <tr>
-      <td class="label">A1<small>A ＋ 大人の指先が上から</small></td>
-      <td><img class="icon s29" src="a1-adult-fingertips.jpeg" alt="A1 29px"></td>
-      <td><img class="icon s60" src="a1-adult-fingertips.jpeg" alt="A1 60px"></td>
-      <td><img class="icon s180" src="a1-adult-fingertips.jpeg" alt="A1 180px"></td>
+      <td class="label">ダーク<small>AppIcon-dark.png</small></td>
+      <td><img class="icon s29" src="../../../../app/OtetsudaiCoin/Assets.xcassets/AppIcon.appiconset/AppIcon-dark.png" alt="ダーク 29px"></td>
+      <td><img class="icon s60" src="../../../../app/OtetsudaiCoin/Assets.xcassets/AppIcon.appiconset/AppIcon-dark.png" alt="ダーク 60px"></td>
+      <td><img class="icon s180" src="../../../../app/OtetsudaiCoin/Assets.xcassets/AppIcon.appiconset/AppIcon-dark.png" alt="ダーク 180px"></td>
+    </tr>
+    <tr>
+      <td class="label">ティンテッド<small>AppIcon-tinted.png（iOS が色を付ける元）</small></td>
+      <td><img class="icon s29" src="../../../../app/OtetsudaiCoin/Assets.xcassets/AppIcon.appiconset/AppIcon-tinted.png" alt="ティンテッド 29px"></td>
+      <td><img class="icon s60" src="../../../../app/OtetsudaiCoin/Assets.xcassets/AppIcon.appiconset/AppIcon-tinted.png" alt="ティンテッド 60px"></td>
+      <td><img class="icon s180" src="../../../../app/OtetsudaiCoin/Assets.xcassets/AppIcon.appiconset/AppIcon-tinted.png" alt="ティンテッド 180px"></td>
     </tr>
   </tbody>
 </table>
