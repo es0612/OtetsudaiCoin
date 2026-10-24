@@ -114,8 +114,10 @@ Thank you for using Otetsudai Coin!
 
 ## 4. 完了後タスク
 
-- [x] **承認されたら**すぐ `git tag -a v1.1.5 -m "v1.1.5" <ビルド元 commit> && git push origin v1.1.5` (ビルド元は build 135 の `6f4e261`) (承認前にタグを打たない) ※ 2026-10-24 に push。公開 (10-19) から 5 日遅れ。その間に main へ merge した PR は 0 件
-- [x] **承認されたら**、次の version (1.1.6) への bump PR を他の PR より先に merge する (Xcode Cloud の train closed 対策、#235) ※ 1.1.6 / build 136 (Xcode Cloud の最新 135 を超える下限)。この記録と同じ PR
+次の 2 つは **bump PR の merge → タグの push** の順で行う。タグを先に push すると、Train Open Check (`train-open-check.yml`) がその時点の main (まだ旧 version) を検査して必ず失敗メールが届く (v1.1.5 で発生: タグ 02:02 に失敗 → bump merge 後の 02:05 に成功)。bump PR の CI は最新タグ (1 つ前の version) と比べるので、先に merge しても通る。
+
+- [x] **承認されたら**、次の version (1.1.6) への bump PR を他の PR より先に merge する (Xcode Cloud の train closed 対策、#235) ※ 1.1.6 / build 136 (Xcode Cloud の最新 135 を超える下限)。PR #271
+- [x] bump PR の merge 後すぐ `git tag -a v1.1.5 -m "v1.1.5" <ビルド元 commit> && git push origin v1.1.5` (ビルド元は build 135 の `6f4e261`) (承認前にタグを打たない) ※ 2026-10-24 に push (v1.1.5 では bump より先に打ったため、上の失敗メールが 1 通届いた)。公開 (10-19) から 5 日遅れ。その間に main へ merge した PR は 0 件
 - [x] 公開後に `scripts/release-status.sh` で 1.1.5 を実測 ※ 2026-10-24: 公開中 1.1.5 (JP / US とも 2026-10-19)
 - [ ] GitHub Release を作成 (§ 2.1 / § 2.3)
 - [ ] `release-retrospective` skill で振り返り (§ 5)
