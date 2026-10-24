@@ -133,7 +133,8 @@ final class VerificationScreenshotUITests: XCTestCase {
     /// 近づくまで存在しない。最初の存在待ちで止めず、スワイプしながら探す (#262)。
     private func tapHittableButton(containing text: String, in app: XCUIApplication, maxSwipes: Int = 8) {
         let query = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", text))
-        _ = query.firstMatch.waitForExistence(timeout: 10)
+        // 遠いカードはスクロールするまで作られず、長く待っても現れない。待ちは短くしてスワイプへ進む (#265)
+        _ = query.firstMatch.waitForExistence(timeout: 2)
         // 各スワイプの後 (と最初) に押せるボタンを探す
         for attempt in 0...maxSwipes {
             if let button = query.allElementsBoundByIndex.first(where: { $0.isHittable }) {
@@ -146,6 +147,29 @@ final class VerificationScreenshotUITests: XCTestCase {
             }
         }
         XCTFail("no hittable button containing '\(text)'. candidates=\(query.allElementsBoundByIndex.map { "\($0.label) \($0.frame)" })")
+    }
+
+    /// 押せる「記録する」を、timeout まで 0.5 秒ごとに探して返す (無ければ nil)。
+    /// チュートリアルの裏の記録タブにも同じラベルのボタンがあるため、ラベルの完全一致 (app.buttons["記録する"]) だと
+    /// 裏のボタンを掴むことがある (#265)。
+    private func hittableRecordButton(in app: XCUIApplication, timeout: TimeInterval = 5) -> XCUIElement? {
+        let query = app.buttons.matching(NSPredicate(format: "label == %@", "記録する"))
+        let deadline = Date().addingTimeInterval(timeout)
+        repeat {
+            if let button = query.allElementsBoundByIndex.first(where: { $0.isHittable }) {
+                return button
+            }
+            if Date() >= deadline { break }
+            Thread.sleep(forTimeInterval: 0.5)
+        } while true
+        return nil
+    }
+
+    /// 「記録する」ラベルの全要素の frame / isHittable (assert の失敗メッセージ用)
+    private func recordButtonCandidates(in app: XCUIApplication) -> String {
+        app.buttons.matching(NSPredicate(format: "label == %@", "記録する")).allElementsBoundByIndex
+            .map { "\($0.frame) hittable=\($0.isHittable)" }
+            .description
     }
 
     /// 記録タブのカード (子ども / タスク) を、画面下の記録バーに隠れていない部分を押して選ぶ (#260)。
@@ -483,19 +507,18 @@ final class VerificationScreenshotUITests: XCTestCase {
         sleep(1)
         attach(name: "verify-19-tutorial-record-step3-selected")
         // スワイプせずに「記録する」が画面内にあること (#262: AX では帯が選んだカードの下に出て、そこへ自動スクロールする)
-        let recordButton = app.buttons["記録する"]
-        XCTAssertTrue(
-            recordButton.waitForExistence(timeout: 5) && recordButton.isHittable,
-            "記録する not on screen after selecting お風呂を入れる. frame=\(recordButton.frame)"
+        XCTAssertNotNil(
+            hittableRecordButton(in: app),
+            "記録する not on screen after selecting お風呂を入れる. candidates=\(recordButtonCandidates(in: app))"
         )
 
         // 一番下のカードを選んでも、帯が画面の外に出ないこと (#262)
         tapHittableButton(containing: "自分の部屋の掃除", in: app)
         sleep(1)
         attach(name: "verify-23-tutorial-record-step3-last-selected")
-        XCTAssertTrue(
-            recordButton.waitForExistence(timeout: 5) && recordButton.isHittable,
-            "記録する not on screen after selecting 自分の部屋の掃除. frame=\(recordButton.frame)"
+        XCTAssertNotNil(
+            hittableRecordButton(in: app),
+            "記録する not on screen after selecting 自分の部屋の掃除. candidates=\(recordButtonCandidates(in: app))"
         )
 
         // ステップを 3 → 2 → 3 と戻っても、選んだカードの下の帯へ連れて行くこと (#265)。
@@ -505,9 +528,10 @@ final class VerificationScreenshotUITests: XCTestCase {
         tapEnabledButton("次へ", in: app)
         sleep(2)
         attach(name: "verify-24-tutorial-record-step3-returned")
-        XCTAssertTrue(
-            recordButton.waitForExistence(timeout: 5) && recordButton.isHittable,
-            "記録する not on screen after returning to step 3. frame=\(recordButton.frame)"
+        let returnedRecordButton = hittableRecordButton(in: app)
+        XCTAssertNotNil(
+            returnedRecordButton,
+            "記録する not on screen after returning to step 3. candidates=\(recordButtonCandidates(in: app))"
         )
 
         // 選択済みのカードをもう一度押しても、帯へ連れて行くこと (#265)。
@@ -520,8 +544,12 @@ final class VerificationScreenshotUITests: XCTestCase {
             XCTContext.runActivity(named: "skip verify-25 (re-tap): not an AX content size") { _ in }
             return
         }
+        guard let returnedRecordButton else {
+            XCTFail("no hittable 記録する to measure the drag distance. candidates=\(recordButtonCandidates(in: app))")
+            return
+        }
         let windowBottom = app.buttons["戻る"].frame.minY - 16
-        let shift = windowBottom - recordButton.frame.minY + 40
+        let shift = windowBottom - returnedRecordButton.frame.minY + 40
         let origin = app.coordinate(withNormalizedOffset: .zero)
         origin.withOffset(CGVector(dx: 8, dy: 200)).press(
             forDuration: 0.05,
@@ -532,9 +560,10 @@ final class VerificationScreenshotUITests: XCTestCase {
         sleep(1)
         let card = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "自分の部屋の掃除"))
             .allElementsBoundByIndex.first(where: { $0.isHittable && $0.frame.minY < windowBottom - 60 })
+        let visibleRecordButton = hittableRecordButton(in: app, timeout: 0)
         XCTAssertFalse(
-            recordButton.exists && recordButton.isHittable && recordButton.frame.maxY <= windowBottom,
-            "precondition: 記録する should be below the window before re-tapping. frame=\(recordButton.frame) windowBottom=\(windowBottom)"
+            visibleRecordButton.map { $0.frame.maxY <= windowBottom } ?? false,
+            "precondition: 記録する should be below the window before re-tapping. candidates=\(recordButtonCandidates(in: app)) windowBottom=\(windowBottom)"
         )
         XCTAssertNotNil(card, "precondition: 自分の部屋の掃除 should be visible. windowBottom=\(windowBottom) shift=\(shift)")
         if let card {
@@ -545,9 +574,9 @@ final class VerificationScreenshotUITests: XCTestCase {
         }
         sleep(2)
         attach(name: "verify-25-tutorial-record-step3-retapped")
-        XCTAssertTrue(
-            recordButton.waitForExistence(timeout: 5) && recordButton.isHittable,
-            "記録する not on screen after re-tapping 自分の部屋の掃除. frame=\(recordButton.frame)"
+        XCTAssertNotNil(
+            hittableRecordButton(in: app),
+            "記録する not on screen after re-tapping 自分の部屋の掃除. candidates=\(recordButtonCandidates(in: app))"
         )
     }
 }
