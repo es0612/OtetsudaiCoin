@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>アイコン候補の比較</title>
+<!--
+  #18 の物差し「29px でも手とコインと分かること」を確かめるための比較ページ。
+  画像は 2026-10-24 に Gemini で生成。7 案（A〜D, A1〜A3）から A1 を採用し、ここには A1 だけを置く。
+  プロンプトと落選案の比較結果は #18 の 2026-10-24 のコメントにある。
+  `open docs/design/app-icon/2026-10-24/compare.html` でブラウザに直接開ける（現行アイコンは相対パスで参照している）。
+  角丸は iOS のマスクに近い border-radius 22.37% で近似している（実機の squircle とは少し違う）。
+-->
+<style>
+  :root { --bg: #ffffff; --fg: #1c1c1e; --sub: #6e6e73; --line: #e5e5ea; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg: #000000; --fg: #f2f2f7; --sub: #98989d; --line: #2c2c2e; }
+  }
+  :root[data-theme="dark"] { --bg: #000000; --fg: #f2f2f7; --sub: #98989d; --line: #2c2c2e; }
+  body { margin: 0; padding: 16px; background: var(--bg); color: var(--fg);
+         font-family: -apple-system, "Hiragino Sans", sans-serif; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  p.note { color: var(--sub); font-size: 13px; margin: 0 0 16px; }
+  table { border-collapse: collapse; }
+  th, td { border-bottom: 1px solid var(--line); padding: 12px 16px; text-align: center; vertical-align: middle; }
+  th { font-size: 13px; color: var(--sub); font-weight: 600; }
+  td.label { text-align: left; font-size: 14px; white-space: nowrap; }
+  td.label small { display: block; color: var(--sub); font-size: 12px; }
+  img.icon { display: block; margin: 0 auto; border-radius: 22.37%; }
+  .s29 { width: 29px; height: 29px; }
+  .s60 { width: 60px; height: 60px; }
+  .s180 { width: 180px; height: 180px; }
+  .theme { margin-bottom: 16px; font-size: 13px; }
+</style>
+</head>
+<body>
+<h1>アイコン候補の比較（#18・採用案 A1）</h1>
+<p class="note">29 / 60 / 180 は CSS px です。29px は設定画面のアイコンの大きさにあたります。</p>
+<div class="theme">
+  背景:
+  <button onclick="document.documentElement.dataset.theme='light'">ライト</button>
+  <button onclick="document.documentElement.dataset.theme='dark'">ダーク</button>
+</div>
+<table>
+  <thead>
+    <tr><th></th><th>29px</th><th>60px</th><th>180px</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="label">現行<small>AppIcon2.png（¥ ＋ ハート）</small></td>
+      <td><img class="icon s29" src="../../../../app/OtetsudaiCoin/Assets.xcassets/AppIcon.appiconset/AppIcon2.png" alt="現行 29px"></td>
+      <td><img class="icon s60" src="../../../../app/OtetsudaiCoin/Assets.xcassets/AppIcon.appiconset/AppIcon2.png" alt="現行 60px"></td>
+      <td><img class="icon s180" src="../../../../app/OtetsudaiCoin/Assets.xcassets/AppIcon.appiconset/AppIcon2.png" alt="現行 180px"></td>
+    </tr>
+    <tr>
+      <td class="label">A1<small>A ＋ 大人の指先が上から</small></td>
+      <td><img class="icon s29" src="a1-adult-fingertips.jpeg" alt="A1 29px"></td>
+      <td><img class="icon s60" src="a1-adult-fingertips.jpeg" alt="A1 60px"></td>
+      <td><img class="icon s180" src="a1-adult-fingertips.jpeg" alt="A1 180px"></td>
+    </tr>
+  </tbody>
+</table>
+</body>
+</html>
