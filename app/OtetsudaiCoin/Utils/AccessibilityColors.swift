@@ -139,6 +139,17 @@ struct AccessibilityColors {
     /// 温色の淡背景。
     static let brandSurfaceWarm = Color(hex: "#FFF4E6") ?? .orange.opacity(0.1)
 
+    // MARK: - Splash (#151 ダークモード1: #18 の新アイコンに揃える)
+
+    /// Splash 背景グラデの上端。light はアイコンと同じクリーム、dark はダーク版アイコンの背景色 (黒にしない)
+    static let splashBackgroundTop = Color.adaptive(light: "#FFF4E6", dark: "#2A1A12", fallback: .orange.opacity(0.1))
+
+    /// Splash 背景グラデの下端
+    static let splashBackgroundBottom = Color.adaptive(light: "#FFEFC2", dark: "#1A0F0A", fallback: .yellow.opacity(0.2))
+
+    /// Splash の文字・ローディング点。footnote もあるのでグラデ両端で AA (BrandColorsTests で担保)
+    static let splashText = Color.adaptive(light: "#C2410C", dark: "#FFF4E6", fallback: .orange)
+
     /// タスクアイコン円の塗り (選択時)。TaskIconView で使用 (#200 で 3 site から hoist)。
     static let taskIconSelectedFill = brandPrimary.opacity(0.15)
 

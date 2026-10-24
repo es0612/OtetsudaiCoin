@@ -1,8 +1,7 @@
 import SwiftUI
 
 struct SplashScreenView: View {
-    @State private var coinScale: CGFloat = 0.3
-    @State private var coinRotation: Double = 0
+    @State private var iconScale: CGFloat = 0.3
     @State private var titleOpacity: Double = 0
     @State private var subtitleOffset: CGFloat = 30
     @State private var glowIntensity: Double = 0.3
@@ -11,11 +10,11 @@ struct SplashScreenView: View {
     
     var body: some View {
         ZStack {
-            // 温かみのある2色グラデーション背景
+            // #151 ダークモード1: 新アイコン (#18) と同じクリーム / dark は暗い暖色 (黒にしない)
             LinearGradient(
                 colors: [
-                    Color.orange.opacity(0.8),
-                    Color.yellow.opacity(0.6)
+                    AccessibilityColors.splashBackgroundTop,
+                    AccessibilityColors.splashBackgroundBottom
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -25,53 +24,40 @@ struct SplashScreenView: View {
             VStack(spacing: 40) {
                 Spacer()
                 
-                // メインコインアイコン
-                ZStack {
-                    // 柔らかい外側のグロー
-                    Circle()
-                        .fill(
-                            RadialGradient(
-                                colors: [
-                                    Color.yellow.opacity(0.3),
-                                    Color.clear
-                                ],
-                                center: .center,
-                                startRadius: 60,
-                                endRadius: 120
+                // メインアイコン: ホーム画面のアイコンと同じ絵を拡大して見せる
+                Image("SplashIcon")
+                    .resizable()
+                    .scaledToFit()
+                    .decorativeFrame(size: 160)
+                    .clipShape(AppIconMask())
+                    .shadow(
+                        color: AccessibilityColors.brandPrimary.opacity(0.25),
+                        radius: 12,
+                        x: 0, y: 4
+                    )
+                    // 光は background に置き、レイアウトの高さに数えない
+                    // (ZStack だと AX 最大で 240pt × 1.3 = 312pt を取り、サブタイトルが 1 行に潰れた)
+                    .background {
+                        Circle()
+                            .fill(
+                                EllipticalGradient(
+                                    colors: [
+                                        AccessibilityColors.brandAccent.opacity(0.5),
+                                        Color.clear
+                                    ],
+                                    center: .center,
+                                    // 半径は枠に対する比率で指定し、decorativeFrame で育っても光の幅を保つ。
+                                    // 終端は枠の半径 (0.5) 以下にする。超えると色が消えきる前に円のふちで切れ、
+                                    // dark で円盤の輪郭が見える
+                                    startRadiusFraction: 0.2,
+                                    endRadiusFraction: 0.5
+                                )
                             )
-                        )
-                        .decorativeFrame(size: 200)
-                        .scaleEffect(coinScale)
-                        .opacity(glowIntensity)
-                    
-                    // メインコイン
-                    Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    Color.yellow.opacity(0.95),
-                                    Color.orange.opacity(0.85)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .decorativeFrame(size: 100)
-                        .overlay(
-                            // コインの中央アイコン
-                            Image(systemName: "hands.sparkles")
-                                .decorativeFont(size: 32, weight: .semibold)
-                                .foregroundColor(.white)
-                                .shadow(color: .black.opacity(0.2), radius: 1, x: 0, y: 1)
-                        )
-                        .scaleEffect(coinScale)
-                        .rotationEffect(.degrees(coinRotation))
-                        .shadow(
-                            color: .orange.opacity(0.4),
-                            radius: 8,
-                            x: 0, y: 2
-                        )
-                }
+                            .decorativeFrame(size: 240)
+                            .opacity(glowIntensity)
+                    }
+                    .scaleEffect(iconScale)
+                    .accessibilityHidden(true)
                 
                 // アプリタイトル
                 VStack(spacing: 16) {
@@ -82,15 +68,13 @@ struct SplashScreenView: View {
                         .decorativeFont(size: 36, weight: .bold, design: .rounded)
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
-                        .foregroundColor(.white)
-                        .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 2)
+                        .foregroundColor(AccessibilityColors.splashText)
                         .opacity(titleOpacity)
                     
                     Text("お手伝いでコインを貯めよう！")
                         .font(.title3)
                         .fontWeight(.medium)
-                        .foregroundColor(.white.opacity(0.9))
-                        .shadow(color: .black.opacity(0.2), radius: 1, x: 0, y: 1)
+                        .foregroundColor(AccessibilityColors.splashText)
                         .offset(y: subtitleOffset)
                         .opacity(titleOpacity)
                 }
@@ -102,21 +86,21 @@ struct SplashScreenView: View {
                     HStack(spacing: 6) {
                         ForEach(0..<3) { index in
                             Circle()
-                                .fill(Color.white.opacity(0.7))
+                                .fill(AccessibilityColors.splashText.opacity(0.7))
                                 .frame(width: 8, height: 8)
-                                .scaleEffect(coinScale > 0.8 ? 1.1 : 0.9)
+                                .scaleEffect(iconScale > 0.8 ? 1.1 : 0.9)
                                 .animation(
                                     .easeInOut(duration: 0.8)
                                     .repeatForever()
                                     .delay(Double(index) * 0.15),
-                                    value: coinScale
+                                    value: iconScale
                                 )
                         }
                     }
                     
                     Text("読み込み中...")
                         .font(.footnote)
-                        .foregroundColor(.white.opacity(0.8))
+                        .foregroundColor(AccessibilityColors.splashText)
                         .opacity(titleOpacity)
                 }
                 .padding(.bottom, 60)
@@ -135,14 +119,9 @@ struct SplashScreenView: View {
     }
     
     private func startAnimations() {
-        // コインのスケールアップ
+        // アイコンのスケールアップ
         withAnimation(.spring(response: 1.0, dampingFraction: 0.7, blendDuration: 0)) {
-            coinScale = 1.0
-        }
-        
-        // コインの穏やかな回転
-        withAnimation(.linear(duration: 4).repeatForever(autoreverses: false)) {
-            coinRotation = 360
+            iconScale = 1.0
         }
         
         // グロー効果
@@ -159,6 +138,13 @@ struct SplashScreenView: View {
         withAnimation(.spring(response: 0.8, dampingFraction: 0.8, blendDuration: 0).delay(0.6)) {
             subtitleOffset = 0
         }
+    }
+}
+
+/// iOS のアイコンマスクに近い角丸 (幅の 22.37%)。decorativeFrame で大きさが変わっても比率を保つ
+private struct AppIconMask: Shape {
+    func path(in rect: CGRect) -> Path {
+        RoundedRectangle(cornerRadius: rect.width * 0.2237, style: .continuous).path(in: rect)
     }
 }
 
