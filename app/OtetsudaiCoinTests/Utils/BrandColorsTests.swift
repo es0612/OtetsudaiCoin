@@ -39,6 +39,25 @@ final class BrandColorsTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(ratio, 4.5, "light の白地 (actual: \(ratio))")
     }
 
+    // MARK: - Splash (#151 ダークモード1 / #18 の新アイコンに揃える)
+
+    // 「読み込み中...」は footnote (13pt) なので、グラデの両端どちらに対しても AA (4.5:1)
+    func testSplashTextOnLightBackgroundMeetsAA() {
+        let text = resolved(AccessibilityColors.splashText, .light)
+        for (name, bg) in [("top", AccessibilityColors.splashBackgroundTop), ("bottom", AccessibilityColors.splashBackgroundBottom)] {
+            let ratio = text.contrastRatio(with: resolved(bg, .light))
+            XCTAssertGreaterThanOrEqual(ratio, 4.5, "light の \(name) (actual: \(ratio))")
+        }
+    }
+
+    func testSplashTextOnDarkBackgroundMeetsAA() {
+        let text = resolved(AccessibilityColors.splashText, .dark)
+        for (name, bg) in [("top", AccessibilityColors.splashBackgroundTop), ("bottom", AccessibilityColors.splashBackgroundBottom)] {
+            let ratio = text.contrastRatio(with: resolved(bg, .dark))
+            XCTAssertGreaterThanOrEqual(ratio, 4.5, "dark の \(name) (actual: \(ratio))")
+        }
+    }
+
     func testPrimaryBlueOnDarkCardBackgroundMeetsAA() {
         // dark のカード背景 = secondarySystemGroupedBackground (#1C1C1E)
         let darkCard = Color(hex: "#1C1C1E")!
