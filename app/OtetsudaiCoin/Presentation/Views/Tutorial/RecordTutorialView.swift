@@ -274,10 +274,11 @@ struct RecordTutorialView: View {
                         recordActionScrollSerial += 1
                     }
                 )
-                // 1 列の LazyVGrid なので、帯はカードの次の行に入る
-                if showsRecordActionBelow(task) {
+                // 1 列の LazyVGrid なので、帯はカードの次の行に入る。
+                // .id は TutorialStepContainer の scrollTo(String) と同じ String 型にそろえる (#265)
+                if showsRecordActionBelow(task), let scrollTarget = recordActionScrollTarget {
                     recordActionPanel
-                        .id(recordActionScrollTarget)
+                        .id(scrollTarget)
                 }
             }
         }

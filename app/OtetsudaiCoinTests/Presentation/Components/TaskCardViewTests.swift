@@ -152,4 +152,14 @@ final class TaskCardViewTests: XCTestCase {
             "固定 height=150 が残っている。fixed=\(fixedFrames)"
         )
     }
+
+    // MARK: - #265 AX サイズのカード幅
+
+    func test_cardWidth_followsContent_atDefaultSizes() {
+        XCTAssertNil(TaskCardView.cardMaxWidth(isAccessibilitySize: false))
+    }
+
+    func test_cardWidth_fillsTheColumn_atAccessibilitySizes() {
+        XCTAssertEqual(TaskCardView.cardMaxWidth(isAccessibilitySize: true), .infinity)
+    }
 }
