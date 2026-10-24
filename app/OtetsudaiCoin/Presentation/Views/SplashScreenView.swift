@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct SplashScreenView: View {
-    @State private var coinScale: CGFloat = 0.3
+    @State private var iconScale: CGFloat = 0.3
     @State private var titleOpacity: Double = 0
     @State private var subtitleOffset: CGFloat = 30
     @State private var glowIntensity: Double = 0.3
@@ -40,22 +40,23 @@ struct SplashScreenView: View {
                     .background {
                         Circle()
                             .fill(
-                                RadialGradient(
+                                EllipticalGradient(
                                     colors: [
                                         AccessibilityColors.brandAccent.opacity(0.5),
                                         Color.clear
                                     ],
                                     center: .center,
-                                    // endRadius は枠の半径 (240 / 2) 以下にする。超えると色が消えきる前に
-                                    // 円のふちで切れ、dark で円盤の輪郭が見える
-                                    startRadius: 50,
-                                    endRadius: 120
+                                    // 半径は枠に対する比率で指定し、decorativeFrame で育っても光の幅を保つ。
+                                    // 終端は枠の半径 (0.5) 以下にする。超えると色が消えきる前に円のふちで切れ、
+                                    // dark で円盤の輪郭が見える
+                                    startRadiusFraction: 0.2,
+                                    endRadiusFraction: 0.5
                                 )
                             )
                             .decorativeFrame(size: 240)
                             .opacity(glowIntensity)
                     }
-                    .scaleEffect(coinScale)
+                    .scaleEffect(iconScale)
                     .accessibilityHidden(true)
                 
                 // アプリタイトル
@@ -87,12 +88,12 @@ struct SplashScreenView: View {
                             Circle()
                                 .fill(AccessibilityColors.splashText.opacity(0.7))
                                 .frame(width: 8, height: 8)
-                                .scaleEffect(coinScale > 0.8 ? 1.1 : 0.9)
+                                .scaleEffect(iconScale > 0.8 ? 1.1 : 0.9)
                                 .animation(
                                     .easeInOut(duration: 0.8)
                                     .repeatForever()
                                     .delay(Double(index) * 0.15),
-                                    value: coinScale
+                                    value: iconScale
                                 )
                         }
                     }
@@ -118,9 +119,9 @@ struct SplashScreenView: View {
     }
     
     private func startAnimations() {
-        // コインのスケールアップ
+        // アイコンのスケールアップ
         withAnimation(.spring(response: 1.0, dampingFraction: 0.7, blendDuration: 0)) {
-            coinScale = 1.0
+            iconScale = 1.0
         }
         
         // グロー効果
