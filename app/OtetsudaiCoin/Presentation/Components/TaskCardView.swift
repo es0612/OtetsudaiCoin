@@ -6,13 +6,6 @@ struct TaskCardView: View {
     var isBulkMode: Bool = false
     var existingCount: Int = 0
     let onTap: () -> Void
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-
-    // #265: 1 列にするとカードの幅が名前の長さでばらばらになるため、AX サイズでは列いっぱいにそろえる
-    // (チュートリアルの TutorialTaskCardView.cardMaxWidth と同じ考え方、#253)。既定サイズは今までどおり。
-    static func cardMaxWidth(isAccessibilitySize: Bool) -> CGFloat? {
-        isAccessibilitySize ? .infinity : nil
-    }
 
     var body: some View {
         Button(action: onTap) {
@@ -26,9 +19,11 @@ struct TaskCardView: View {
                 }
             }
             .padding()
-            .frame(maxWidth: Self.cardMaxWidth(isAccessibilitySize: dynamicTypeSize.isAccessibilitySize))
-            // #151: AX サイズの Dynamic Type で内容がクリップしないよう下方向へ伸ばせるようにする
-            .frame(minHeight: 150)
+            // #277: 中身の大きさに合わせると、横に並ぶ 2 枚の幅も高さもタスク名や「すでに N 件記録済み」の
+            // 有無でばらつく。グリッドの列の幅と行の高さいっぱいに広げ、余った高さはタスク名の枠が受け取る
+            // (taskTitle)。AX サイズの 1 列も同じく列いっぱい (#265)。
+            // #151: AX サイズの Dynamic Type で内容がクリップしないよう下方向へ伸ばせるようにする (minHeight)
+            .frame(maxWidth: .infinity, minHeight: 150, maxHeight: .infinity, alignment: .top)
             .background(cardBackground)
             .overlay(alignment: .topTrailing) {
                 selectionCheckmark
@@ -76,6 +71,9 @@ struct TaskCardView: View {
             .multilineTextAlignment(.center)
             .foregroundColor(AccessibilityColors.textPrimary)
             .lineLimit(2)
+            // #277: 行の高さにそろえたとき、余った高さを名前の枠で受け取る。コインと「選択」は下端に寄り、
+            // 名前が 2 行の隣のカードと横一列にそろう (Spacer だと VStack の spacing が 1 つ増えて 12pt 高くなる)。
+            .frame(maxHeight: .infinity, alignment: .top)
     }
 
     private var coinInfo: some View {
