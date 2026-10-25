@@ -72,7 +72,8 @@ struct TaskCardView: View {
             .foregroundColor(AccessibilityColors.textPrimary)
             .lineLimit(2)
             // #277: 行の高さにそろえたとき、余った高さを名前の枠で受け取る。コインと「選択」は下端に寄り、
-            // 名前が 2 行の隣のカードと横一列にそろう (Spacer だと VStack の spacing が 1 つ増えて 12pt 高くなる)。
+            // 名前が 2 行の隣のカードと横一列にそろう。ただし隣にだけ「すでに N 件記録済み」の行があると
+            // 1 行ぶんずれる (置き方は #280)。Spacer だと VStack の spacing が 1 つ増えて 12pt 高くなる。
             .frame(maxHeight: .infinity, alignment: .top)
     }
 
