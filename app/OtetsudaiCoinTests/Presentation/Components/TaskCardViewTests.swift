@@ -169,10 +169,12 @@ final class TaskCardViewTests: XCTestCase {
     /// 高さをそろえた行で、余った高さはタスク名の枠が受け取る (#277)。
     /// 名前が 1 行のカードでも「10 コイン」と「選択」が下端へ寄り、2 行の隣のカードと横一列にそろう。
     func test_taskTitle_absorbsExtraHeight() throws {
-        let view = TaskCardView(task: makeTask(name: "お風呂を入れる"), isSelected: false, onTap: {})
+        // 既定タスク名は displayName で翻訳される (clone simulator の en_US では "Run the bath") ため、
+        // 辞書に無い名前で verbatim 表示させて locale に依存せず掴む。
+        let view = TaskCardView(task: makeTask(name: "辞書に無い独自タスク"), isSelected: false, onTap: {})
         let texts = try view.inspect().findAll(ViewType.Text.self)
         let titleFrames = texts
-            .filter { (try? $0.string()) == "お風呂を入れる" }
+            .filter { (try? $0.string()) == "辞書に無い独自タスク" }
             .compactMap { try? $0.flexFrame() }
         XCTAssertTrue(
             titleFrames.contains(where: { $0.maxHeight == .infinity }),
