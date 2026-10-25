@@ -159,3 +159,4 @@ Thank you for using Otetsudai Coin!
 - [ ] 公開後に `scripts/release-status.sh` で 1.1.6 を実測
 - [ ] App Store の掲載ページに新しいアイコンが出ることを確かめ、#18 を close (#18 の close 条件 1)
 - [ ] GitHub Release を作成 (§ 2.1 / § 2.3)
+- [ ] `release-retrospective` skill で振り返り
