@@ -153,13 +153,32 @@ final class TaskCardViewTests: XCTestCase {
         )
     }
 
-    // MARK: - #265 AX サイズのカード幅
+    // MARK: - #277 カードの幅と高さ
 
-    func test_cardWidth_followsContent_atDefaultSizes() {
-        XCTAssertNil(TaskCardView.cardMaxWidth(isAccessibilitySize: false))
+    /// 既定サイズの 2 列でも、カードは列の幅と行の高さいっぱいに広がる (#277)。
+    /// #265 では AX サイズだけ幅をそろえていた (既定サイズは中身の幅で、横に並ぶ 2 枚の幅も高さも不ぞろい)。
+    func test_cardFrame_fillsTheGridCell() throws {
+        let view = TaskCardView(task: makeTask(), isSelected: false, onTap: {})
+        let flexFrames = try view.inspect().findAll(ViewType.VStack.self).compactMap { try? $0.flexFrame() }
+        XCTAssertTrue(
+            flexFrames.contains(where: { $0.maxWidth == .infinity && $0.maxHeight == .infinity }),
+            "maxWidth / maxHeight が .infinity の flexFrame が見つからない。flex=\(flexFrames)"
+        )
     }
 
-    func test_cardWidth_fillsTheColumn_atAccessibilitySizes() {
-        XCTAssertEqual(TaskCardView.cardMaxWidth(isAccessibilitySize: true), .infinity)
+    /// 高さをそろえた行で、余った高さはタスク名の枠が受け取る (#277)。
+    /// 名前が 1 行のカードでも「10 コイン」と「選択」が下端へ寄り、2 行の隣のカードと横一列にそろう。
+    func test_taskTitle_absorbsExtraHeight() throws {
+        // 既定タスク名は displayName で翻訳される (clone simulator の en_US では "Run the bath") ため、
+        // 辞書に無い名前で verbatim 表示させて locale に依存せず掴む。
+        let view = TaskCardView(task: makeTask(name: "辞書に無い独自タスク"), isSelected: false, onTap: {})
+        let texts = try view.inspect().findAll(ViewType.Text.self)
+        let titleFrames = texts
+            .filter { (try? $0.string()) == "辞書に無い独自タスク" }
+            .compactMap { try? $0.flexFrame() }
+        XCTAssertTrue(
+            titleFrames.contains(where: { $0.maxHeight == .infinity }),
+            "タスク名の Text に maxHeight=.infinity の flexFrame が無い。texts=\(texts.compactMap { try? $0.string() }), titleFrames=\(titleFrames)"
+        )
     }
 }
