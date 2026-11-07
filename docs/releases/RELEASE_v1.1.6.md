@@ -190,7 +190,7 @@ Thank you for using Otetsudai Coin!
 ### 詰まった点 / 失敗
 
 - **公開後の後片付けが 12 日止まった**: 手順書 § 4 にも #18 のコメントにも手順は書いてあったが、承認の通知を受けて動く仕組みがなく、次のトリアージまで誰も動かなかった。今回は間に `app/` の変更がなかったので無傷だった
-- **v1.1.5 の後片付けも一部抜けていた**: v1.1.5 の GitHub Release と振り返りは作られていない (2026-11-07 に気づいた)。`release-status.sh` はタグと公開中のバージョンしか見ないので、GitHub Release の抜けはどの仕組みにも拾われない
+- **v1.1.5 の後片付けも一部抜けていた**: v1.1.5 の GitHub Release と振り返りは作られていない (2026-11-07 に気づいた)。`release-status.sh` はタグと公開中のバージョンしか見ないので、GitHub Release の抜けはどの仕組みにも拾われない。v1.1.5 の Release は 2026-11-07 に作成した (公開から 19 日後)。v1.1.5 の振り返りは、時間がたっているので書かない
 - **§ 3 の 3 項目が、v1.1.4 に続いて未チェックのまま提出した**: 「`release-version-bump-check.yml` が green」「main でユニットテストが green」「ja / en 両方で起動」。前の 2 つは PR 側に証拠がある (PR #271 で pass、PR #281 のブランチで 571 件 green) が、手順書に転記されていない。ja / en の起動は記録がない。v1.1.4 の振り返りの「未確認事項」と同じ項目が、2 回続けて残った
 
 ### 想定外の発見
@@ -214,6 +214,7 @@ Thank you for using Otetsudai Coin!
 | issue の案を事故の時系列に当ててから実装する。長い外部処理は偽コマンドで再現する | #233 の候補 J | done (記録のみ) |
 | usage を固定の行範囲で読まない | #233 の候補 F → PR #288 | done |
 | 撮影中に Simulator の設定が書き換わったら止める | #283 → PR #288 | validating (本物の撮影 5 回を計測中) |
-| GitHub Release の抜けを拾う仕組みがない | (オーナー判断待ち) | idea |
-| § 3 の未チェックが 2 回続いた | (オーナー判断待ち) | idea |
-| v1.1.5 の GitHub Release | (オーナー判断待ち。Claude の作成は分類器が拒否) | idea |
+| GitHub Release の抜けを拾う仕組みがない | `release-status.sh` に 1 行 (PR #291) + `daily-issue-triage` Step 0 に 1 文 | in-progress (PR #291 レビュー待ち) |
+| § 3 の未チェックが 2 回続いた | Issue #290 (v1.1.7 の手順書で、CI の項目を証拠リンク欄にする) | idea |
+| v1.1.5 の GitHub Release | [v1.1.5](https://github.com/es0612/OtetsudaiCoin/releases/tag/v1.1.5) を作成 (1 回目は分類器が拒否し、オーナーの許可の後に再試行) | done |
+| 公開系の操作が分類器に拒否されたら、closed 質問で「自分でやる／1 回だけ再試行を許可」を聞く | グローバル CLAUDE.md の merge ルールを更新 | done |
