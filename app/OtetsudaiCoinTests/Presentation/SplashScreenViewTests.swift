@@ -21,4 +21,11 @@ final class SplashScreenViewTests: XCTestCase {
         let darkData = try XCTUnwrap(dark?.pngData(), "dark の SplashIcon が読めない")
         XCTAssertNotEqual(lightData, darkData, "dark 版が light と同じ画像になっている (luminosity dark の登録漏れ)")
     }
+
+    // iOS の起動画面 (Splash の前に出る静止画) の背景を Splash のクリームに揃え、白 / 黒からの切り替わりのちらつきを防ぐ。
+    // pbxproj の設定ではなく、ビルドされた Info.plist に実際に入っているかを見る
+    func testLaunchScreenUsesLaunchBackgroundColor() {
+        let launchScreen = Bundle.main.infoDictionary?["UILaunchScreen"] as? [String: Any]
+        XCTAssertEqual(launchScreen?["UIColorName"] as? String, "LaunchBackground", "UILaunchScreen: \(String(describing: launchScreen))")
+    }
 }
