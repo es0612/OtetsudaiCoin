@@ -17,9 +17,15 @@
 #   leave the current size untouched. Categories: see `xcrun simctl ui`.
 #
 #   Each output folder also gets capture-meta.txt (content size / device /
-#   iOS runtime / appearance read back from the simulator, plus commit and
-#   time). compare-screenshots.sh stops when the two folders differ in those
-#   conditions (Issue #256).
+#   iOS runtime / appearance / Reduce Motion read back from the simulator,
+#   plus commit and time). compare-screenshots.sh stops when the two folders
+#   differ in those conditions (Issue #256, #283).
+#
+#   While each run is in progress, the script re-reads appearance / content
+#   size / Reduce Motion every 5 seconds. If another session changes any of
+#   them on the same simulator (even if it changes them back), that run's
+#   shots are discarded, the folder keeps the previous shots, and the script
+#   exits 1 (Issue #283).
 #
 #   If some tests fail (e.g. Settings buttons pushed off-screen at AX sizes),
 #   the attachments of the tests that ran are still placed, then the script
@@ -43,8 +49,10 @@ DEVICE_NAME="iPhone 17 Pro Max"
 APPEARANCE_MODE="both"
 CONTENT_SIZE=""
 
+# Prints the header comment: from the line after the shebang up to the first
+# non-comment line, so the usage grows with the header (no fixed line range).
 usage() {
-  sed -n '2,34p' "$0" | sed 's/^# \{0,1\}//'
+  awk 'NR == 1 { next } !/^#/ { exit } { print }' "$0" | sed 's/^# \{0,1\}//'
 }
 
 while [[ $# -gt 0 ]]; do
@@ -138,6 +146,9 @@ for appearance in "${APPEARANCES[@]}"; do
 
   result_bundle="$TMP_ROOT/$appearance.xcresult"
   log="$TMP_ROOT/$appearance.log"
+  watch_log="$TMP_ROOT/$appearance.conditions.log"
+  echo "==> [$appearance] Watching simulator settings during the run: $(read_sim_conditions "$UDID")"
+  start_condition_watch "$UDID" "$watch_log"
   echo "==> [$appearance] Running $TEST_CLASS (log: $log)"
   set +e
   xcodebuild test \
@@ -149,7 +160,17 @@ for appearance in "${APPEARANCES[@]}"; do
     -resultBundlePath "$result_bundle" > "$log" 2>&1
   xcode_exit=$?
   set -e
+  stop_condition_watch
   grep -E -A6 '\*\* TEST|Failing tests:' "$log" || true
+  # Another session may have changed the shared simulator mid-run (Issue #283).
+  # Those shots cannot be trusted, so place nothing and keep the previous ones.
+  if [[ -s "$watch_log" ]]; then
+    echo "error: [$appearance] simulator settings changed during the run (another session using the same device?):" >&2
+    sed 's/^/  /' "$watch_log" >&2
+    echo "error: [$appearance] discarded this run's shots; kept $OUT_DIR/$appearance as is. Check the settings and capture again." >&2
+    FAILED_APPEARANCES+=("$appearance")
+    continue
+  fi
   if [[ $xcode_exit -ne 0 ]] || ! grep -q '\*\* TEST SUCCEEDED \*\*' "$log"; then
     echo "error: [$appearance] xcodebuild test failed (exit=$xcode_exit). See $log" >&2
     echo "hint: xcrun xcresulttool get test-results tests --path \"$result_bundle\"" >&2

@@ -131,13 +131,85 @@ _restore_content_size() {
 # udid / captured_at are expected to differ and are informational only.
 # runtime is included because several simulators share a device name with
 # different iOS versions (iPhone 17 Pro Max on iOS 26.2 / 26.4 / 26.5 here).
-CAPTURE_CONDITION_KEYS="content_size device runtime appearance"
+# reduce_motion is included because another session can switch it on the shared
+# device and leave it on (Issue #283).
+CAPTURE_CONDITION_KEYS="content_size device runtime appearance reduce_motion"
+
+# Prints the device's Reduce Motion setting as on / off / unknown. Needs a
+# booted device. Measured 2026-11-07 (Issue #283): `defaults read` prints 0 or 1
+# when the key is set; when the key was deleted it exits 1 with "does not
+# exist", which means the default (off), so a deleted key and 0 compare equal.
+# Any other failure (e.g. exit 149 "device is not booted") is unknown.
+read_reduce_motion() {
+  local udid="$1" out status
+  out="$(xcrun simctl spawn "$udid" defaults read com.apple.Accessibility ReduceMotionEnabled 2>&1)" \
+    && status=0 || status=$?
+  if [[ $status -eq 0 ]]; then
+    case "$out" in
+      1) echo "on" ;;
+      0) echo "off" ;;
+      *) echo "unknown" ;;
+    esac
+  elif [[ "$out" == *"does not exist"* ]]; then
+    echo "off"
+  else
+    echo "unknown"
+  fi
+}
+
+# Prints the device settings that change what is drawn and that another
+# session can change mid-run, on one line (appearance=… content_size=…
+# reduce_motion=…). Used for capture-meta.txt and the mid-run watch below.
+read_sim_conditions() {
+  local udid="$1"
+  echo "appearance=$(xcrun simctl ui "$udid" appearance 2>/dev/null)" \
+    "content_size=$(xcrun simctl ui "$udid" content_size 2>/dev/null)" \
+    "reduce_motion=$(read_reduce_motion "$udid")"
+}
+
+# Watches the device settings while a capture runs, because another session
+# can change them and put them back before the run ends (Issue #283: appearance
+# and content size were changed at 09:30 and restored at 09:34, mid-capture), so
+# reading them only before and after the run would miss it.
+# start_condition_watch <udid> <log-file> [interval-seconds]
+#   records the current settings as the expected ones, then every interval
+#   (default 5s) appends a line to <log-file> whenever they differ.
+# stop_condition_watch stops it; the run is clean when <log-file> is empty.
+# Change appearance / content size BEFORE starting the watch.
+start_condition_watch() {
+  local udid="$1" log="$2" interval="${3:-5}" expected
+  expected="$(read_sim_conditions "$udid")"
+  : > "$log"
+  (
+    set +e
+    while true; do
+      sleep "$interval"
+      current="$(read_sim_conditions "$udid")"
+      if [[ "$current" != "$expected" ]]; then
+        echo "$(date +%H:%M:%S) expected: $expected / now: $current" >> "$log"
+      fi
+    done
+  ) &
+  _CONDITION_WATCH_PID=$!
+  if [[ -z "${_CONDITION_WATCH_HANDLER_ADDED:-}" ]]; then
+    _CONDITION_WATCH_HANDLER_ADDED=1
+    add_exit_handler stop_condition_watch
+  fi
+}
+
+stop_condition_watch() {
+  if [[ -n "${_CONDITION_WATCH_PID:-}" ]]; then
+    kill "$_CONDITION_WATCH_PID" 2>/dev/null || true
+    wait "$_CONDITION_WATCH_PID" 2>/dev/null || true
+    _CONDITION_WATCH_PID=""
+  fi
+}
 
 # Writes <dest_dir>/capture-meta.txt next to the PNGs, so a folder later used as
 # the before/after side of compare-screenshots.sh says how it was captured.
-# content_size and appearance are read back from the simulator (not taken from
-# the options), because without --content-size the run uses whatever size the
-# device was left at. Call while the device is booted and still set up for the
+# content_size, appearance and reduce_motion are read back from the simulator
+# (not taken from the options), because without --content-size the run uses
+# whatever size the device was left at. Call while the device is booted and still set up for the
 # run — the exit handlers restore both settings afterwards. Requires $JQ.
 # See Issue #256.
 write_capture_meta() {
@@ -152,6 +224,7 @@ write_capture_meta() {
     echo "device=$device"
     echo "runtime=$runtime"
     echo "appearance=$(xcrun simctl ui "$udid" appearance 2>/dev/null)"
+    echo "reduce_motion=$(read_reduce_motion "$udid")"
     echo "udid=$udid"
     echo "commit=$(git rev-parse HEAD 2>/dev/null)"
     echo "worktree=$worktree"

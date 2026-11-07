@@ -35,10 +35,13 @@
 #
 # Before comparing pixels, it reads capture-meta.txt in both folders (written
 # by capture-verification-screenshots.sh) and stops when the capture
-# conditions differ — content_size / device / runtime / appearance. A before
-# folder left over from an AX-size run otherwise shows up as "every scene
-# differs" (Issue #256). A folder without capture-meta.txt is reported as
-# "conditions unknown" and the comparison goes on.
+# conditions differ — content_size / device / runtime / appearance /
+# reduce_motion. A before folder left over from an AX-size run otherwise shows
+# up as "every scene differs" (Issue #256), and Reduce Motion can be left on by
+# another session using the same simulator (Issue #283). A folder without
+# capture-meta.txt is reported as "conditions unknown" and the comparison goes
+# on; so is a key recorded in only one folder (e.g. reduce_motion in a folder
+# captured before #283), which is then left out of the check.
 #
 # Usage:
 #   scripts/compare-screenshots.sh <before-dir> <after-dir> [--status-bar-px N]
@@ -104,7 +107,7 @@ meta_value() {
 }
 
 check_capture_conditions() {
-  local dir key before_value after_value mismatches=0 unknown=0 details=""
+  local dir key before_value after_value reduce_motion mismatches=0 unknown=0 details=""
   for dir in "$BEFORE_DIR" "$AFTER_DIR"; do
     if [[ ! -f "$dir/capture-meta.txt" ]]; then
       echo "warn: no capture-meta.txt in $dir — capture conditions unknown (captured before Issue #256?)" >&2
@@ -116,14 +119,24 @@ check_capture_conditions() {
   for key in $CAPTURE_CONDITION_KEYS; do
     before_value="$(meta_value "$BEFORE_DIR" "$key")"
     after_value="$(meta_value "$AFTER_DIR" "$key")"
+    # A key missing on one side was not recorded yet when that folder was
+    # captured (reduce_motion arrived with Issue #283): unknown, not different.
+    if [[ -z "$before_value" || -z "$after_value" ]] && [[ "$before_value" != "$after_value" ]]; then
+      echo "warn: $key not recorded in one folder (captured before it was added?): before=${before_value:-(none)} after=${after_value:-(none)} — not compared" >&2
+      continue
+    fi
     if [[ "$before_value" != "$after_value" ]]; then
       details+="  $key: before=${before_value:-(none)} after=${after_value:-(none)}"$'\n'
       mismatches=$((mismatches + 1))
     fi
   done
   if [[ $mismatches -eq 0 ]]; then
+    # equal on both sides when recorded on both; otherwise the one side's value
+    reduce_motion="$(meta_value "$BEFORE_DIR" reduce_motion)"
+    reduce_motion="${reduce_motion:-$(meta_value "$AFTER_DIR" reduce_motion)}"
     echo "==> capture conditions match: content_size=$(meta_value "$BEFORE_DIR" content_size)" \
-      "device=$(meta_value "$BEFORE_DIR" device) appearance=$(meta_value "$BEFORE_DIR" appearance)"
+      "device=$(meta_value "$BEFORE_DIR" device) appearance=$(meta_value "$BEFORE_DIR" appearance)" \
+      "reduce_motion=${reduce_motion:-(not recorded)}"
     echo "    before commit=$(meta_value "$BEFORE_DIR" commit) / after commit=$(meta_value "$AFTER_DIR" commit)"
     return 0
   fi
