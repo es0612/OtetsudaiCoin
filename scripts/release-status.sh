@@ -17,6 +17,11 @@
 #   LOOKUP_JSON_JP    : iTunes Lookup の代わりに読む JSON ファイル (JP)
 #   LOOKUP_JSON_US    : 同上 (US)
 #   NOW_EPOCH         : 「今」の UNIX 時刻 (デフォルト: date +%s)
+#   GH                : gh コマンド (デフォルト: gh。GitHub Release の確認に使う)
+#
+# 公開中 version のタグに GitHub Release があるかも 1 行で出す。v1.1.5 の
+# Release は作られないまま 19 日気付かれなかった (RELEASE_v1.1.6.md §5)。
+# この行は「判定:」には影響しない。
 #
 # Exit code: 常に 0 (表示するだけで triage を止めない)
 
@@ -104,6 +109,19 @@ if [[ "$latest_tag" == "$base_tag" ]]; then
   echo "基準タグ: ${base_tag}  最新タグ: ${latest_tag} (一致)"
 else
   echo "基準タグ: ${base_tag}  最新タグ: ${latest_tag:-なし}  ⚠ 不一致 (タグは出荷の証拠ではない。未提出のタグがないか ASC で確認)"
+fi
+
+# 公開中 version の GitHub Release。gh が無い・認証切れ・ネットワーク不通は
+# 「確認できず」にして、「なし」と区別する。
+GH="${GH:-gh}"
+if ! command -v "$GH" >/dev/null 2>&1; then
+  echo "GitHub Release: 確認できず (gh が見つからない)"
+elif gh_out="$("$GH" release view "$base_tag" --json tagName --jq .tagName 2>&1)"; then
+  echo "GitHub Release: ${base_tag} あり"
+elif [[ "$gh_out" == *"release not found"* ]]; then
+  echo "GitHub Release: ${base_tag} ⚠ なし (公開後タスク: docs/releases/RELEASE_${base_tag}.md § 4 の「GitHub Release を作成」)"
+else
+  echo "GitHub Release: 確認できず (gh: $(printf '%s' "$gh_out" | head -1))"
 fi
 
 if ! git rev-parse --verify -q "${base_tag}^{commit}" >/dev/null; then
