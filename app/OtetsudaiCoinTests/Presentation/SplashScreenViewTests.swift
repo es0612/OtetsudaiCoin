@@ -21,4 +21,38 @@ final class SplashScreenViewTests: XCTestCase {
         let darkData = try XCTUnwrap(dark?.pngData(), "dark の SplashIcon が読めない")
         XCTAssertNotEqual(lightData, darkData, "dark 版が light と同じ画像になっている (luminosity dark の登録漏れ)")
     }
+
+    // MARK: - 視差効果を減らす (#151)
+    // View は @Environment(\.accessibilityReduceMotion) を読んでこの plan を使う (環境値の配線はテスト外)
+
+    // 拡大・スライド・光と点のくり返しは止め、フェードインだけ残す (HIG: 動きをディゾルブ / フェードに置き換える)
+    func testReduceMotionPlanStopsMovementAndKeepsFade() {
+        let plan = SplashScreenView.MotionPlan.make(reduceMotion: true)
+        XCTAssertNil(plan.iconAnimation, "アイコンの拡大")
+        XCTAssertNil(plan.subtitleAnimation, "サブタイトルのスライド")
+        XCTAssertNil(plan.glowAnimation, "光のくり返し")
+        for index in 0..<3 {
+            XCTAssertNil(plan.dotAnimation(index: index), "読み込み中の点 \(index) の脈動")
+        }
+        XCTAssertNotNil(plan.titleAnimation, "フェードインは残す (nil の項目は、アニメーションせずに最終値へ置く)")
+    }
+
+    // 既定では今までどおり動く
+    func testDefaultPlanKeepsAllAnimations() {
+        let plan = SplashScreenView.MotionPlan.make(reduceMotion: false)
+        XCTAssertNotNil(plan.iconAnimation)
+        XCTAssertNotNil(plan.subtitleAnimation)
+        XCTAssertNotNil(plan.glowAnimation)
+        for index in 0..<3 {
+            XCTAssertNotNil(plan.dotAnimation(index: index))
+        }
+        XCTAssertNotNil(plan.titleAnimation)
+    }
+
+    // iOS の起動画面 (Splash の前に出る静止画) の背景を Splash のクリームに揃え、白 / 黒からの切り替わりのちらつきを防ぐ。
+    // pbxproj の設定ではなく、ビルドされた Info.plist に実際に入っているかを見る
+    func testLaunchScreenUsesLaunchBackgroundColor() {
+        let launchScreen = Bundle.main.infoDictionary?["UILaunchScreen"] as? [String: Any]
+        XCTAssertEqual(launchScreen?["UIColorName"] as? String, "LaunchBackground", "UILaunchScreen: \(String(describing: launchScreen))")
+    }
 }

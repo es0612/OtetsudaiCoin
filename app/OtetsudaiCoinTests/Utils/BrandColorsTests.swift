@@ -58,6 +58,23 @@ final class BrandColorsTests: XCTestCase {
         }
     }
 
+    // 起動画面の色は asset catalog にしか置けないので、Splash のグラデの始点と値がずれないことをここで見る
+    func testLaunchBackgroundAssetMatchesSplashBackgroundTop() throws {
+        for style in [UIUserInterfaceStyle.light, .dark] {
+            let trait = UITraitCollection(userInterfaceStyle: style)
+            let asset = try XCTUnwrap(UIColor(named: "LaunchBackground", in: .main, compatibleWith: trait), "LaunchBackground の asset が読めない")
+                .resolvedColor(with: trait)
+            let splash = UIColor(AccessibilityColors.splashBackgroundTop).resolvedColor(with: trait)
+            var a = (r: CGFloat(0), g: CGFloat(0), b: CGFloat(0), alpha: CGFloat(0))
+            var s = a
+            asset.getRed(&a.r, green: &a.g, blue: &a.b, alpha: &a.alpha)
+            splash.getRed(&s.r, green: &s.g, blue: &s.b, alpha: &s.alpha)
+            for (name, x, y) in [("r", a.r, s.r), ("g", a.g, s.g), ("b", a.b, s.b)] {
+                XCTAssertEqual(x, y, accuracy: 0.005, "\(style == .dark ? "dark" : "light") の \(name) (asset: \(asset), splash: \(splash))")
+            }
+        }
+    }
+
     func testPrimaryBlueOnDarkCardBackgroundMeetsAA() {
         // dark のカード背景 = secondarySystemGroupedBackground (#1C1C1E)
         let darkCard = Color(hex: "#1C1C1E")!
