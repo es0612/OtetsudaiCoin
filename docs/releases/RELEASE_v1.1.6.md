@@ -157,9 +157,9 @@ Thank you for using Otetsudai Coin!
 
 次の 2 つは **bump PR の merge → タグの push** の順で行う (v1.1.5 手順書 § 4 / PR #273)。
 
-- [x] **承認されたら**、次の version (1.1.7) への bump PR を他の PR より先に merge する (Xcode Cloud の train closed 対策、#235) ※ 2026-11-07、1.1.7 / build 141 (TestFlight の最新は build 140 を ASC で確認)。公開から 12 日遅れ。その間に main へ merge した PR は 0 件
-- [ ] bump PR の merge 後すぐ `git tag -a v1.1.6 -m "v1.1.6" <ビルド元 commit> && git push origin v1.1.6` (承認前にタグを打たない)
+- [x] **承認されたら**、次の version (1.1.7) への bump PR を他の PR より先に merge する (Xcode Cloud の train closed 対策、#235) ※ 2026-11-07、PR #287 (`b43546a`) で 1.1.7 / build 141 (TestFlight の最新は build 140 を ASC で確認)。公開から 12 日遅れ。その間に main へ merge した PR は 0 件
+- [x] bump PR の merge 後すぐ `git tag -a v1.1.6 -m "v1.1.6" <ビルド元 commit> && git push origin v1.1.6` (承認前にタグを打たない) ※ 2026-11-07、`86cee5d` (build 140 のビルド元) に打って push。`release-status.sh` の判定が `ok` (基準タグと最新タグが一致)
 - [x] 公開後に `scripts/release-status.sh` で 1.1.6 を実測 ※ 2026-11-07、公開中 1.1.6 (JP / US とも 2026-10-26)
 - [x] App Store の掲載ページに新しいアイコンが出ることを確かめ、#18 を close (#18 の close 条件 1) ※ 2026-11-07、iTunes Lookup の `artworkUrl512` で A1 を確認して close
-- [ ] GitHub Release を作成 (§ 2.1 / § 2.3)
+- [x] GitHub Release を作成 (§ 2.1 / § 2.3) ※ 2026-11-07、[v1.1.6](https://github.com/es0612/OtetsudaiCoin/releases/tag/v1.1.6) (Latest)。v1.1.5 の GitHub Release は作られていない
 - [ ] `release-retrospective` skill で振り返り
