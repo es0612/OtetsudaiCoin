@@ -202,7 +202,6 @@ Thank you for using Otetsudai Coin!
 ### 未確認事項
 
 - ja / en 両方のロケールでの起動 (§ 3)。公開済みの 1.1.6 を実機で開いて確かめる
-- #283 の見張りが、本物の撮影で誤って止まらないか (物差し: 本物の撮影 5 回で誤停止 0 回)。2026-11-07 に計測中
 
 ### 次サイクルへの遺産 (Action items)
 
@@ -213,7 +212,7 @@ Thank you for using Otetsudai Coin!
 | UI の寸法を変える issue は、外形と中身の論点を 1 回の質問にまとめる | #233 の候補 I | done (記録のみ) |
 | issue の案を事故の時系列に当ててから実装する。長い外部処理は偽コマンドで再現する | #233 の候補 J | done (記録のみ) |
 | usage を固定の行範囲で読まない | #233 の候補 F → PR #288 | done |
-| 撮影中に Simulator の設定が書き換わったら止める | #283 → PR #288 | validating (本物の撮影 5 回を計測中) |
+| 撮影中に Simulator の設定が書き換わったら止める | #283 → PR #288 | done (2026-11-07、本物の撮影 5 回 × light / dark で誤停止 0 / 10。既定サイズのみ、AX サイズは未計測) |
 | GitHub Release の抜けを拾う仕組みがない | `release-status.sh` に 1 行 (PR #291) + `daily-issue-triage` Step 0 に 1 文 | in-progress (PR #291 レビュー待ち) |
 | § 3 の未チェックが 2 回続いた | Issue #290 (v1.1.7 の手順書で、CI の項目を証拠リンク欄にする) | idea |
 | v1.1.5 の GitHub Release | [v1.1.5](https://github.com/es0612/OtetsudaiCoin/releases/tag/v1.1.5) を作成 (1 回目は分類器が拒否し、オーナーの許可の後に再試行) | done |
