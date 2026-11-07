@@ -6,6 +6,10 @@ struct SplashScreenView: View {
     @State private var subtitleOffset: CGFloat = 30
     @State private var glowIntensity: Double = 0.3
     
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    
+    private var motion: MotionPlan { .make(reduceMotion: reduceMotion) }
+    
     let onComplete: () -> Void
     
     var body: some View {
@@ -89,12 +93,7 @@ struct SplashScreenView: View {
                                 .fill(AccessibilityColors.splashText.opacity(0.7))
                                 .frame(width: 8, height: 8)
                                 .scaleEffect(iconScale > 0.8 ? 1.1 : 0.9)
-                                .animation(
-                                    .easeInOut(duration: 0.8)
-                                    .repeatForever()
-                                    .delay(Double(index) * 0.15),
-                                    value: iconScale
-                                )
+                                .animation(motion.dotAnimation(index: index), value: iconScale)
                         }
                     }
                     
@@ -118,25 +117,65 @@ struct SplashScreenView: View {
         }
     }
     
+    // motion の項目が nil のときは、アニメーションせずに最終値へ置く (視差効果を減らす)
     private func startAnimations() {
         // アイコンのスケールアップ
-        withAnimation(.spring(response: 1.0, dampingFraction: 0.7, blendDuration: 0)) {
+        withAnimation(motion.iconAnimation) {
             iconScale = 1.0
         }
         
         // グロー効果
-        withAnimation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true).delay(0.5)) {
+        withAnimation(motion.glowAnimation) {
             glowIntensity = 0.8
         }
         
         // タイトルのフェードイン
-        withAnimation(.easeOut(duration: 0.8).delay(0.4)) {
+        withAnimation(motion.titleAnimation) {
             titleOpacity = 1.0
         }
         
         // サブタイトルのスライドイン
-        withAnimation(.spring(response: 0.8, dampingFraction: 0.8, blendDuration: 0).delay(0.6)) {
+        withAnimation(motion.subtitleAnimation) {
             subtitleOffset = 0
+        }
+    }
+}
+
+extension SplashScreenView {
+    /// どのアニメーションを動かすかを決める (#151)。「視差効果を減らす」が ON のときは、拡大・スライド・光と点の
+    /// くり返しを止め、フェードインだけ残す。環境値に依存しない pure な判定にして、テストから直接確かめる
+    struct MotionPlan {
+        let iconAnimation: Animation?
+        let glowAnimation: Animation?
+        let titleAnimation: Animation?
+        let subtitleAnimation: Animation?
+        private let animatesDots: Bool
+
+        /// 読み込み中の点の脈動。iconScale の変化をきっかけに動くので、nil を返さないと
+        /// Reduce Motion でも onAppear で iconScale を置いた時点で repeatForever が始まる
+        func dotAnimation(index: Int) -> Animation? {
+            guard animatesDots else { return nil }
+            return .easeInOut(duration: 0.8).repeatForever().delay(Double(index) * 0.15)
+        }
+
+        static func make(reduceMotion: Bool) -> MotionPlan {
+            let fadeIn = Animation.easeOut(duration: 0.8).delay(0.4)
+            if reduceMotion {
+                return MotionPlan(
+                    iconAnimation: nil,
+                    glowAnimation: nil,
+                    titleAnimation: fadeIn,
+                    subtitleAnimation: nil,
+                    animatesDots: false
+                )
+            }
+            return MotionPlan(
+                iconAnimation: .spring(response: 1.0, dampingFraction: 0.7, blendDuration: 0),
+                glowAnimation: .easeInOut(duration: 1.5).repeatForever(autoreverses: true).delay(0.5),
+                titleAnimation: fadeIn,
+                subtitleAnimation: .spring(response: 0.8, dampingFraction: 0.8, blendDuration: 0).delay(0.6),
+                animatesDots: true
+            )
         }
     }
 }
