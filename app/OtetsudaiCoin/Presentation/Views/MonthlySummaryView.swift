@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MonthlySummaryView: View {
     @Bindable var viewModel: MonthlySummaryViewModel
+    @State private var showingBonusSheet = false
 
     var body: some View {
         ScrollView {
@@ -13,6 +14,7 @@ struct MonthlySummaryView: View {
                     recordCalendarSection(snap: snap)
                     if snap.paymentStatus != .paid {
                         paymentCTA(snap: snap)
+                        bonusPaymentEntry
                     }
                 } else if viewModel.isLoading {
                     ProgressView("読み込み中...")
@@ -38,6 +40,22 @@ struct MonthlySummaryView: View {
                 }
         )
         .animation(.easeInOut, value: viewModel.selectedMonth)
+        .sheet(isPresented: $showingBonusSheet) {
+            BonusPaymentSheet(
+                remainder: bonusSheetRemainder,
+                onConfirm: { bonus in
+                    showingBonusSheet = false
+                    Task { await viewModel.payCurrentMonth(bonus: bonus) }
+                },
+                onCancel: { showingBonusSheet = false }
+            )
+        }
+    }
+
+    /// シートの内訳に出す「お小遣い」の額。CTA と同じ式（獲得 − 支払い済み）。
+    private var bonusSheetRemainder: Int {
+        guard let snap = viewModel.snapshot else { return 0 }
+        return snap.totalCoins - snap.paidAmount
     }
 
     // MARK: - Navigation Bar
@@ -216,5 +234,18 @@ struct MonthlySummaryView: View {
         }
         .primaryButton()
         .accessibilityIdentifier("summary_payment_cta")
+    }
+
+    /// おまけを付けて支払う入口 (#279)。CTA（1 タップで支払い）より目立たないテキストリンクにする。
+    private var bonusPaymentEntry: some View {
+        Button {
+            showingBonusSheet = true
+        } label: {
+            Text("おまけを付けて支払う")
+                .appFont(.buttonText)
+                .foregroundColor(AccessibilityColors.brandPrimary)
+        }
+        .buttonStyle(.borderless)
+        .accessibilityIdentifier("summary_bonus_payment_entry")
     }
 }
