@@ -97,7 +97,7 @@ repo の script は `scripts/lib/common.sh` の `resolve_udid` で同じこと�
 
 ### テスト実行
 ```bash
-# 全テスト実行（結果は判定行を grep する。詳細は CLAUDE.md「iOS テスト flake 切り分け」）
+# 全テスト実行（結果は判定行を grep する。詳細は project skill `running-xcodebuild-tests-and-date-fixtures`）
 xcodebuild test \
   -project app/OtetsudaiCoin.xcodeproj \
   -scheme OtetsudaiCoin \
