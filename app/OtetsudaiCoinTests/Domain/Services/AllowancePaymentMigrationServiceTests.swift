@@ -144,4 +144,26 @@ final class AllowancePaymentMigrationServiceTests: XCTestCase {
         XCTAssertEqual(repository.payments.map { $0.id }, payments.map { $0.id })
         XCTAssertTrue(userDefaults.bool(forKey: migratedFlagKey))
     }
+
+    // MARK: - (f) おまけの欄 (#279) が無い古い JSON → おまけ無しとして移行
+
+    func testMigrateIfNeeded_legacyJSONWithoutBonusKeys_migratesAsNoBonus() async throws {
+        // JSON は文字列で書く。JSONEncoder で作ると新しい欄が入り、古いデータを再現できない。
+        // paidAt は JSONEncoder 既定の Date 戦略 (2001-01-01 からの秒数)
+        let id = UUID(), childId = UUID()
+        let legacy = """
+        [{"id":"\(id.uuidString)","childId":"\(childId.uuidString)","amount":300,"month":5,"year":2026,"paidAt":800000000,"note":"2026年5月のお小遣い支払い"}]
+        """
+        userDefaults.set(Data(legacy.utf8), forKey: legacyKey)
+
+        await service.migrateIfNeeded()
+
+        XCTAssertTrue(userDefaults.bool(forKey: migratedFlagKey), "おまけの欄が無くても decode でき、フラグが立つ")
+        XCTAssertEqual(repository.payments.count, 1)
+        let migrated = repository.payments.first
+        XCTAssertEqual(migrated?.id, id)
+        XCTAssertEqual(migrated?.amount, 300)
+        XCTAssertEqual(migrated?.bonusAmount, 0)
+        XCTAssertNil(migrated?.bonusStampKey)
+    }
 }
