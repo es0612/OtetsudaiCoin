@@ -7,8 +7,9 @@ struct BonusCelebrationView: View {
     let bonus: PaymentBonus
     let onClose: () -> Void
 
-    @State private var scale: CGFloat = 1.0
-    @State private var opacity: Double = 0
+    // 開始値は描画される状態として持ち、onAppear では最終値だけをアニメーション付きで書く
+    // (同じ更新の中で開始値と最終値を両方書くと、開始値は一度も描画されない)
+    @State private var appeared = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var motion: MotionPlan { .make(reduceMotion: reduceMotion) }
@@ -44,18 +45,18 @@ struct BonusCelebrationView: View {
             }
             .padding(24)
             .frame(maxWidth: 360)
-            .background(Color(.systemBackground))
+            .background(AccessibilityColors.cardBackgroundGrouped)
             .cornerRadius(AppRadius.large)
             .padding(24)
-            .scaleEffect(scale)
-            .opacity(opacity)
+            .scaleEffect(appeared ? 1.0 : motion.initialScale)
+            .opacity(appeared ? 1.0 : 0)
         }
+        // VoiceOver のフォーカスを演出の中に閉じ込める（下の月移動ボタンへ行かせない）
+        .accessibilityAddTraits(.isModal)
         .accessibilityIdentifier("bonus_celebration")
         .onAppear {
-            scale = motion.initialScale
             withAnimation(motion.entrance) {
-                scale = 1.0
-                opacity = 1.0
+                appeared = true
             }
         }
     }
