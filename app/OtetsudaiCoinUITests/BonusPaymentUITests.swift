@@ -67,6 +67,11 @@ final class BonusPaymentUITests: XCTestCase {
         // 演出: スタンプ名と額は 1 つの読み上げ要素にまとまっている (.combine) ので CONTAINS で探す
         let close = app.buttons["bonus_celebration_close"]
         XCTAssertTrue(close.waitForExistence(timeout: 10), "celebration did not appear")
+        // 容れ物の identifier と .isModal (VoiceOver の閉じ込め) が残っていること。.isModal の要素は Alert として出る
+        XCTAssertTrue(
+            app.alerts.matching(identifier: "bonus_celebration").firstMatch.exists,
+            "celebration container lost .isModal / identifier. elements=\(app.descendants(matching: .any).matching(identifier: "bonus_celebration").allElementsBoundByIndex.map { "\($0.elementType.rawValue)" })"
+        )
         let celebrationAmount = app.descendants(matching: .any)
             .matching(NSPredicate(format: "label CONTAINS %@", "+¥50")).firstMatch
         XCTAssertTrue(
