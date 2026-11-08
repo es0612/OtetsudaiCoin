@@ -20,6 +20,8 @@
 //  記録タブのタスク一覧・子どもカードのバッジ・一括モードは testCaptureRecordTasks が
 //  verify-20〜22 として撮る (#260)。件数の行があるカードと無いカードが並ぶ行は
 //  testCaptureRecordCountRow が `--in-memory-store` で実際に記録して verify-26〜27 として撮る (#280)。
+//  月のまとめの「おまけを付けて支払う」は testCaptureBonusPayment が `--in-memory-store` で記録してから、
+//  入口 (28-summary-entry)・シート (28-bonus-sheet)・演出 (29)・「もらったおまけ」欄 (30) を撮る (#279)。
 //
 
 import XCTest
@@ -531,6 +533,81 @@ final class VerificationScreenshotUITests: XCTestCase {
         tapCardAboveRecordBar(containing: "お風呂を入れる", in: app)
         scrollCardBottomIntoWindow(containing: "お風呂を入れる", in: app)
         attach(name: "verify-27-record-count-row-bulk")
+    }
+
+    /// 28-summary-entry / 28-bonus-sheet / 29-bonus-celebration / 30-summary-bonus (#279)
+    ///
+    /// `--in-memory-store` で「お風呂を入れる」を 1 回記録し、月のまとめに支払う額を作ってから撮る
+    /// (verify-07 は永続ストアの記録しだいで CTA と入口が出ないことがあるため、入口は 28-summary-entry で必ず撮る)。
+    /// 額はチップで入れる (額の入力欄を押すとキーボードが出て画面が変わる)。
+    func testCaptureBonusPayment() throws {
+        let app = launchMainApp(extraArguments: ["--in-memory-store"])
+        app.tabBars.buttons.element(boundBy: 1).tap()
+        sleep(2)
+        tapCardAboveRecordBar(containing: "お風呂を入れる", in: app)
+        let recordButton = app.buttons["record_button"]
+        XCTAssertTrue(recordButton.isEnabled, "record_button is disabled after selecting a task")
+        recordButton.tap()
+        XCTAssertTrue(
+            app.staticTexts["お手伝いを記録しました！"].waitForExistence(timeout: 10),
+            "record did not succeed (no success message)"
+        )
+
+        app.tabBars.buttons.element(boundBy: 0).tap()
+        sleep(1)
+        app.buttons.matching(identifier: "child_button").firstMatch.tap()
+        sleep(2)
+        revealButton(
+            app.buttons.matching(identifier: "home_monthly_summary_entry"),
+            named: "home_monthly_summary_entry",
+            in: app,
+            maxSwipes: 6
+        ).tap()
+        sleep(2)
+
+        // CTA と、その下の目立たないリンク
+        let entry = revealButton(
+            app.buttons.matching(identifier: "summary_bonus_payment_entry"),
+            named: "summary_bonus_payment_entry",
+            in: app,
+            maxSwipes: 8
+        )
+        attach(name: "verify-28-summary-entry")
+        entry.tap()
+
+        let confirm = app.buttons["bonus_confirm_button"]
+        XCTAssertTrue(confirm.waitForExistence(timeout: 5), "bonus sheet did not open")
+        sleep(1)
+        // AX 最大ではスタンプが 1 列になり、チップは画面の下 (確定ボタンの帯の裏) に隠れうる
+        revealButton(app.buttons.matching(identifier: "bonus_stamp_effort"), named: "bonus_stamp_effort", in: app).tap()
+        let chip = revealButton(app.buttons.matching(identifier: "bonus_chip_50"), named: "bonus_chip_50", in: app)
+        // 帯の裏のチップも isHittable は true になる。帯より上へ出してから押す (押すと帯の確定ボタンに当たるため)
+        for _ in 0..<4 where chip.frame.maxY > confirm.frame.minY - 8 {
+            app.swipeUp()
+            sleep(1)
+        }
+        XCTAssertLessThan(chip.frame.maxY, confirm.frame.minY, "bonus_chip_50 is behind the confirm band. chip=\(chip.frame) confirm=\(confirm.frame)")
+        chip.tap()
+        sleep(1)
+        XCTAssertTrue(confirm.isEnabled, "bonus_confirm_button is disabled after picking a stamp and a chip")
+        attach(name: "verify-28-bonus-sheet")
+
+        confirm.tap()
+        let close = app.buttons["bonus_celebration_close"]
+        XCTAssertTrue(close.waitForExistence(timeout: 10), "celebration did not appear")
+        sleep(2) // 拡大のアニメーション (spring 0.6 秒) が落ち着いてから撮る
+        attach(name: "verify-29-bonus-celebration")
+        close.tap()
+        sleep(1)
+
+        // 支払いの後は画面の下にいる。「もらったおまけ」は上 (ハイライトの下) なので下へ戻す
+        let header = app.staticTexts["もらったおまけ"]
+        for _ in 0..<6 where !(header.exists && header.isHittable) {
+            app.swipeDown()
+            sleep(1)
+        }
+        XCTAssertTrue(header.exists, "もらったおまけ section not found. texts=\(app.staticTexts.allElementsBoundByIndex.map(\.label))")
+        attach(name: "verify-30-summary-bonus")
     }
 
     /// 00-splash / 12-tutorial-child
