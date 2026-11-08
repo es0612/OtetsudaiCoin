@@ -196,7 +196,6 @@ final class LocalizationStringCatalogTests: XCTestCase {
             "もらったおまけ",
             "+¥%lld",
             "¥%lld",
-            "%@ %@",
             "閉じる",
             "キャンセル",
         ]

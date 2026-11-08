@@ -164,7 +164,7 @@ struct MonthlySummaryView: View {
             ForEach(snap.bonuses.indices, id: \.self) { idx in
                 let entry = snap.bonuses[idx]
                 HStack {
-                    Text("\(entry.emoji) \(entry.title)")
+                    Text(verbatim: "\(entry.emoji) \(entry.title)")
                         .appFont(.secondaryInfo)
                     Spacer()
                     Text("+¥\(entry.amount)")
