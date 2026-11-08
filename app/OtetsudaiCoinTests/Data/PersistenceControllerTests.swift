@@ -37,6 +37,7 @@ final class PersistenceControllerTests: XCTestCase {
     // 検証撮影で「記録する」を押しても、Simulator に残る永続ストアを汚さないためのフラグ。
     // フラグ → /dev/null の配線は撮影 (VerificationScreenshotUITests) で確かめる
 
+    #if DEBUG
     func test_shouldUseInMemoryStore_trueWhenFlagPresent() {
         XCTAssertTrue(PersistenceController.shouldUseInMemoryStore(arguments: ["--uitesting", "--in-memory-store"]))
     }
@@ -45,4 +46,5 @@ final class PersistenceControllerTests: XCTestCase {
         // --uitesting だけでは永続ストアのまま (既存の撮影・UI テストの前提を変えない)
         XCTAssertFalse(PersistenceController.shouldUseInMemoryStore(arguments: ["--uitesting"]))
     }
+    #endif
 }
