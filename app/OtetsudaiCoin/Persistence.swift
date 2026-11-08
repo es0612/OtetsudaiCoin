@@ -69,6 +69,9 @@ struct PersistenceController {
         if ProcessInfo.processInfo.arguments.contains("--force-store-load-failure") {
             // 視覚確認用: store URL を開けない URL に向けて load を故意に失敗させる
             storeURLOverride = Self.unopenableStoreURL()
+        } else if Self.shouldUseInMemoryStore() {
+            // 検証撮影用: 記録してもアプリ終了で消える (Simulator の永続ストアを汚さない、#280)
+            storeURLOverride = URL(fileURLWithPath: "/dev/null")
         } else {
             storeURLOverride = inMemory ? URL(fileURLWithPath: "/dev/null") : nil
         }
@@ -115,6 +118,12 @@ struct PersistenceController {
     }
 
     #if DEBUG
+    /// `--in-memory-store` が付いた起動か (#280)。検証撮影で「記録する」を押すシーンだけが使う。
+    /// `--uitesting` だけでは永続ストアのまま (既存の撮影・UI テストの前提を変えない)
+    nonisolated static func shouldUseInMemoryStore(arguments: [String] = ProcessInfo.processInfo.arguments) -> Bool {
+        arguments.contains("--in-memory-store")
+    }
+
     /// `--force-store-load-failure` 用: SQLite が開けない URL（既存ディレクトリ）を返す。
     private nonisolated static func unopenableStoreURL() -> URL {
         let url = FileManager.default.temporaryDirectory

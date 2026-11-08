@@ -18,7 +18,8 @@
 //  記録チュートリアルは testCaptureTutorialSteps が本番と同じ流れ (子どもチュートリアルを
 //  完了して入る) で撮る (#246)。直接起動で撮っていた verify-13 は #252 で廃止 (13 は欠番)。
 //  記録タブのタスク一覧・子どもカードのバッジ・一括モードは testCaptureRecordTasks が
-//  verify-20〜22 として撮る (#260)。
+//  verify-20〜22 として撮る (#260)。件数の行があるカードと無いカードが並ぶ行は
+//  testCaptureRecordCountRow が `--in-memory-store` で実際に記録して verify-26〜27 として撮る (#280)。
 //
 
 import XCTest
@@ -32,14 +33,15 @@ final class VerificationScreenshotUITests: XCTestCase {
     // MARK: - Launch helpers
 
     /// --uitesting 起動 (tutorial skip + 太郎/花子 seed + splash skip)。ja 固定。
-    private func launchMainApp() -> XCUIApplication {
+    /// `extraArguments` には `--in-memory-store` などを足す (#280)。
+    private func launchMainApp(extraArguments: [String] = []) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments += [
             "--uitesting",
             "--hide-developer-tools",
             "-AppleLanguages", "(ja)",
             "-AppleLocale", "ja_JP"
-        ]
+        ] + extraArguments
         app.launch()
         let firstChild = app.buttons.matching(identifier: "child_button").firstMatch
         XCTAssertTrue(
@@ -258,6 +260,21 @@ final class VerificationScreenshotUITests: XCTestCase {
         return card.frame.maxY <= scroll.frame.maxY
     }
 
+    /// カードが窓に入るまで内容を 1 ページずつ上へ送り、下端を窓へ合わせる (押さない)。
+    /// 記録の後など、画面が一番上へ戻ってカードが LazyVGrid の読み込み範囲の外にあるときに使う (#280)
+    private func bringCardIntoWindow(containing text: String, in app: XCUIApplication, maxPages: Int = 12) {
+        let scroll = app.scrollViews.containing(.switch, identifier: "bulk_mode_toggle").firstMatch
+        let query = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", text))
+        for _ in 0..<maxPages {
+            if query.allElementsBoundByIndex.contains(where: { $0.isHittable && $0.frame.intersects(scroll.frame) }) {
+                scrollCardBottomIntoWindow(containing: text, in: app)
+                return
+            }
+            scrollRecordPage(in: app)
+        }
+        XCTFail("card containing '\(text)' not brought into the window after \(maxPages) pages")
+    }
+
     /// カードの下端が記録バーの上に出るまで内容を上へ送る (下端がすでに窓の中なら何もしない)。
     private func scrollCardBottomIntoWindow(containing text: String, in app: XCUIApplication) {
         let scroll = app.scrollViews.containing(.switch, identifier: "bulk_mode_toggle").firstMatch
@@ -453,6 +470,67 @@ final class VerificationScreenshotUITests: XCTestCase {
         // カードの下端を窓の下端へ合わせてから撮る (既定サイズでは動かない)
         scrollCardBottomIntoWindow(containing: "お風呂を入れる", in: app)
         attach(name: "verify-22-record-tasks-bulk")
+    }
+
+    /// 26-record-count-row / 27-record-count-row-bulk (#280。23〜25 はチュートリアルが使用済み)
+    ///
+    /// 横に並ぶ 2 枚のうち片方にだけ「すでに N 件記録済み」の行があるときの、コインと「選択」の位置を撮る。
+    /// 実際に「記録する」を押して件数の行を出す。`--in-memory-store` で起動するので、記録はアプリの
+    /// 終了で消え、ほかのシーン (06〜08 の数字など) に残らない。
+    /// 1 行目は「下の子の面倒を見る」(件数なし) と「お風呂を入れる」(件数 1) の組み合わせになる。
+    func testCaptureRecordCountRow() throws {
+        let app = launchMainApp(extraArguments: ["--in-memory-store"])
+        app.tabBars.buttons.element(boundBy: 1).tap()
+        sleep(2)
+
+        tapCardAboveRecordBar(containing: "お風呂を入れる", in: app)
+        let recordButton = app.buttons["record_button"]
+        XCTAssertTrue(recordButton.isEnabled, "record_button is disabled after selecting a task")
+        recordButton.tap()
+
+        // コインのアニメーションが終わると成功メッセージが消える。消えてから撮る (メッセージの分だけ下がるため)
+        let success = app.staticTexts["お手伝いを記録しました！"]
+        XCTAssertTrue(success.waitForExistence(timeout: 10), "record did not succeed (no success message)")
+        let gone = expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: success)
+        wait(for: [gone], timeout: 15)
+        sleep(1)
+
+        // 記録の後は選択が外れる (selectedTask = nil)。AX サイズでは画面が上へ戻り、LazyVGrid のカードが
+        // 読み込み範囲の外に出るので、カードを窓へ入れてから件数を探す。単独モードのカードは押すと選択されるだけで
+        // 外せないので、押さずにスクロールだけで入れる
+        bringCardIntoWindow(containing: "お風呂を入れる", in: app)
+        let countLabel = app.staticTexts["existing_count_label"]
+        XCTAssertTrue(
+            countLabel.waitForExistence(timeout: 5),
+            "existing_count_label not found after recording. texts=\(app.staticTexts.allElementsBoundByIndex.map(\.label))"
+        )
+        // 表示は「✓ 1」と短いが、VoiceOver は「すでに 1 件記録済み」と読む (#280。ViewInspector では読めないのでここで見る)
+        XCTAssertTrue(
+            countLabel.label.contains("記録済み"),
+            "existing_count_label の読み上げ: '\(countLabel.label)'"
+        )
+        attach(name: "verify-26-record-count-row")
+
+        // 一括モードでは「選択」の行も並ぶ。画面上端の行まで戻して右端のスイッチを押す (Toggle の罠)
+        let bulkToggle = revealButton(
+            app.switches.matching(identifier: "bulk_mode_toggle"),
+            named: "bulk_mode_toggle",
+            in: app,
+            scrollingDown: false,
+            maxSwipes: 6
+        )
+        for _ in 0..<3 where bulkToggle.frame.minY < app.navigationBars.firstMatch.frame.maxY {
+            app.swipeDown()
+            sleep(1)
+        }
+        bulkToggle.coordinate(withNormalizedOffset: CGVector(dx: 0.92, dy: 0.5)).tap()
+        sleep(1)
+        XCTAssertEqual(bulkToggle.value as? String, "1", "bulk mode did not turn on")
+        // 上へ戻ったのでカードは窓の外。verify-22 と同じく押して窓へ入れる (一括モードでは押すと「選択中」に
+        // なり、隣は「選択」のまま = 両方の行が写る)
+        tapCardAboveRecordBar(containing: "お風呂を入れる", in: app)
+        scrollCardBottomIntoWindow(containing: "お風呂を入れる", in: app)
+        attach(name: "verify-27-record-count-row-bulk")
     }
 
     /// 00-splash / 12-tutorial-child
