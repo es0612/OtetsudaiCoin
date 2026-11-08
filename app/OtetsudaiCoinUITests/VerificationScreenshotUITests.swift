@@ -21,7 +21,8 @@
 //  verify-20〜22 として撮る (#260)。件数の行があるカードと無いカードが並ぶ行は
 //  testCaptureRecordCountRow が `--in-memory-store` で実際に記録して verify-26〜27 として撮る (#280)。
 //  月のまとめの「おまけを付けて支払う」は testCaptureBonusPayment が `--in-memory-store` で記録してから、
-//  入口 (28-summary-entry)・シート (28-bonus-sheet)・演出 (29)・「もらったおまけ」欄 (30) を撮る (#279)。
+//  入口 (28-summary-entry)・シート (28-bonus-sheet と、下までスクロールした 28-bonus-sheet-bottom)・
+//  演出 (29)・「もらったおまけ」欄 (30) を撮る (#279)。
 //
 
 import XCTest
@@ -535,7 +536,7 @@ final class VerificationScreenshotUITests: XCTestCase {
         attach(name: "verify-27-record-count-row-bulk")
     }
 
-    /// 28-summary-entry / 28-bonus-sheet / 29-bonus-celebration / 30-summary-bonus (#279)
+    /// 28-summary-entry / 28-bonus-sheet / 28-bonus-sheet-bottom / 29-bonus-celebration / 30-summary-bonus (#279)
     ///
     /// `--in-memory-store` で「お風呂を入れる」を 1 回記録し、月のまとめに支払う額を作ってから撮る
     /// (verify-07 は永続ストアの記録しだいで CTA と入口が出ないことがあるため、入口は 28-summary-entry で必ず撮る)。
@@ -591,6 +592,13 @@ final class VerificationScreenshotUITests: XCTestCase {
         sleep(1)
         XCTAssertTrue(confirm.isEnabled, "bonus_confirm_button is disabled after picking a stamp and a chip")
         attach(name: "verify-28-bonus-sheet")
+        // シートの下側 (内訳の「お小遣い / おまけ / 渡す額」と確定ボタン)。AX 最大では 28-bonus-sheet に写らない。
+        // 既定サイズでは全部 1 画面に収まり、スワイプしても動かない (28-bonus-sheet と同じ画面になる)
+        for _ in 0..<3 {
+            app.swipeUp()
+            sleep(1)
+        }
+        attach(name: "verify-28-bonus-sheet-bottom")
 
         confirm.tap()
         let close = app.buttons["bonus_celebration_close"]

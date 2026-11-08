@@ -39,6 +39,10 @@ final class BonusPaymentUITests: XCTestCase {
         XCTAssertFalse(app.buttons["bonus_celebration_close"].exists, "おまけなしの支払いで演出が出ている")
         XCTAssertFalse(app.buttons["summary_bonus_payment_entry"].exists, "支払い済みの月におまけの入口が残っている")
         XCTAssertFalse(app.staticTexts["もらったおまけ"].exists, "おまけなしの支払いで「もらったおまけ」欄が出ている")
+        // 確認のアラートを挟まない (演出も .isModal で Alert として出るので、ここで一緒に見る)。
+        // シートは app.sheets では数えられない (SwiftUI の .sheet が開いていても 0 だった)。
+        // この画面のシートはおまけのシートだけなので、上の bonus_confirm_button で見ている
+        XCTAssertEqual(app.alerts.count, 0, "おまけなしの支払いでアラートが出ている")
     }
 
     /// おまけの流れ: シート → スタンプ → チップ → 確定 → 演出 → 閉じる → 「もらったおまけ」欄
@@ -72,11 +76,14 @@ final class BonusPaymentUITests: XCTestCase {
             app.alerts.matching(identifier: "bonus_celebration").firstMatch.exists,
             "celebration container lost .isModal / identifier. elements=\(app.descendants(matching: .any).matching(identifier: "bonus_celebration").allElementsBoundByIndex.map { "\($0.elementType.rawValue)" })"
         )
-        let celebrationAmount = app.descendants(matching: .any)
+        // 演出の容れ物の中だけを探す。裏の「もらったおまけ」欄も、支払いの直後 (loadMonth の後) から
+        // 同じ「+¥50」を出しているため、画面全体を探すとそちらに当たる
+        let celebration = app.alerts["bonus_celebration"]
+        let celebrationAmount = celebration.descendants(matching: .any)
             .matching(NSPredicate(format: "label CONTAINS %@", "+¥50")).firstMatch
         XCTAssertTrue(
             celebrationAmount.exists,
-            "演出に +¥50 が無い. labels=\(app.descendants(matching: .any).allElementsBoundByIndex.map(\.label).filter { !$0.isEmpty })"
+            "演出に +¥50 が無い. labels=\(celebration.descendants(matching: .any).allElementsBoundByIndex.map(\.label).filter { !$0.isEmpty })"
         )
         close.tap()
         let closeGone = expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: close)
