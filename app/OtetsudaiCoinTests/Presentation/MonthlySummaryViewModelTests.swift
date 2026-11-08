@@ -424,6 +424,22 @@ final class MonthlySummaryViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.snapshot?.paymentStatus, .paid)
     }
 
+    /// おまけが paymentStatus に漏れないことを見る。稼ぎ 200 に対し amount 100 + おまけ 100 の行を 1 つ置く。
+    /// 漏れていれば 200 になって .paid になるので、.partiallyPaid で検出できる。
+    @MainActor
+    func testBonusDoesNotCountTowardPaymentStatus() async {
+        let thisMonth = seedTwoDishesThisMonth()
+        mockAllowancePaymentRepository.payments = [
+            AllowancePayment(id: UUID(), childId: child.id, amount: 100, month: thisMonth.month!, year: thisMonth.year!,
+                             paidAt: dateInThisMonth(day: 15), bonusAmount: 100, bonusStampKey: "effort")
+        ]
+
+        await viewModel.loadMonth()
+
+        XCTAssertEqual(viewModel.snapshot?.paymentStatus, .partiallyPaid, "おまけは払った額に数えない")
+        XCTAssertEqual(viewModel.snapshot?.paidAmount, 100)
+    }
+
     @MainActor
     func testPayWithBonusSetsCelebration() async {
         seedTwoDishesThisMonth()
