@@ -365,6 +365,209 @@ final class MonthlySummaryViewModelTests: XCTestCase {
         XCTAssertNil(viewModel.snapshot, "失敗時に前回の snapshot が残ると月と数字が食い違う")
     }
 
+    // MARK: - #279 おまけ付きの支払い
+
+    /// testPayCurrentMonthSavesPaymentAndMarksPaid と同じ準備: 今月の固定日（3 日・5 日）に皿洗い 100 × 2 回 = 200。
+    /// 支払いは空。今月の年月の components を返す。
+    @MainActor
+    @discardableResult
+    private func seedTwoDishesThisMonth() -> DateComponents {
+        let cal = Calendar.current
+        let thisMonth = cal.dateComponents([.year, .month], from: Date())
+
+        let dishesId = UUID()
+        mockHelpTaskRepository.tasks = [HelpTask(id: dishesId, name: "皿洗い", isActive: true, coinRate: 100)]
+
+        var c1 = thisMonth; c1.day = 3; c1.hour = 12
+        var c2 = thisMonth; c2.day = 5; c2.hour = 12
+        mockHelpRecordRepository.records = [
+            HelpRecord(id: UUID(), childId: child.id, helpTaskId: dishesId, recordedAt: cal.date(from: c1)!),
+            HelpRecord(id: UUID(), childId: child.id, helpTaskId: dishesId, recordedAt: cal.date(from: c2)!)
+        ]
+        mockAllowancePaymentRepository.payments = []
+        return thisMonth
+    }
+
+    /// 今月の指定日の 12 時（fixture 用の固定日）。
+    private func dateInThisMonth(day: Int) -> Date {
+        let cal = Calendar.current
+        var comps = cal.dateComponents([.year, .month], from: Date())
+        comps.day = day
+        comps.hour = 12
+        return cal.date(from: comps)!
+    }
+
+    private var effortBonus: PaymentBonus { PaymentBonus(amount: 50, stamp: .effort)! }
+
+    @MainActor
+    func testPayWithBonusSavesBonusOnSameRow() async {
+        seedTwoDishesThisMonth()
+        await viewModel.loadMonth()
+        XCTAssertEqual(viewModel.snapshot?.paymentStatus, .unpaid, "前提: 未払い")
+
+        await viewModel.payCurrentMonth(bonus: effortBonus)
+
+        XCTAssertEqual(mockAllowancePaymentRepository.payments.count, 1, "おまけは別の行にせず、支払いと同じ 1 行に載せる")
+        XCTAssertEqual(mockAllowancePaymentRepository.payments.first?.amount, 200, "amount は稼ぎのまま")
+        XCTAssertEqual(mockAllowancePaymentRepository.payments.first?.bonusAmount, 50)
+        XCTAssertEqual(mockAllowancePaymentRepository.payments.first?.bonusStampKey, "effort", "保存するのは表示文言ではなくキー")
+    }
+
+    @MainActor
+    func testPayWithBonusKeepsPaidAmountAsEarnings() async {
+        seedTwoDishesThisMonth()
+        await viewModel.loadMonth()
+
+        await viewModel.payCurrentMonth(bonus: effortBonus)
+
+        XCTAssertEqual(viewModel.snapshot?.paidAmount, 200, "おまけを払った額に混ぜない")
+        XCTAssertEqual(viewModel.snapshot?.paymentStatus, .paid)
+    }
+
+    /// おまけが paymentStatus に漏れないことを見る。稼ぎ 200 に対し amount 100 + おまけ 100 の行を 1 つ置く。
+    /// 漏れていれば 200 になって .paid になるので、.partiallyPaid で検出できる。
+    @MainActor
+    func testBonusDoesNotCountTowardPaymentStatus() async {
+        let thisMonth = seedTwoDishesThisMonth()
+        mockAllowancePaymentRepository.payments = [
+            AllowancePayment(id: UUID(), childId: child.id, amount: 100, month: thisMonth.month!, year: thisMonth.year!,
+                             paidAt: dateInThisMonth(day: 15), bonusAmount: 100, bonusStampKey: "effort")
+        ]
+
+        await viewModel.loadMonth()
+
+        XCTAssertEqual(viewModel.snapshot?.paymentStatus, .partiallyPaid, "おまけは払った額に数えない")
+        XCTAssertEqual(viewModel.snapshot?.paidAmount, 100)
+    }
+
+    @MainActor
+    func testPayWithBonusSetsCelebration() async {
+        seedTwoDishesThisMonth()
+        await viewModel.loadMonth()
+
+        await viewModel.payCurrentMonth(bonus: effortBonus)
+
+        XCTAssertEqual(viewModel.celebratingBonus, effortBonus, "おまけ付きで払えたら演出を出す")
+    }
+
+    @MainActor
+    func testPlainPayDoesNotSetCelebration() async {
+        seedTwoDishesThisMonth()
+        await viewModel.loadMonth()
+
+        await viewModel.payCurrentMonth()
+
+        XCTAssertEqual(mockAllowancePaymentRepository.payments.count, 1, "前提: 支払いは保存されている")
+        XCTAssertNil(viewModel.celebratingBonus, "おまけなしの支払いは今と同じで、演出を出さない")
+    }
+
+    @MainActor
+    func testDismissCelebrationClears() async {
+        seedTwoDishesThisMonth()
+        await viewModel.loadMonth()
+        await viewModel.payCurrentMonth(bonus: effortBonus)
+        XCTAssertNotNil(viewModel.celebratingBonus, "前提: 演出中")
+
+        viewModel.dismissCelebration()
+
+        XCTAssertNil(viewModel.celebratingBonus)
+    }
+
+    @MainActor
+    func testPayWithBonusFailureDoesNotCelebrate() async {
+        seedTwoDishesThisMonth()
+        await viewModel.loadMonth()
+        XCTAssertEqual(viewModel.snapshot?.paymentStatus, .unpaid, "前提: 未払いで、保存まで進む状態")
+        // loadMonth の後に失敗を仕込む（先に仕込むと loadMonth が失敗し、保存まで進まずに空振りで通ってしまう）
+        mockAllowancePaymentRepository.shouldThrowError = true
+
+        await viewModel.payCurrentMonth(bonus: effortBonus)
+
+        XCTAssertNil(viewModel.celebratingBonus, "保存に失敗したら演出を出さない")
+        XCTAssertTrue(mockAllowancePaymentRepository.payments.isEmpty)
+    }
+
+    @MainActor
+    func testPayWithBonusOnPaidMonthIsNoOp() async {
+        let thisMonth = seedTwoDishesThisMonth()
+        mockAllowancePaymentRepository.payments = [
+            AllowancePayment(id: UUID(), childId: child.id, amount: 200, month: thisMonth.month!, year: thisMonth.year!, paidAt: dateInThisMonth(day: 15))
+        ]
+        await viewModel.loadMonth()
+        XCTAssertEqual(viewModel.snapshot?.paymentStatus, .paid, "前提: 支払い済み")
+
+        await viewModel.payCurrentMonth(bonus: effortBonus)
+
+        XCTAssertEqual(mockAllowancePaymentRepository.payments.count, 1, "支払い済みの月には何も保存しない")
+        XCTAssertNil(viewModel.celebratingBonus)
+    }
+
+    @MainActor
+    func testLoadMonthListsBonusesOfSelectedMonthOnly() async {
+        let cal = Calendar.current
+        let thisMonth15 = dateInThisMonth(day: 15)
+        let thisMonth = cal.dateComponents([.year, .month], from: thisMonth15)
+        // 年境界でも正しく前の月になるよう、月の足し引きで先月を作る
+        let lastMonth15 = cal.date(byAdding: .month, value: -1, to: thisMonth15)!
+        let lastMonth = cal.dateComponents([.year, .month], from: lastMonth15)
+
+        mockHelpTaskRepository.tasks = []
+        mockHelpRecordRepository.records = []
+        mockAllowancePaymentRepository.payments = [
+            AllowancePayment(id: UUID(), childId: child.id, amount: 100, month: thisMonth.month!, year: thisMonth.year!,
+                             paidAt: thisMonth15, bonusAmount: 50, bonusStampKey: "effort"),
+            AllowancePayment(id: UUID(), childId: child.id, amount: 100, month: thisMonth.month!, year: thisMonth.year!,
+                             paidAt: thisMonth15),
+            AllowancePayment(id: UUID(), childId: child.id, amount: 100, month: lastMonth.month!, year: lastMonth.year!,
+                             paidAt: lastMonth15, bonusAmount: 30, bonusStampKey: "thanks")
+        ]
+
+        await viewModel.loadMonth()
+
+        XCTAssertEqual(viewModel.snapshot?.bonuses.map(\.amount), [50], "表示中の月の、おまけのある行だけを並べる")
+        XCTAssertEqual(viewModel.snapshot?.bonuses.first?.stamp, .effort)
+    }
+
+    @MainActor
+    func testBonusesAreSortedByPaidAtAscending() async {
+        let cal = Calendar.current
+        let thisMonth = cal.dateComponents([.year, .month], from: dateInThisMonth(day: 15))
+
+        mockHelpTaskRepository.tasks = []
+        mockHelpRecordRepository.records = []
+        mockAllowancePaymentRepository.payments = [
+            AllowancePayment(id: UUID(), childId: child.id, amount: 0, month: thisMonth.month!, year: thisMonth.year!,
+                             paidAt: dateInThisMonth(day: 20), bonusAmount: 30, bonusStampKey: "thanks"),
+            AllowancePayment(id: UUID(), childId: child.id, amount: 0, month: thisMonth.month!, year: thisMonth.year!,
+                             paidAt: dateInThisMonth(day: 10), bonusAmount: 10, bonusStampKey: "steady")
+        ]
+
+        await viewModel.loadMonth()
+
+        XCTAssertEqual(viewModel.snapshot?.bonuses.map(\.amount), [10, 30], "支払った日の古い順")
+    }
+
+    @MainActor
+    func testUnknownStampKeyIsListedWithFallback() async {
+        let cal = Calendar.current
+        let thisMonth = cal.dateComponents([.year, .month], from: dateInThisMonth(day: 15))
+
+        mockHelpTaskRepository.tasks = []
+        mockHelpRecordRepository.records = []
+        mockAllowancePaymentRepository.payments = [
+            AllowancePayment(id: UUID(), childId: child.id, amount: 100, month: thisMonth.month!, year: thisMonth.year!,
+                             paidAt: dateInThisMonth(day: 15), bonusAmount: 40, bonusStampKey: "gold")
+        ]
+
+        await viewModel.loadMonth()
+
+        let entries = viewModel.snapshot?.bonuses ?? []
+        XCTAssertEqual(entries.count, 1, "未知のキーでも、おまけは捨てずに並べる")
+        XCTAssertNil(entries.first?.stamp)
+        XCTAssertEqual(entries.first?.emoji, "🎁")
+        XCTAssertEqual(entries.first?.title, BonusStamp.fallbackTitle)
+    }
+
     // MARK: - 月ラベルの i18n (#155 コメント報告分)
 
     /// ja では現行表記「2026年7月」と同一であること (非退行)。

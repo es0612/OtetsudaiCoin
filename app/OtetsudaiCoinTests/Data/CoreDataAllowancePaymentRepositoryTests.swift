@@ -51,7 +51,9 @@ final class CoreDataAllowancePaymentRepositoryTests: XCTestCase {
         month: Int = 6,
         year: Int = 2025,
         paidAt: Date? = nil,
-        note: String? = nil
+        note: String? = nil,
+        bonusAmount: Int = 0,
+        bonusStampKey: String? = nil
     ) -> AllowancePayment {
         AllowancePayment(
             id: id,
@@ -60,7 +62,9 @@ final class CoreDataAllowancePaymentRepositoryTests: XCTestCase {
             month: month,
             year: year,
             paidAt: paidAt ?? fixedDate(),
-            note: note
+            note: note,
+            bonusAmount: bonusAmount,
+            bonusStampKey: bonusStampKey
         )
     }
 
@@ -90,6 +94,30 @@ final class CoreDataAllowancePaymentRepositoryTests: XCTestCase {
 
         XCTAssertNotNil(found)
         XCTAssertNil(found?.note)
+    }
+
+    // MARK: - おまけ (#279): bonusAmount / bonusStampKey の永続化
+
+    func testSaveAndFetchPersistsBonus() async throws {
+        let payment = makePayment(amount: 500, bonusAmount: 50, bonusStampKey: "thanks")
+
+        try await repository.save(payment)
+        let found = try await repository.findById(payment.id)
+
+        XCTAssertEqual(found?.amount, 500, "おまけは amount に混ぜない")
+        XCTAssertEqual(found?.bonusAmount, 50)
+        XCTAssertEqual(found?.bonusStampKey, "thanks")
+    }
+
+    func testSaveAndFetchWithoutBonusReadsZeroAndNil() async throws {
+        let payment = makePayment()
+
+        try await repository.save(payment)
+        let found = try await repository.findById(payment.id)
+
+        XCTAssertNotNil(found)
+        XCTAssertEqual(found?.bonusAmount, 0)
+        XCTAssertNil(found?.bonusStampKey)
     }
 
     func testFindById_returnsNilWhenNotFound() async throws {

@@ -8,8 +8,22 @@ struct AllowancePayment: Equatable, Codable {
     let year: Int
     let paidAt: Date
     let note: String?
+    /// おまけの額 (#279)。お小遣いの `amount` には混ぜない。おまけ無しは 0
+    let bonusAmount: Int
+    /// おまけのスタンプのキー (`BonusStamp.rawValue`)。おまけ無しは nil。表示文言ではなくキーを保存する
+    let bonusStampKey: String?
     
-    init(id: UUID, childId: UUID, amount: Int, month: Int, year: Int, paidAt: Date, note: String? = nil) {
+    init(
+        id: UUID,
+        childId: UUID,
+        amount: Int,
+        month: Int,
+        year: Int,
+        paidAt: Date,
+        note: String? = nil,
+        bonusAmount: Int = 0,
+        bonusStampKey: String? = nil
+    ) {
         self.id = id
         self.childId = childId
         self.amount = amount
@@ -17,6 +31,24 @@ struct AllowancePayment: Equatable, Codable {
         self.year = year
         self.paidAt = paidAt
         self.note = note
+        self.bonusAmount = bonusAmount
+        self.bonusStampKey = bonusStampKey
+    }
+    
+    /// #279 より前に保存された JSON（UserDefaults の旧データ）にはおまけの欄が無いので、
+    /// 欄が無ければ「おまけ無し」として読む。他の欄は今までどおり必須。
+    /// `encode(to:)` と `CodingKeys` は合成のまま。
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        childId = try container.decode(UUID.self, forKey: .childId)
+        amount = try container.decode(Int.self, forKey: .amount)
+        month = try container.decode(Int.self, forKey: .month)
+        year = try container.decode(Int.self, forKey: .year)
+        paidAt = try container.decode(Date.self, forKey: .paidAt)
+        note = try container.decodeIfPresent(String.self, forKey: .note)
+        bonusAmount = try container.decodeIfPresent(Int.self, forKey: .bonusAmount) ?? 0
+        bonusStampKey = try container.decodeIfPresent(String.self, forKey: .bonusStampKey)
     }
     
     static func == (lhs: AllowancePayment, rhs: AllowancePayment) -> Bool {
