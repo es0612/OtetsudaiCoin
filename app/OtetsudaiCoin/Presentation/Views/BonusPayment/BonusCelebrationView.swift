@@ -51,6 +51,8 @@ struct BonusCelebrationView: View {
             .scaleEffect(appeared ? 1.0 : motion.initialScale)
             .opacity(appeared ? 1.0 : 0)
         }
+        // 子の identifier (bonus_celebration_close) を外側の identifier で上書きさせない (#279 Task 7 で検出)
+        .accessibilityElement(children: .contain)
         // VoiceOver のフォーカスを演出の中に閉じ込める（下の月移動ボタンへ行かせない）
         .accessibilityAddTraits(.isModal)
         .accessibilityIdentifier("bonus_celebration")

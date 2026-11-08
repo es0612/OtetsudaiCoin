@@ -44,4 +44,9 @@ struct BonusDraft: Equatable {
     static func stampColumnCount(isAccessibilitySize: Bool) -> Int {
         isAccessibilitySize ? 1 : 2
     }
+
+    /// 額のチップの列数。アクセシビリティサイズの文字では 1 列にして、「+¥100」を 1 行のままカプセルに収める。
+    static func chipColumnCount(isAccessibilitySize: Bool) -> Int {
+        isAccessibilitySize ? 1 : chipAmounts.count
+    }
 }

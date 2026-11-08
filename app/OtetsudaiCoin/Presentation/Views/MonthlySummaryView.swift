@@ -175,6 +175,8 @@ struct MonthlySummaryView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+        // identifier を子の Text へばらまかず、欄そのものに付ける
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("summary_bonus_section")
     }
 

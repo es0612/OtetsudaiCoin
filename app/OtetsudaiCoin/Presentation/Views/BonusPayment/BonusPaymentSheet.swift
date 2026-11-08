@@ -107,11 +107,16 @@ struct BonusPaymentSheet: View {
         )
     }
 
+    private var chipColumns: [GridItem] {
+        let count = BonusDraft.chipColumnCount(isAccessibilitySize: dynamicTypeSize.isAccessibilitySize)
+        return Array(repeating: GridItem(.flexible(), spacing: 8), count: count)
+    }
+
     private var amountSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("おまけの額")
                 .appFont(.sectionHeader)
-            HStack(spacing: 8) {
+            LazyVGrid(columns: chipColumns, spacing: 8) {
                 ForEach(BonusDraft.chipAmounts, id: \.self) { value in
                     Button {
                         draft.addChip(value)

@@ -32,4 +32,10 @@ final class BonusDraftTests: XCTestCase {
         XCTAssertEqual(BonusDraft.stampColumnCount(isAccessibilitySize: false), 2)
         XCTAssertEqual(BonusDraft.stampColumnCount(isAccessibilitySize: true), 1)
     }
+
+    /// AX 最大では 3 列のチップが「+ / ¥50」と割れ、「¥100」がカプセルの線からはみ出した (#279 Task 7 の verify-28)
+    func testChipColumnsDropToOneAtAccessibilitySizes() {
+        XCTAssertEqual(BonusDraft.chipColumnCount(isAccessibilitySize: false), BonusDraft.chipAmounts.count)
+        XCTAssertEqual(BonusDraft.chipColumnCount(isAccessibilitySize: true), 1)
+    }
 }
