@@ -10,6 +10,9 @@ struct MonthlySummaryView: View {
                 if let snap = viewModel.snapshot {
                     heroSection(snap: snap)
                     highlightBadges(snap: snap)
+                    if !snap.bonuses.isEmpty {
+                        receivedBonusSection(snap: snap)
+                    }
                     taskBreakdownChart(snap: snap)
                     recordCalendarSection(snap: snap)
                     if snap.paymentStatus != .paid {
@@ -49,6 +52,15 @@ struct MonthlySummaryView: View {
                 },
                 onCancel: { showingBonusSheet = false }
             )
+        }
+        // 月の移動バーも覆う（演出中に月を変えられないように）。.sheet にしない理由は #279 の設計参照
+        .overlay {
+            if let bonus = viewModel.celebratingBonus {
+                BonusCelebrationView(bonus: bonus) {
+                    viewModel.dismissCelebration()
+                }
+                .transition(.opacity)
+            }
         }
     }
 
@@ -142,6 +154,28 @@ struct MonthlySummaryView: View {
                 badge(icon: "trophy.fill", label: "ベスト", value: snap.highlights.topTaskName ?? "—", color: .pink)
             }
         }
+    }
+
+    /// 「もらったおまけ」(#279)。支払い状態に関係なく出す。「獲得」の額にはおまけを足さない。
+    private func receivedBonusSection(snap: MonthSnapshot) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("もらったおまけ")
+                .appFont(.sectionHeader)
+            ForEach(snap.bonuses.indices, id: \.self) { idx in
+                let entry = snap.bonuses[idx]
+                HStack {
+                    Text("\(entry.emoji) \(entry.title)")
+                        .appFont(.secondaryInfo)
+                    Spacer()
+                    Text("+¥\(entry.amount)")
+                        .appFont(.secondaryInfo)
+                        .fontWeight(.semibold)
+                        .foregroundColor(AccessibilityColors.successGreen)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityIdentifier("summary_bonus_section")
     }
 
     private func badge(icon: String, label: String, value: String, color: Color) -> some View {
