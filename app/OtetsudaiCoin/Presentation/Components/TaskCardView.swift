@@ -12,8 +12,12 @@ struct TaskCardView: View {
             VStack(spacing: 12) {
                 taskIcon
                 taskTitle
-                coinInfo
-                existingCountRow
+                // #280: 件数はコインと同じ行に置く。別の行にすると、件数のあるカードだけ行が 1 つ増え、
+                // 横に並ぶカードとコインの高さが 26pt ずれた (タスク名の枠が余りを受け取るため)
+                HStack(spacing: 8) {
+                    coinInfo
+                    existingCountBadge
+                }
                 if isBulkMode {
                     bulkSelectionIndicator
                 }
@@ -35,16 +39,19 @@ struct TaskCardView: View {
         .animation(.easeInOut(duration: 0.2), value: isSelected)
     }
 
+    /// 「✓ N」の短い表示。VoiceOver は今までどおり「すでに N 件記録済み」と読む
     @ViewBuilder
-    private var existingCountRow: some View {
+    private var existingCountBadge: some View {
         if existingCount >= 1 {
-            HStack(spacing: 4) {
+            HStack(spacing: 2) {
                 Image(systemName: "checkmark.seal")
                     .font(.caption2)
                     .foregroundColor(.gray.opacity(0.7))
-                Text(existingCountText)
+                    .accessibilityHidden(true)
+                Text(verbatim: "\(existingCount)")
                     .appFont(.captionText)
                     .foregroundColor(.gray.opacity(0.7))
+                    .accessibilityLabel(existingCountText)
                     .accessibilityIdentifier("existing_count_label")
             }
         } else {
@@ -72,8 +79,8 @@ struct TaskCardView: View {
             .foregroundColor(AccessibilityColors.textPrimary)
             .lineLimit(2)
             // #277: 行の高さにそろえたとき、余った高さを名前の枠で受け取る。コインと「選択」は下端に寄り、
-            // 名前が 2 行の隣のカードと横一列にそろう。ただし隣にだけ「すでに N 件記録済み」の行があると
-            // 1 行ぶんずれる (置き方は #280)。Spacer だと VStack の spacing が 1 つ増えて 12pt 高くなる。
+            // 名前が 2 行の隣のカードと横一列にそろう (件数もコインの行に入れたので行の数は全カード同じ、#280)。
+            // Spacer だと VStack の spacing が 1 つ増えて 12pt 高くなる。
             .frame(maxHeight: .infinity, alignment: .top)
     }
 

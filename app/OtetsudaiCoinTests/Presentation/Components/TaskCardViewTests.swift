@@ -51,6 +51,27 @@ final class TaskCardViewTests: XCTestCase {
         )
     }
 
+    // MARK: - #280 件数はコインと同じ行に置く
+    // 件数の行が増えるカードだけコインが 26pt 上にずれた (横に並ぶ 2 枚で行の数が違うため)。
+    // 件数をコインの行に入れ、どのカードも行の数を同じにする
+
+    func test_existingCount_sharesRowWithCoin() throws {
+        let view = TaskCardView(task: makeTask(coinRate: 10), isSelected: false, existingCount: 1, onTap: {})
+        let rows = try view.inspect().findAll(ViewType.HStack.self).map { row in
+            row.findAll(ViewType.Text.self).compactMap { try? $0.string() }
+        }
+        XCTAssertTrue(
+            rows.contains { texts in
+                texts.contains { $0.hasSuffix("コイン") || $0.hasSuffix("Coins") } && nonCoinTexts(texts).contains { $0.contains("1") }
+            },
+            "コインと件数が同じ HStack に無い。HStack ごとの Text: \(rows)"
+        )
+    }
+
+    // 読み上げ (accessibilityLabel =「すでに N 件記録済み」) は ViewInspector 0.10.2 + iOS 26 で
+    // modifier を読めない ("EmptyView does not have 'accessibilityLabel' modifier") ため、
+    // VerificationScreenshotUITests.testCaptureRecordCountRow で accessibility ツリーから確かめる
+
     // MARK: - #148 絵文字アイコン化 + 選択表現の簡素化
 
     func testRendersExplicitIconEmoji() throws {
