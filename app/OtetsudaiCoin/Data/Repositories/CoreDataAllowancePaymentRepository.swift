@@ -94,6 +94,8 @@ class CoreDataAllowancePaymentRepository: AllowancePaymentRepository {
         cdPayment.year = Int16(payment.year)
         cdPayment.paidAt = payment.paidAt
         cdPayment.note = payment.note
+        cdPayment.bonusAmount = Int32(payment.bonusAmount)
+        cdPayment.bonusStampKey = payment.bonusStampKey
     }
 }
 
@@ -112,7 +114,9 @@ extension CDAllowancePayment {
             month: Int(self.month),
             year: Int(self.year),
             paidAt: paidAt,
-            note: self.note
+            note: self.note,
+            bonusAmount: Int(self.bonusAmount),
+            bonusStampKey: self.bonusStampKey
         )
     }
 }
