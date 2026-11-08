@@ -87,6 +87,46 @@ final class UnpaidAllowanceDetectorServiceTests: XCTestCase {
         XCTAssertEqual(unpaidPeriod.month, lastMonthComponents.month!)
     }
     
+    /// #279: おまけ（bonusAmount）は未払いを埋めない。検出は amount だけを読む。
+    /// 今の実装は amount しか読まないので最初から GREEN になる見込み。これは制約の回帰の囲い。
+    func testDetectUnpaidIgnoresBonusAmount() {
+        let childId = UUID()
+        let helpTaskId = UUID()
+        // 先月の固定日 15 日（今月 15 日から月を引くので年境界でも先月になる）
+        var thisMonth15Comps = calendar.dateComponents([.year, .month], from: Date())
+        thisMonth15Comps.day = 15
+        thisMonth15Comps.hour = 12
+        let thisMonth15 = calendar.date(from: thisMonth15Comps)!
+        let lastMonth15 = calendar.date(byAdding: .month, value: -1, to: thisMonth15)!
+        let lastMonth = calendar.dateComponents([.year, .month], from: lastMonth15)
+
+        let records = [
+            HelpRecord(id: UUID(), childId: childId, helpTaskId: helpTaskId, recordedAt: lastMonth15),
+            HelpRecord(id: UUID(), childId: childId, helpTaskId: helpTaskId, recordedAt: lastMonth15)
+        ]
+        let task = HelpTask(id: helpTaskId, name: "テストタスク", isActive: true, coinRate: 100)
+        let payment = AllowancePayment(
+            id: UUID(),
+            childId: childId,
+            amount: 100,
+            month: lastMonth.month!,
+            year: lastMonth.year!,
+            paidAt: lastMonth15,
+            bonusAmount: 500,
+            bonusStampKey: "effort"
+        )
+
+        let unpaidPeriods = detector.detectUnpaidPeriods(
+            childId: childId,
+            helpRecords: records,
+            payments: [payment],
+            tasks: [task]
+        )
+
+        XCTAssertEqual(unpaidPeriods.count, 1, "おまけ 500 があっても、稼ぎ 200 に対して 100 しか払っていない")
+        XCTAssertEqual(unpaidPeriods.first?.expectedAmount, 100, "未払いは 200 - 100。おまけで埋めない")
+    }
+
     func testDetectUnpaidPeriodsWithMultipleUnpaidMonths() {
         let childId = UUID()
         let helpTaskId = UUID()

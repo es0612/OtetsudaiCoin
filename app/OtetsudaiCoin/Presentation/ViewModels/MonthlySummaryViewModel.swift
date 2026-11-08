@@ -12,6 +12,9 @@ class MonthlySummaryViewModel {
 
     var isLoading: Bool = false
 
+    /// おまけ付きの支払いが保存できた直後の演出の対象 (#279)。View は non-nil の間だけ演出を重ねる。
+    private(set) var celebratingBonus: PaymentBonus?
+
     let child: Child
 
     // MARK: - Dependencies
@@ -92,7 +95,10 @@ class MonthlySummaryViewModel {
     /// 合算して判定するため、残額行を別途追加しても合計が totalCoins に達し .paid と判定される。
     /// 保存後 loadMonth で paidAmount / paymentStatus を再評価する。
     /// isLoading を in-flight ガードに用い、CTA の double-tap による二重 save（全額過払い）を防ぐ。
-    func payCurrentMonth() async {
+    ///
+    /// #279: `bonus` を渡すと、同じ支払い行の `bonusAmount` / `bonusStampKey` に載せる（`amount` には混ぜない）。
+    /// 保存できたときだけ `celebratingBonus` を立てる。引数なしの呼び出しは今までと同じ動き。
+    func payCurrentMonth(bonus: PaymentBonus? = nil) async {
         guard !isLoading else { return }
         isLoading = true
         defer { isLoading = false }
@@ -110,14 +116,24 @@ class MonthlySummaryViewModel {
                 month: month,
                 year: year,
                 paidAt: Date(),
-                note: "\(year)年\(month)月のお小遣い支払い"
+                note: "\(year)年\(month)月のお小遣い支払い",
+                bonusAmount: bonus?.amount ?? 0,
+                bonusStampKey: bonus?.stamp.rawValue
             )
             try await allowancePaymentRepository.save(payment)
             await loadMonth()   // paidAmount/paymentStatus を再評価（loadMonth が isLoading を管理）
+            if let bonus {
+                celebratingBonus = bonus
+            }
         } catch {
             // 保存失敗時は snapshot を維持（paymentStatus は変わらない）
             DebugLogger.error("payCurrentMonth failed: \(error)")
         }
+    }
+
+    /// おまけの演出を閉じる (#279)。
+    func dismissCelebration() {
+        celebratingBonus = nil
     }
 
     // MARK: - Loading
@@ -156,6 +172,11 @@ class MonthlySummaryViewModel {
 
             let monthPayments = allPayments.filter { $0.year == year && $0.month == month }
             let paidAmount = monthPayments.reduce(0) { $0 + $1.amount }
+            // #279: おまけは paidAmount / paymentStatus に混ぜず、一覧として別に持つ
+            let bonuses = monthPayments
+                .filter { $0.bonusAmount > 0 }
+                .sorted { $0.paidAt < $1.paidAt }
+                .map { MonthSnapshot.BonusEntry(stampKey: $0.bonusStampKey, amount: $0.bonusAmount, paidAt: $0.paidAt) }
 
             let paymentStatus = computePaymentStatus(
                 payments: allPayments,
@@ -174,7 +195,8 @@ class MonthlySummaryViewModel {
                 taskBreakdown: breakdown,
                 highlights: highlights,
                 calendar: calendarDays,
-                paymentStatus: paymentStatus
+                paymentStatus: paymentStatus,
+                bonuses: bonuses
             )
         } catch {
             // #173: 以前はログすら残らず、ユーザーには空表示だけが見えて
@@ -276,6 +298,19 @@ struct MonthSnapshot: Equatable {
     let highlights: Highlights
     let calendar: [DailyActivity]
     let paymentStatus: PaymentStatus
+    let bonuses: [BonusEntry]    // #279: 当月のおまけ（paidAt の古い順）。paidAmount には含めない
+
+    /// 支払い 1 行ぶんのおまけ (#279)。保存されたスタンプのキーを表示用の値に変えるのはここだけ。
+    /// View はこの型だけを読む。未知のキー（将来のスタンプや壊れた値）でも捨てず、🎁 / 「おまけ」で表示する。
+    struct BonusEntry: Equatable {
+        let stampKey: String?
+        let amount: Int
+        let paidAt: Date
+
+        var stamp: BonusStamp? { stampKey.flatMap(BonusStamp.init(rawValue:)) }
+        var emoji: String { stamp?.emoji ?? BonusStamp.fallbackEmoji }
+        var title: String { stamp?.title ?? BonusStamp.fallbackTitle }
+    }
 
     struct TaskBreakdownItem: Equatable {
         let name: String
