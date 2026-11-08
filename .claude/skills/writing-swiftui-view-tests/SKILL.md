@@ -1,6 +1,6 @@
 ---
 name: writing-swiftui-view-tests
-description: Use when writing or fixing SwiftUI View tests or XCUITests in OtetsudaiCoin — choosing between ViewInspector and XCUITest, or when ViewInspector fails with "Search did not find a match. Possible blockers: BannerAdView, Material, AccessibilityImageLabel", find(viewWithAccessibilityIdentifier:) finds nothing on iOS 26, accessibilityLabel() throws "EmptyView does not have 'accessibilityLabel' modifier", an XCUITest tap or waitForExistence does nothing (Toggle, off-screen List/LazyVGrid rows at AX sizes), or view logic depends on gestures or environment values (@Environment).
+description: Use when writing or fixing SwiftUI View tests or XCUITests in OtetsudaiCoin — choosing between ViewInspector and XCUITest, or when ViewInspector fails with "Search did not find a match. Possible blockers: BannerAdView, Material, AccessibilityImageLabel", find(viewWithAccessibilityIdentifier:) finds nothing on iOS 26, accessibilityLabel() throws "EmptyView does not have 'accessibilityLabel' modifier", an XCUITest tap or waitForExistence does nothing (Toggle, off-screen List/LazyVGrid rows at AX sizes), or view logic depends on gestures or environment values (@Environment). Also when extracting a component from a tested view, laying out emoji or Dynamic Type text icons inside fixed frames, or adding a screenshot / UI test scene that must pass at AX sizes.
 ---
 
 # OtetsudaiCoin の SwiftUI View テスト

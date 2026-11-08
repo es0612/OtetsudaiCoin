@@ -10,7 +10,7 @@ import ViewInspector
 /// なので単独で検証できる (HelpRecordRowTests と同じ Component 分離パターン)。
 ///
 /// `find(viewWithAccessibilityIdentifier:)` は ViewInspector 0.10.2 + iOS 26 SDK で
-/// systematic に効かないため findAll ベースで検証する (CLAUDE.md「SwiftUI View テスト戦略」)。
+/// systematic に効かないため findAll ベースで検証する (skill `writing-swiftui-view-tests`)。
 @MainActor
 final class TaskRowViewTests: XCTestCase {
 

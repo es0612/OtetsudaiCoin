@@ -1,6 +1,6 @@
 ---
 name: running-xcodebuild-tests-and-date-fixtures
-description: Use when running or judging `xcodebuild test` results in OtetsudaiCoin — the tail of the log shows no `** TEST SUCCEEDED **` / `** TEST FAILED **` line, a background run reports exit 0, a grep count of "failed" looks wrong, a test fails only in parallel runs or intermittently, or measuring the effect of a build-setting change on warnings — and when writing or fixing tests whose fixtures depend on today's date, month or year boundaries (start of month, December to January), or a service that reads `Date()` internally.
+description: Use when running or judging `xcodebuild test` results in OtetsudaiCoin — the tail of the log shows no `** TEST SUCCEEDED **` / `** TEST FAILED **` line, a background run reports exit 0, a grep count of "failed" looks wrong, a test fails only in parallel runs or intermittently, or measuring the effect of a build-setting change on warnings — and when writing or fixing tests whose fixtures depend on today's date, month or year boundaries (start of month, December to January), or a service that reads `Date()` internally — including when implementing calendar or month-navigation features, which need a year-boundary test.
 ---
 
 # OtetsudaiCoin のテストの流し方と、日付に依存する fixture
@@ -18,6 +18,7 @@ description: Use when running or judging `xcodebuild test` results in OtetsudaiC
 | 結果の判定 | ログをファイルに保存し、`grep -E -A6` で判定行と `Failing tests:` を抜き出す (下の推奨形) |
 | background 実行の完了 | harness の exit ではなく、ログの `exit=` 行と判定行を読む |
 | 失敗の詳細 | `xcrun xcresulttool get test-results tests --path <xcresult>` |
+| テストの件数 | `xcrun xcresulttool get test-results summary --path <xcresult>` (grep で数えない) |
 | 落ちたテスト | `-only-testing:` で単独に流す → 通れば並列実行の flake |
 | 間欠的な失敗 | wait を足す前に N 回流して再現率を測る |
 | ビルド設定の影響 | 専用 `-derivedDataPath` の clean build で、設定なしとの差分を取る |
@@ -31,8 +32,8 @@ description: Use when running or judging `xcodebuild test` results in OtetsudaiC
 - **background で `xcodebuild test` を chain 実行したら、報告される完了 exit code を鵜呑みにしない**: `xcodebuild ... > log 2>&1; echo "exit=$?"` を background 実行すると、harness が報告する**完了 exit は chain 末尾の `echo` の 0** になり、xcodebuild の real exit (65 = `** TEST FAILED **`) を隠す。「exit 0」通知を信じて緑判定すると失敗を見逃す。必ず log 末尾の `exit=` 行を `grep "^exit="` で読むか、`grep -F "** TEST FAILED"` / `Failing tests:` で結果を確認してから判定する。なお `find(viewWithAccessibilityIdentifier:)` 系の失敗詳細はストリーム log に出ないことがあるので、`.xcresult` を `xcrun xcresulttool get test-results tests --path <xcresult>` で開いて failure message を取る (`AccessibilityImageLabel` blocker 等の真因はここでしか見えない)。
 - 並列 simulator run で UI テスト・load 系テストが flaky に落ちることがある。regression と断定する前に該当テストを `xcodebuild test -only-testing:` で isolated 再実行し、PASS すれば parallel flake として扱う（本修正と無関係な既知問題として切り分け可能）。
 - **ビルド設定変更 (warning 系フラグ等) の影響計測は、専用 `-derivedDataPath` の clean build で行う** (2026-08-13 #154 PR #197 で確立): `SWIFT_STRICT_CONCURRENCY=targeted` の影響を測ろうと通常の `xcodebuild build` を流したら **warning 1 件 (無関係な AppIntents note のみ)** で「影響ゼロ」と誤判定しかけた。直前のテスト実行でモジュールがキャッシュ済みだと Swift ファイルが再コンパイルされず、**新しい警告フラグが一切適用されない**。正しい手順: (a) `xcodebuild build-for-testing ... -derivedDataPath <scratch>/dd-<条件名>` で条件ごとに**まっさらな DerivedData** を使い (テストターゲットまで含めて計測できる)、(b) 設定なしの baseline も同じ方法で取り、(c) `comm -13 <(sort baseline) <(sort after)` で**差分だけ**を抽出する。実測では baseline 16 件 → targeted 25 件 (新規 9 件 = 実質 3 箇所) と判明した。pbxproj へ書いた設定が全ターゲットへ効いているかは `xcodebuild -target <各ターゲット> -showBuildSettings | grep <設定名>` で個別確認する (project レベルに 1 度書けば継承されるが、確認は 3 ターゲット分行う)。
-- **件数を `grep -c "Test case .*failed"` で数えない** (#233 候補、2026-10 に 2 回): テスト名に `failed` を含む**通過**テスト (例 `test_recordBulkHelp_partialFailure_failedRemain`) まで数える。判定は上の `** TEST` / `Failing tests:` 行で行い、件数が要るときは `"Test case .* failed on"` のように後ろの語まで含めて絞る (通過は `passed on`)。zsh では `--include=*.swift` などのグロブをクォートする
-- **間欠的な失敗は、wait や retry を足す前に同じ条件で N 回流して再現率を測る** (#265、#233 候補 H): 再現が 0/N なら wait を足さず、回数と条件を issue に書いて `validating` のまま残す。推測で wait を足すと、原因が分からないまま「直った」ように見える。#265 は 6 回流して再現 0 だったため、wait を足さずに済んだ
+- **件数は grep で数えず、xcresult の summary で読む** (#233、2026-10 に 3 回): `grep -c "Test case .*failed"` はテスト名に `failed` を含む**通過**テスト (例 `test_recordBulkHelp_partialFailure_failedRemain`) まで数える。行の形も実行のしかたで変わる (並列: `Test case '<Class>.<test>()' passed on '<device>'`、並列なし (`-parallel-testing-enabled NO` や UI テスト): `Test Case '-[<Target>.<Class> <test>]' failed (34.093 seconds).`)。さらに並列の clone の出力が混ざって行頭が欠けることがある (#264 の merge 後に grep で 557 件、summary では 558 件)。合否は上の `** TEST` / `Failing tests:` 行で判定し、件数が要るときは `xcrun xcresulttool get test-results summary --path <xcresult>` の `totalTestCount` / `passedTests` / `failedTests` を読む。zsh では `--include=*.swift` などのグロブをクォートする
+- **間欠的な失敗は、wait や retry を足す前に同じ条件で N 回流して再現率を測る** (#265): 再現が 0/N なら wait を足さず、回数と条件を issue に書いて `validating` のまま残す。推測で wait を足すと、原因が分からないまま「直った」ように見える。#265 は 6 回流して再現 0 だったため、wait を足さずに済んだ
 
 ## 日付に依存する fixture
 

@@ -17,7 +17,7 @@ import ViewInspector
 ///   (button サブツリー内の Shape を `findAll(ViewType.Shape.self)` で列挙)
 ///
 /// `tap()` / `isDisabled()` はボタンタイプ上で正常動作することをローカル実行で確認済み。
-/// CLAUDE.md § SwiftUI View テスト戦略 "findAll fallback" に準拠。
+/// skill `writing-swiftui-view-tests` "findAll fallback" に準拠。
 @MainActor
 final class RecordCalendarViewTests: XCTestCase {
 
