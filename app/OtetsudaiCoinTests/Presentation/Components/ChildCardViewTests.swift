@@ -7,7 +7,7 @@ import ViewInspector
 ///
 /// `accessibilityIdentifier` は ViewInspector 0.10.2 + iOS 26 SDK で解決不能なため、
 /// 図形の色は `findAll(ViewType.Shape.self)` + `fillShapeStyle(Color.self)` で確認する
-/// (CLAUDE.md § SwiftUI View テスト戦略「findAll fallback」)。
+/// (skill `writing-swiftui-view-tests`「findAll fallback」)。
 @MainActor
 final class ChildCardViewTests: XCTestCase {
 

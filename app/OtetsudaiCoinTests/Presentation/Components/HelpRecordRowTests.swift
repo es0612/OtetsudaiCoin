@@ -8,7 +8,7 @@ import ViewInspector
 /// 親の `HelpHistoryView` は NavigationStack + List + Image(systemName:) の
 /// 組み合わせで ViewInspector が traverse できないが、`HelpRecordRow` は
 /// トップレベル struct なので単独で検証できる
-/// (CLAUDE.md § SwiftUI View テスト戦略「Component 分離による blocker 回避」)。
+/// (skill `writing-swiftui-view-tests`「Component 分離による blocker 回避」)。
 ///
 /// `accessibilityIdentifier` は ViewInspector 0.10.2 + iOS 26 SDK で解決不能なため、
 /// `findAll(ViewType.Button.self)` ベースで掴む。

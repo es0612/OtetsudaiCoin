@@ -7,7 +7,7 @@ import ViewInspector
 final class TaskListActionButtonsTests: XCTestCase {
     /// Label(systemImage:) は内部 Image(systemName:) が AccessibilityImageLabel blocker に
     /// なるため find(accessibilityIdentifier:) は到達不可。findAll(ViewType.Button.self) は
-    /// blocker を跨いで Button を全列挙できる（CLAUDE.md SwiftUI View テスト戦略 / #84）。
+    /// blocker を跨いで Button を全列挙できる（skill `writing-swiftui-view-tests` / #84）。
     private func buttons(canSort: Bool) throws -> [InspectableView<ViewType.Button>] {
         let view = TaskListActionButtons(
             canSortByFrequency: canSort,

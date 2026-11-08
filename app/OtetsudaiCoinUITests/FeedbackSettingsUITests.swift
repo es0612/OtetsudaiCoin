@@ -9,7 +9,7 @@
 //    (`FeedbackSettingsServiceTests`) は既に unit test 済み。
 //  - 残る未検証区間は「Toggle の Binding が ViewModel へ書き戻り、値が永続化されるか」
 //    だけだが、`SettingsView` は ViewInspector で traverse できない既知制約があり
-//    (CLAUDE.md § SwiftUI View テスト戦略)、unit test では到達できない。
+//    (skill `writing-swiftui-view-tests`)、unit test では到達できない。
 //  - PR #182 はこの区間を ⚠️ 未検証のまま merge されたため、ここで塞ぐ。
 //
 //  PR #182 の XCUITest がタップに失敗した理由 (本 PR の調査で判明):

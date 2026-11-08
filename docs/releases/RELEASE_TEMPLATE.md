@@ -140,7 +140,7 @@ Thank you for using Otetsudai Coin!
   - 証拠:
 - [ ] ビルド元の commit でユニットテストが green
   - 担当: Claude (この workflow はユニットテストを流さないので、ローカルで流す)
-  - 取り方: 提出する build のビルド元 commit で `xcodebuild test ... > "$LOG" 2>&1; grep -E -A6 '\*\* TEST|Failing tests:' "$LOG"` (CLAUDE.md「iOS テスト flake 切り分け」の形)
+  - 取り方: 提出する build のビルド元 commit で `xcodebuild test ... > "$LOG" 2>&1; grep -E -A6 '\*\* TEST|Failing tests:' "$LOG"` (skill `running-xcodebuild-tests-and-date-fixtures` の形)
   - 証拠:
 - [ ] ja / en 両方のロケールで起動する
   - 担当: Claude (Simulator。`ios-simulator-locale-testing` skill で `-AppleLanguages` を起動ごとに切り替える)

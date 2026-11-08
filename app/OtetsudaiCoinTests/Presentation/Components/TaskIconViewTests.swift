@@ -4,7 +4,7 @@ import ViewInspector
 @testable import OtetsudaiCoin
 
 /// TaskIconView (displayIcon 絵文字 + 選択円塗りの共通 component、#200) のテスト。
-/// findAll ベース (CLAUDE.md「SwiftUI View テスト戦略」節) + トークン定数の等価比較。
+/// findAll ベース (skill `writing-swiftui-view-tests`) + トークン定数の等価比較。
 @MainActor
 final class TaskIconViewTests: XCTestCase {
 

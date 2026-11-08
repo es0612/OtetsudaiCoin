@@ -5,7 +5,7 @@ import ViewInspector
 
 /// ViewInspector 共通 helper (#200)。
 /// `find(viewWithAccessibilityIdentifier:)` は ViewInspector 0.10.2 + iOS 26 SDK で
-/// systematic に効かない既知回帰があるため (CLAUDE.md「SwiftUI View テスト戦略」節)、
+/// systematic に効かない既知回帰があるため (skill `writing-swiftui-view-tests`)、
 /// findAll ベースで blocker を跨いで収集するパターンを 1 箇所に固定する。
 @MainActor
 extension View {

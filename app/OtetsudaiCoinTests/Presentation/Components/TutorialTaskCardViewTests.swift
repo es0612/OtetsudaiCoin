@@ -6,7 +6,7 @@ import ViewInspector
 /// TutorialTaskCardView (RecordTutorialView.swift 内宣言) のコンポーネントテスト。
 ///
 /// `find(viewWithAccessibilityIdentifier:)` は ViewInspector 0.10.2 + iOS 26 SDK で
-/// systematic に効かない既知回帰があるため (CLAUDE.md「SwiftUI View テスト戦略」節)、
+/// systematic に効かない既知回帰があるため (skill `writing-swiftui-view-tests`)、
 /// findAll(ViewType.Text.self) / findAll(ViewType.Shape.self) ベースで検証する。
 /// TaskCardViewTests と同型 (#148 で確立したパターンの Tutorial 版、#177 項目1)。
 @MainActor
