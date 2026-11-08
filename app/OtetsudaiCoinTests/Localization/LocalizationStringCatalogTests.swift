@@ -175,6 +175,40 @@ final class LocalizationStringCatalogTests: XCTestCase {
         }
     }
 
+    // MARK: - おまけ (#279) のキー存在テスト
+
+    /// `testAllKeysHaveEnglishTranslation` は catalog にあるキーしか見ないので、
+    /// キーの入れ忘れはこのテストで塞ぐ。
+    func testBonusPaymentKeysExist() {
+        let expectedKeys = [
+            "がんばったで賞",
+            "ありがとう賞",
+            "まいにちコツコツ賞",
+            "チャレンジ賞",
+            "おまけ",
+            "おまけを付けて支払う",
+            "おまけを付ける",
+            "スタンプを選ぶ",
+            "おまけの額",
+            "お小遣い",
+            "渡す額",
+            "おまけを付けて支払う ¥%lld",
+            "もらったおまけ",
+            "+¥%lld",
+            "¥%lld",
+            "%@ %@",
+            "閉じる",
+            "キャンセル",
+        ]
+
+        for key in expectedKeys {
+            XCTAssertNotNil(
+                strings[key],
+                "おまけのキー '\(key)' が String Catalog に存在すべき"
+            )
+        }
+    }
+
     // MARK: - 英語翻訳の存在テスト
 
     func testAllKeysHaveEnglishTranslation() {

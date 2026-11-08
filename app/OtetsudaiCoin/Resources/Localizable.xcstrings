@@ -2901,6 +2901,166 @@
           }
         }
       }
+    },
+    "がんばったで賞" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Great Effort Award"
+          }
+        }
+      }
+    },
+    "ありがとう賞" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thank You Award"
+          }
+        }
+      }
+    },
+    "まいにちコツコツ賞" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every Day Award"
+          }
+        }
+      }
+    },
+    "チャレンジ賞" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Challenge Award"
+          }
+        }
+      }
+    },
+    "おまけ" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bonus"
+          }
+        }
+      }
+    },
+    "おまけを付けて支払う" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pay with a bonus"
+          }
+        }
+      }
+    },
+    "おまけを付ける" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add a bonus"
+          }
+        }
+      }
+    },
+    "スタンプを選ぶ" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pick a stamp"
+          }
+        }
+      }
+    },
+    "おまけの額" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bonus amount"
+          }
+        }
+      }
+    },
+    "お小遣い" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allowance"
+          }
+        }
+      }
+    },
+    "渡す額" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Total to give"
+          }
+        }
+      }
+    },
+    "おまけを付けて支払う ¥%lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pay ¥%lld with bonus"
+          }
+        }
+      }
+    },
+    "もらったおまけ" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bonuses received"
+          }
+        }
+      }
+    },
+    "+¥%lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+¥%lld"
+          }
+        }
+      }
+    },
+    "¥%lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¥%lld"
+          }
+        }
+      }
+    },
+    "%@ %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ %@"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"
