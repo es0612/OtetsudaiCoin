@@ -76,6 +76,7 @@
 - **Plan 実行中の user 応答による deviation の取り扱い**: writing-plans 中の AskUserQuestion で plan を reverse / scope 縮小した場合 (例: BannerAdView 移動 → 維持、追加 test 3 件 → 1 件)、plan 本体も書き換えた上で PR description の `## Plan からの逸脱` 節に deviation 理由を明記する。reviewer が「なぜ plan と差分があるのか」を追えるようにすると、レビュー時の混乱を防げる。
 - **TDD の red verification step skip 条件**: red 段階の `xcodebuild test` 実行を skip 可能なのは、(a) コンパイルエラー確定 (型 / メソッド未定義で `BUILD FAILED` 必至)、(b) 直接的な期待値差 (`XCTAssertEqual` の数値ずれが impl 不在で必ず起きる) の場合のみ。skip した場合は commit メッセージと PR description の `## Plan からの逸脱` に skip 理由を明記して reviewer が追えるようにする。behavioral edge case (observer 経路、race condition、`setLoading` 副作用などタイミング依存) を試す red は **必ず実行** して fail を確認する。スキップすると「green になったが期待した経路ではなかった」を見逃す。
 - **既存条件を「厳格化」するテスト変更では red の代替に mutation 検証を行う** (PR #180 / PR #198 b687c12 で 2 回適用済みの反復パターン、2026-08-15 確立): OR→AND のような判定強化では既存実装が既に両条件を満たしていることが多く、red が原理的に発生しない。この場合は red 確認を省略してよいが、代わりに **対象条件の片方を意図的に破壊してテストが FAIL することを確認 → revert して GREEN 復帰** する mutation 検証を実施し、強化した両条件が実際に検出力を持つことを証明する。commit メッセージに「mutation 検証を TDD red の代替とする」旨を明記して reviewer が追えるようにする。
+- **「A を B に混ぜない」不変条件のテストは、実装が漏れたら結果が変わる境界値を fixture にする** (2026-11-08 #279 PR #297 で確立): #279 では「稼ぎ 200・支払い 200・おまけ 50」で `.paid` を確認していたが、おまけを `paidAmount` に合算する漏れがあっても 250 ≥ 200 で `.paid` のままになり、テストは落ちない。「支払い 100 + おまけ 100 → `.partiallyPaid`」のように、漏れたら状態が変わる値を選ぶ。Review Focus に「状態は X」と書くときも同じ基準で fixture を選び、書き終えたら漏れる変更を一時的に入れて FAIL を確かめる (上の mutation 検証)。
 - **writing-plans で spec の列挙項目 (置換対象リスト・画面別変更点等) を plan task へ変換したら、spec 項目 → plan step の 1:1 対応を最後に指差し確認する**: spec の行参照が複数項目で重なっていると plan 変換時に項目が silent に脱落する。実例: #147 で spec §4 の「進捗バー(:170): brandPrimary」が、plan が同じ :170 を CTA ボタンと解釈したため脱落し、最終レビューまで誰も気付かなかった (fix 2 行で済んだが plan 段階なら無コスト)。spec 側も「行番号だけでなく要素名 (進捗バー / CTA ボタン) で項目を特定する」書き方にすると衝突自体を防げる。
 - **Plan の Task に global skill (`~/.claude/skills/`) 更新を含めない**: Plan / spec 作成時に `git ls-files | grep .claude/skills/` で対象 skill が project 内 (`.claude/skills/`) か global (`~/.claude/skills/`) かを確認する。global skill 更新を Task に含めると **project repo の `git add` 対象外**になり、Task 実行時に「Plan に書いたのに commit に入らない」逸脱が必発する (前 session で発生)。global skill 更新が必要な場合は別 step に分離し、PR description の `## Plan からの逸脱` 節に skill 更新内容を明記する運用にする。逸脱を事後説明するのではなく、Plan 設計時に分岐させる。
 
@@ -97,6 +98,10 @@
 
 ## SwiftUI @Observable 継承の落とし穴
 - **`BaseViewModel` (@Observable) を継承するサブクラスには `@Observable` を必ず再付与する** (#145 PR #170 で実証): 再付与しないと**サブクラス側で新規宣言した stored property が Observation 追跡されず、SwiftUI View が再描画されない**（旧 `ChildManagementViewModel.children` で潜在していた実バグ）。基底クラス宣言のプロパティ (`isLoading` 等) は付与有無に関わらず追跡されるため、通常の unit test（値の読み書き assert）では検知不能。検証は `withObservationTracking` を使った observation テストでのみ可能で、回帰ガードとして `ViewModelObservationTrackingTests` に恒久化済み。新規 ViewModel を BaseViewModel 継承で作るときは `@MainActor @Observable class Xxx: BaseViewModel` の形を必ず守る。
+
+## SwiftUI 入場アニメーションの書き方
+- **入場アニメーションの開始値は `@State` の初期値 (または `appeared` のような Bool) で持ち、`onAppear` では `withAnimation { appeared = true }` だけを書く** (2026-11-08 #279 PR #297 の BonusCelebrationView で確立): `onAppear` の同じ同期処理の中で「開始値を代入 → 直後に `withAnimation` で終了値を代入」と書くと、SwiftUI は 1 回の更新にまとめて確定するため開始値が一度も描画されず、フェードだけが動く。Splash の `iconScale` の持ち方が参照実装。
+- この種の不具合は純粋関数 (`MotionPlan` 等) のユニットテストでも静止画スクショでも検出できない (#279 では Task 5 のレビューが Splash と実装を見比べて初めて見つけた)。入場アニメーションを足すときは既存の動く実装と書き方を並べて照合し、シミュレータで動きを確かめていなければ PR に「動きは未確認」と明記する。
 
 ## SwiftUI View テスト戦略
 - View のテスト (ViewInspector / XCUITest) を書く・直すとき、ViewInspector が `Search did not find a match` で落ちたとき、XCUITest のタップや待ちが効かないとき、gesture や環境値で分かれる見た目をテストするときは、project skill `writing-swiftui-view-tests` を使う (#233 で CLAUDE.md から移した)
