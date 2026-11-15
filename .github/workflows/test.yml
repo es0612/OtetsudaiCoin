@@ -2,6 +2,8 @@ name: Unit Tests
 
 # PR ごとにユニットテストを GitHub Actions（macOS）で回す。
 # UI テスト（ASC スクショ撮影を含む）は対象外。ユニットテスト（OtetsudaiCoinTests）だけを回す。
+# ランナーのシミュレータは英語設定なので、日本語の文言を期待するテストのために ja / JP で実行する。
+# scheme は parallelizable だが、3 コアのランナーで並列にすると 1 秒待ちの非同期テストが間に合わず落ちるので直列にする。
 # 夜間の自動実装タスクは、このチェックが緑であることをマージ条件にする。
 
 on:
@@ -49,6 +51,8 @@ jobs:
             -project OtetsudaiCoin.xcodeproj \
             -scheme OtetsudaiCoin \
             -only-testing:OtetsudaiCoinTests \
+            -testLanguage ja -testRegion JP \
+            -parallel-testing-enabled NO \
             -destination "platform=iOS Simulator,id=${{ steps.sim.outputs.udid }}" \
             -resultBundlePath "$RUNNER_TEMP/UnitTests.xcresult" \
             CODE_SIGNING_ALLOWED=NO \
