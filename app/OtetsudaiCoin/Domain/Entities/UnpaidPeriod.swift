@@ -19,10 +19,6 @@ struct UnpaidPeriod: Equatable, Codable {
                lhs.year == rhs.year
     }
     
-    var monthYearString: String {
-        return "\(year)年\(month)月"
-    }
-    
     var dateComponents: DateComponents {
         return DateComponents(year: year, month: month)
     }

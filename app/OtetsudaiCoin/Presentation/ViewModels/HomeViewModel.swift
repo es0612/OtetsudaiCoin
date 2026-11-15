@@ -326,6 +326,13 @@ class HomeViewModel: BaseViewModel {
     func dismissUnpaidWarning() {
         showUnpaidWarning = false
     }
+
+    /// 未払いバナーに出す期間の一覧 (#301)。年月は locale に合わせる（ja「2026年10月」/ en「October 2026」）。
+    func unpaidPeriodsText(locale: Locale = .current) -> String {
+        unpaidPeriods
+            .map { MonthlySummaryViewModel.monthLabel(year: $0.year, month: $0.month, locale: locale) }
+            .joined(separator: ", ")
+    }
     
     private func generateUnpaidWarningMessage() {
         guard !unpaidPeriods.isEmpty else {
@@ -340,13 +347,13 @@ class HomeViewModel: BaseViewModel {
         if affectedChildrenCount == 1 {
             // 1人の子供の場合
             let childId = childGroups.keys.first!
-            let childName = children.first { $0.id == childId }?.name ?? "不明"
+            let childName = children.first { $0.id == childId }?.name ?? String(localized: "不明")
             let childAmount = childGroups[childId]!.reduce(0) { $0 + $1.expectedAmount }
             
-            unpaidWarningMessage = "\(childName)の未支払いのお小遣いが\(childAmount)コインあります。履歴画面から支払いを行ってください。"
+            unpaidWarningMessage = String(localized: "\(childName)の未支払いのお小遣いが\(childAmount)コインあります。履歴画面から支払いを行ってください。")
         } else {
             // 複数の子供の場合
-            unpaidWarningMessage = "\(affectedChildrenCount)人の子供に未支払いのお小遣いが合計\(totalUnpaidAmount)コインあります。履歴画面から支払いを行ってください。"
+            unpaidWarningMessage = String(localized: "\(affectedChildrenCount)人の子供に未支払いのお小遣いが合計\(totalUnpaidAmount)コインあります。履歴画面から支払いを行ってください。")
         }
     }
 }

@@ -84,7 +84,7 @@ struct HelpHistoryView: View {
             // 期間選択
             Picker("期間", selection: $viewModel.selectedPeriod) {
                 ForEach(HistoryPeriod.allCases, id: \.self) { period in
-                    Text(period.rawValue).tag(period)
+                    Text(period.title).tag(period)
                 }
             }
             .pickerStyle(SegmentedPickerStyle())
@@ -171,7 +171,7 @@ struct HelpHistoryView: View {
                 .foregroundColor(.secondary)
 
             // #32: 「全データが無い」ではなく「今のフィルタには無い」ことを明示
-            Text("「\(viewModel.selectedPeriod.rawValue)」の記録はありません")
+            Text("「\(viewModel.selectedPeriod.title)」の記録はありません")
                 .font(.title2)
                 .fontWeight(.semibold)
                 .multilineTextAlignment(.center)

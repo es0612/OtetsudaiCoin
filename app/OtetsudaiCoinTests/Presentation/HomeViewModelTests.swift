@@ -189,6 +189,11 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertNotNil(viewModel.unpaidWarningMessage)
         XCTAssertTrue(viewModel.unpaidWarningMessage!.contains("太郎"))
         XCTAssertTrue(viewModel.unpaidWarningMessage!.contains("150"))
+        // #301: 文言は String Catalog 経由（en ロケールで日本語の文が出ない）
+        XCTAssertEqual(
+            viewModel.unpaidWarningMessage,
+            String(localized: "\("太郎")の未支払いのお小遣いが\(150)コインあります。履歴画面から支払いを行ってください。")
+        )
     }
     
     @MainActor
@@ -213,8 +218,43 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.unpaidPeriods.count, 2)
         XCTAssertEqual(viewModel.totalUnpaidAmount, 350)
         XCTAssertNotNil(viewModel.unpaidWarningMessage)
-        XCTAssertTrue(viewModel.unpaidWarningMessage!.contains("2人"))
+        // #301: ロケールに依存しないように、String Catalog 経由の期待値と比べる（旧: contains("2人")）
+        XCTAssertEqual(
+            viewModel.unpaidWarningMessage,
+            String(localized: "\(2)人の子供に未支払いのお小遣いが合計\(350)コインあります。履歴画面から支払いを行ってください。")
+        )
         XCTAssertTrue(viewModel.unpaidWarningMessage!.contains("350"))
+    }
+
+    // MARK: - 未払い期間の表示 (#301)
+
+    /// ja では従来の「2024年6月」表記のまま (非退行)。
+    @MainActor
+    func testUnpaidPeriodsTextJapaneseLocaleKeepsCurrentStyle() {
+        let childId = UUID()
+        viewModel.unpaidPeriods = [
+            UnpaidPeriod(childId: childId, month: 6, year: 2024, expectedAmount: 150),
+            UnpaidPeriod(childId: childId, month: 5, year: 2024, expectedAmount: 200)
+        ]
+
+        let text = viewModel.unpaidPeriodsText(locale: Locale(identifier: "ja_JP"))
+
+        XCTAssertEqual(text, "2024年6月, 2024年5月", "rendered: \(text)")
+    }
+
+    /// en では「年」「月」の日本語固定書式ではなく、locale の月名になる。
+    @MainActor
+    func testUnpaidPeriodsTextEnglishLocaleUsesLocalizedMonth() {
+        let childId = UUID()
+        viewModel.unpaidPeriods = [
+            UnpaidPeriod(childId: childId, month: 6, year: 2024, expectedAmount: 150),
+            UnpaidPeriod(childId: childId, month: 5, year: 2024, expectedAmount: 200)
+        ]
+
+        let text = viewModel.unpaidPeriodsText(locale: Locale(identifier: "en_US"))
+
+        XCTAssertEqual(text, "June 2024, May 2024", "rendered: \(text)")
+        XCTAssertFalse(text.contains("年"), "en locale に日本語表記が混入: \(text)")
     }
     
     @MainActor
