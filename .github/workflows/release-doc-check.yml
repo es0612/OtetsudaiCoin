@@ -1,0 +1,46 @@
+name: Release Doc Check
+
+# リリース手順書 (docs/releases/RELEASE_vX.Y.Z.md) の § 3 の空欄を検査する (#306)。
+# 「### 提出」が [x] なのに § 3 に空欄がある PR を失敗させる。提出前の空欄は警告のみ。
+# v1.1.3〜v1.1.6 の 4 版で § 3 が空欄のまま提出された (#290) ことの再発防止。
+# 詳細は scripts/release-doc-check.sh を参照。
+
+on:
+  pull_request:
+    paths:
+      - 'docs/releases/RELEASE_v*.md'
+      - 'scripts/release-doc-check.sh'
+      - '.github/workflows/release-doc-check.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Verify release doc § 3
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 自己テストで過去の commit の手順書を取り出す
+
+      # runner の awk (mawk) で macOS と同じ判定になるかを、答えの分かっている過去の手順書で確かめる。
+      # 37339e8 (PR #285) は v1.1.6 の「### 提出」を [x] にした commit で、§ 3 の空欄は 3 件。
+      - name: Self-test (v1.1.6 at PR #285 must fail with 3 blanks)
+        run: |
+          dir="$RUNNER_TEMP/selftest"
+          mkdir -p "$dir"
+          git show 37339e8:docs/releases/RELEASE_v1.1.6.md > "$dir/RELEASE_v1.1.6.md"
+          set +e
+          out="$(GRANDFATHER_MAX=0.0.0 bash scripts/release-doc-check.sh "$dir/RELEASE_v1.1.6.md")"
+          code=$?
+          set -e
+          echo "$out"
+          if [[ $code -ne 1 ]] || ! grep -q '空欄 3 件' <<<"$out"; then
+            echo "::error::self-test failed (exit=$code). awk の判定が macOS と違う可能性がある"
+            exit 1
+          fi
+
+      - name: Check release docs
+        run: bash scripts/release-doc-check.sh
