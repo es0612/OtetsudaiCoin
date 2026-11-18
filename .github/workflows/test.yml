@@ -1,0 +1,83 @@
+name: Unit Tests
+
+# PR ごとにユニットテストを GitHub Actions（macOS）で回す。
+# UI テスト（ASC スクショ撮影を含む）は対象外。ユニットテスト（OtetsudaiCoinTests）だけを回す。
+# ランナーのシミュレータは英語設定なので、日本語の文言を期待するテストのために ja / JP で実行する。
+# scheme は parallelizable だが、3 コアのランナーで並列にすると 1 秒待ちの非同期テストが間に合わず落ちるので直列にする。
+# 夜間の自動実装タスクは、このチェックが緑であることをマージ条件にする。
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: macos-26
+    timeout-minutes: 40
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      # 同名シミュレータが複数あると name= 指定は曖昧になるため UDID で指定する
+      - name: Pick iPhone simulator
+        id: sim
+        run: |
+          UDID=$(xcrun simctl list devices available -j | python3 -c '
+          import json, sys
+          devices = json.load(sys.stdin)["devices"]
+          for runtime, items in sorted(devices.items(), reverse=True):
+              if "iOS" not in runtime:
+                  continue
+              for d in items:
+                  if d["name"].startswith("iPhone"):
+                      print(d["udid"]); sys.exit(0)
+          sys.exit("no iPhone simulator found")
+          ')
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+          xcrun simctl list devices available | grep "$UDID"
+
+      - name: Run unit tests
+        working-directory: app
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -project OtetsudaiCoin.xcodeproj \
+            -scheme OtetsudaiCoin \
+            -only-testing:OtetsudaiCoinTests \
+            -testLanguage ja -testRegion JP \
+            -parallel-testing-enabled NO \
+            -destination "platform=iOS Simulator,id=${{ steps.sim.outputs.udid }}" \
+            -resultBundlePath "$RUNNER_TEMP/UnitTests.xcresult" \
+            CODE_SIGNING_ALLOWED=NO \
+            | tail -n 200
+
+      # 「pass」の表示だけでなく実行件数も見られるように、件数と失敗を要約する
+      - name: Summarize results
+        if: always()
+        run: |
+          if [ -d "$RUNNER_TEMP/UnitTests.xcresult" ]; then
+            xcrun xcresulttool get test-results summary --path "$RUNNER_TEMP/UnitTests.xcresult" | python3 -c '
+          import json, sys
+          s = json.load(sys.stdin)
+          line = "result=%s passed=%s failed=%s skipped=%s" % (s["result"], s["passedTests"], s["failedTests"], s["skippedTests"])
+          print(line)
+          for f in s.get("testFailures", []):
+              print("FAIL", f["testIdentifierString"], f["failureText"][:300])
+          ' | tee -a "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload xcresult
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: UnitTests.xcresult
+          path: ${{ runner.temp }}/UnitTests.xcresult
+          retention-days: 7
+
