@@ -10,6 +10,7 @@ on:
     paths:
       - 'docs/releases/RELEASE_v*.md'
       - 'scripts/release-doc-check.sh'
+      - 'scripts/testdata/release-doc-check/**'
       - '.github/workflows/release-doc-check.yml'
 
 permissions:
@@ -25,22 +26,28 @@ jobs:
         with:
           fetch-depth: 0  # 自己テストで過去の commit の手順書を取り出す
 
-      # runner の awk (mawk) で macOS と同じ判定になるかを、答えの分かっている過去の手順書で確かめる。
-      # 37339e8 (PR #285) は v1.1.6 の「### 提出」を [x] にした commit で、§ 3 の空欄は 3 件。
-      - name: Self-test (v1.1.6 at PR #285 must fail with 3 blanks)
+      # runner の awk (mawk) で macOS と同じ判定になるかを、答えの分かっている手順書で確かめる。
+      # (1) 37339e8 (PR #285) は v1.1.6 の「### 提出」を [x] にした commit で、§ 3 の空欄は 3 件
+      # (2) testdata の fixture は証拠欄・未実施・全角コロン・入れ子の証拠を含み、空欄は 5 件
+      # GITHUB_ACTIONS を外して呼ぶ (期待どおりの FAIL の ::error:: 注記を green の run に出さないため)
+      - name: Self-test (known answers)
         run: |
           dir="$RUNNER_TEMP/selftest"
           mkdir -p "$dir"
           git show 37339e8:docs/releases/RELEASE_v1.1.6.md > "$dir/RELEASE_v1.1.6.md"
-          set +e
-          out="$(GRANDFATHER_MAX=0.0.0 bash scripts/release-doc-check.sh "$dir/RELEASE_v1.1.6.md")"
-          code=$?
-          set -e
-          echo "$out"
-          if [[ $code -ne 1 ]] || ! grep -q '空欄 3 件' <<<"$out"; then
-            echo "::error::self-test failed (exit=$code). awk の判定が macOS と違う可能性がある"
-            exit 1
-          fi
+          expect() { # file expected_count
+            set +e
+            out="$(env -u GITHUB_ACTIONS GRANDFATHER_MAX=0.0.0 bash scripts/release-doc-check.sh "$1")"
+            code=$?
+            set -e
+            echo "$out"
+            if [[ $code -ne 1 ]] || ! grep -q "空欄 $2 件" <<<"$out"; then
+              echo "::error::self-test failed for $1 (exit=$code, 期待は exit 1・空欄 $2 件)。awk の判定が macOS と違う可能性がある"
+              exit 1
+            fi
+          }
+          expect "$dir/RELEASE_v1.1.6.md" 3
+          expect scripts/testdata/release-doc-check/RELEASE_v9.9.9.md 5
 
       - name: Check release docs
         run: bash scripts/release-doc-check.sh

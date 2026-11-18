@@ -7,6 +7,8 @@
 #     - 中身の無い証拠欄 `証拠:` (チェック済み・未チェックを問わない)
 #   ただし、項目の行に `未実施: <理由>` と書いた項目は空欄として数えない (その下の空の証拠欄も)。
 #   後から黙ってチェックを付けるのではなく、やらなかった理由を残すための抜け道。
+#   `証拠:` の行が空でも、次の行がより深い字下げ (入れ子のリスト・コードフェンス) なら中身ありとみなす。
+#   コロンは半角 (:)・全角 (：) のどちらでもよい。
 #
 # いつ失敗するか:
 #   `### 提出` に `- [x]` がある (= 提出したと記録している) のに § 3 に空欄がある → exit 1
@@ -42,8 +44,8 @@ version_le() {
   local -a a=($1) b=($2)
   local i
   for i in 0 1 2; do
-    if (( ${a[i]:-0} < ${b[i]:-0} )); then return 0; fi
-    if (( ${a[i]:-0} > ${b[i]:-0} )); then return 1; fi
+    if (( 10#${a[i]:-0} < 10#${b[i]:-0} )); then return 0; fi  # 10#: 0 埋め (08) を 8 進数と読まない
+    if (( 10#${a[i]:-0} > 10#${b[i]:-0} )); then return 1; fi
   done
   return 0
 }
@@ -70,22 +72,29 @@ for file in "${files[@]}"; do
   fi
 
   # 出力: 1 行目 "HEADINGS <有無 § 3> <有無 提出>" / 2 行目 "SUBMITTED <0|1>" / 以降 "BLANK <行番号>\t<行>"
+  # コロンは半角・全角の両方を受ける。[:：] と書くと mawk がバイト単位で読んで壊れるので alternation で書く
   result="$(awk '
     function trim(s) { sub(/^[[:space:]]+/, "", s); sub(/[[:space:]]+$/, "", s); return s }
-    /^## 3\./        { sec = 3; has3 = 1; next }
-    /^### 提出/      { if (sec == 3) { sec = 4; hassub = 1 }; next }
-    /^## /           { sec = 0 }
+    function indent(s) { match(s, /^[[:space:]]*/); return RLENGTH }
+    function flush() { if (pend != "") { blanks[++n] = pend; pend = "" } }
+    # 空に見える証拠欄は保留し、次の行がより深い字下げ (入れ子のリスト・コードフェンス) なら中身ありとみなす
+    pend != "" && /[^[:space:]]/ { if (indent($0) > pind) pend = ""; else flush() }
+    /^## 3\./                 { sec = 3; has3 = 1; next }
+    /^### 提出[[:space:]]*$/  { if (sec == 3) { flush(); sec = 4; hassub = 1 }; next }
+    /^## /                    { flush(); sec = 0 }
+    /^### /                   { waived = 0; if (sec == 4) sec = 0; next }
     sec == 3 && /^- \[/ {
-      waived = ($0 ~ /未実施:[[:space:]]*[^[:space:]]/)
+      waived = ($0 ~ /未実施(:|：)[[:space:]]*[^[:space:]]/) && ($0 !~ /未実施(:|：)[[:space:]]*<理由>/)
       if (/^- \[ \]/ && !waived) blanks[++n] = NR "\t" trim($0)
       next
     }
-    sec == 3 && /証拠:[[:space:]]*$/ {
-      if (!waived) blanks[++n] = NR "\t" trim($0)
+    sec == 3 && /証拠(:|：)[[:space:]]*$/ {
+      if (!waived) { pend = NR "\t" trim($0); pind = indent($0) }
       next
     }
     sec == 4 && /^- \[[xX]\]/ { submitted = 1 }
     END {
+      flush()
       print "HEADINGS " (has3 ? 1 : 0) " " (hassub ? 1 : 0)
       print "SUBMITTED " (submitted ? 1 : 0)
       for (i = 1; i <= n; i++) print "BLANK " blanks[i]
