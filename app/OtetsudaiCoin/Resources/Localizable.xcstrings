@@ -1218,7 +1218,6 @@
       }
     },
     "今月" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1301,7 +1300,6 @@
       }
     },
     "今週" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1352,12 +1350,41 @@
       }
     },
     "全期間" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "All Time"
+          }
+        }
+      }
+    },
+    "「%@」の記録はありません" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No records for “%@”"
+          }
+        }
+      }
+    },
+    "期間を変えて過去の記録を探すか、記録タブから新しいお手伝いを記録してみましょう！" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try another period to find past records, or record a new chore from the Record tab!"
+          }
+        }
+      }
+    },
+    "全期間で表示する" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show All Time"
           }
         }
       }
@@ -1878,6 +1905,36 @@
         }
       }
     },
+    "%@の未支払いのお小遣いが%lldコインあります。履歴画面から支払いを行ってください。" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ has %lld coins of unpaid allowance. Please pay from the History screen."
+          }
+        }
+      }
+    },
+    "%lld人の子供に未支払いのお小遣いが合計%lldコインあります。履歴画面から支払いを行ってください。" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld children have unpaid allowances totaling %lld coins. Please pay from the History screen."
+          }
+        }
+      }
+    },
+    "不明" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unknown"
+          }
+        }
+      }
+    },
     "未支払い期間: " : {
       "localizations" : {
         "en" : {
@@ -2318,7 +2375,6 @@
       }
     },
     "過去3か月" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {

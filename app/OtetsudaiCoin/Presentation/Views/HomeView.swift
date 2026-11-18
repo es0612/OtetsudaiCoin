@@ -290,7 +290,7 @@ struct HomeView: View {
                         .font(.caption)
                         .foregroundColor(AccessibilityColors.textSecondary)
 
-                    Text(viewModel.unpaidPeriods.map { $0.monthYearString }.joined(separator: ", "))
+                    Text(viewModel.unpaidPeriodsText())
                         .font(.caption)
                         .foregroundColor(AccessibilityColors.textPrimary)
                         .fontWeight(.medium)

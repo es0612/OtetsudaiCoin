@@ -208,6 +208,36 @@ final class LocalizationStringCatalogTests: XCTestCase {
         }
     }
 
+    /// #301: 履歴の期間切り替え・空状態と、ホームの未払いバナーの文言。
+    /// コードから参照する前は期間名が `stale` だったので、参照中であること（stale でない）と en 訳があることも確かめる。
+    func testHistoryPeriodAndUnpaidBannerKeysHaveEnglishTranslation() {
+        let expectedKeys = [
+            "今週",
+            "今月",
+            "過去3か月",
+            "全期間",
+            "「%@」の記録はありません",
+            "期間を変えて過去の記録を探すか、記録タブから新しいお手伝いを記録してみましょう！",
+            "全期間で表示する",
+            "%@の未支払いのお小遣いが%lldコインあります。履歴画面から支払いを行ってください。",
+            "%lld人の子供に未支払いのお小遣いが合計%lldコインあります。履歴画面から支払いを行ってください。",
+            "不明",
+        ]
+
+        for key in expectedKeys {
+            guard let entry = strings[key] as? [String: Any] else {
+                XCTFail("#301 のキー '\(key)' が String Catalog に存在すべき")
+                continue
+            }
+            XCTAssertNotEqual(
+                entry["extractionState"] as? String, "stale",
+                "#301 のキー '\(key)' はコードから参照されているので stale であってはならない"
+            )
+            let enValue = (((entry["localizations"] as? [String: Any])?["en"] as? [String: Any])?["stringUnit"] as? [String: Any])?["value"] as? String
+            XCTAssertFalse(enValue?.isEmpty ?? true, "#301 のキー '\(key)' に en 訳があるべき")
+        }
+    }
+
     // MARK: - 英語翻訳の存在テスト
 
     func testAllKeysHaveEnglishTranslation() {

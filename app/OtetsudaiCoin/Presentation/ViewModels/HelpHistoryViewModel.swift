@@ -157,6 +157,16 @@ enum HistoryPeriod: String, CaseIterable {
     case thisMonth = "今月"
     case last3Months = "過去3か月"
     case all = "全期間"
+
+    /// 画面に表示する期間名 (#301)。rawValue は日本語の識別子のままにし、表示はローカライズ済みの文字列を使う。
+    var title: String {
+        switch self {
+        case .thisWeek: return String(localized: "今週")
+        case .thisMonth: return String(localized: "今月")
+        case .last3Months: return String(localized: "過去3か月")
+        case .all: return String(localized: "全期間")
+        }
+    }
     
     var dateRange: (start: Date, end: Date) {
         let calendar = Calendar.current
