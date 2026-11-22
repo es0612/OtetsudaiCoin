@@ -67,13 +67,15 @@ final class VerificationScreenshotUITests: XCTestCase {
 
     /// --uitesting 起動 (tutorial skip + 太郎/花子 seed + splash skip)。言語は `languageArguments`。
     /// `extraArguments` には `--in-memory-store` などを足す (#280)。
-    private func launchMainApp(extraArguments: [String] = []) -> XCUIApplication {
+    /// `waitForChildren: false` は、AX サイズで子どものカードが画面外になるシーン用 (#309)。
+    private func launchMainApp(extraArguments: [String] = [], waitForChildren: Bool = true) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments += [
             "--uitesting",
             "--hide-developer-tools"
         ] + languageArguments + extraArguments
         app.launch()
+        guard waitForChildren else { return app }
         let firstChild = app.buttons.matching(identifier: "child_button").firstMatch
         XCTAssertTrue(
             firstChild.waitForExistence(timeout: 15),
@@ -396,7 +398,7 @@ final class VerificationScreenshotUITests: XCTestCase {
 
     /// 31-home-unpaid-one: 1 人に未払いがあるときのホームのバナー (Issue #309)
     func testCaptureHomeUnpaidOne() throws {
-        let app = launchMainApp(extraArguments: ["--in-memory-store", "--seed-unpaid-records", "1"])
+        let app = launchMainApp(extraArguments: ["--in-memory-store", "--seed-unpaid-records", "1"], waitForChildren: false)
         waitForUnpaidBanner(in: app)
         attach(name: "verify-31-home-unpaid-one")
     }
@@ -405,11 +407,17 @@ final class VerificationScreenshotUITests: XCTestCase {
     /// 2 人とも先月と 2 か月前が未払い (#308 §2 の月の重複が写る)。2 人とも記録があるので、
     /// どちらのカードを先に押しても記録のある履歴になる (集計カードは記録 0 件だと出ない)。
     func testCaptureHomeUnpaidTwo() throws {
-        let app = launchMainApp(extraArguments: ["--in-memory-store", "--seed-unpaid-records", "2"])
+        let app = launchMainApp(extraArguments: ["--in-memory-store", "--seed-unpaid-records", "2"], waitForChildren: false)
         waitForUnpaidBanner(in: app)
         attach(name: "verify-32-home-unpaid-two")
 
-        app.buttons.matching(identifier: "child_button").firstMatch.tap()
+        // AX サイズではバナーの下に隠れているので、寄せてから押す
+        revealButton(
+            app.buttons.matching(identifier: "child_button"),
+            named: "child_button",
+            in: app,
+            maxSwipes: 8
+        ).tap()
         sleep(2)
         revealButton(
             app.buttons.matching(identifier: "home_help_history_entry"),
@@ -431,11 +439,13 @@ final class VerificationScreenshotUITests: XCTestCase {
         attach(name: "verify-34-history-empty-week")
     }
 
-    /// 未払いの投入は非同期 (setupInitialData の Task) なので、バナーのリンクが出るまで待つ。
+    /// 未払いの投入は非同期 (setupInitialData の Task) なので、バナーが出るまで待つ。
+    /// バナー下端のリンクは AX サイズで画面外になるため、バナーの容れ物 (home_unpaid_banner) で待つ。
     private func waitForUnpaidBanner(in app: XCUIApplication) {
+        let banner = app.descendants(matching: .any).matching(identifier: "home_unpaid_banner").firstMatch
         XCTAssertTrue(
-            app.buttons["home_unpaid_summary_link"].waitForExistence(timeout: 15),
-            "unpaid banner (home_unpaid_summary_link) did not appear within 15s. buttons=\(app.buttons.allElementsBoundByIndex.map(\.identifier))"
+            banner.waitForExistence(timeout: 15),
+            "unpaid banner (home_unpaid_banner) did not appear within 15s. ids=\(app.descendants(matching: .any).allElementsBoundByIndex.prefix(40).map(\.identifier))"
         )
         sleep(1)
     }
