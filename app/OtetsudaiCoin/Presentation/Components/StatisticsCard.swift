@@ -7,17 +7,18 @@ enum StatisticsCardStyle {
 
 struct StatisticsCard: View {
     let icon: String
-    let title: String
+    /// 見出しと単位は翻訳する (#308)。`String` だと `Text(title)` が翻訳を引かない。
+    let title: LocalizedStringKey
     let value: String
-    let subtitle: String
+    let subtitle: LocalizedStringKey
     let color: Color
     let style: StatisticsCardStyle
     
     init(
         icon: String,
-        title: String,
+        title: LocalizedStringKey,
         value: String,
-        subtitle: String,
+        subtitle: LocalizedStringKey,
         color: Color,
         style: StatisticsCardStyle = .large
     ) {
@@ -115,14 +116,15 @@ private extension StatisticsCardStyle {
     }
 }
 
+// Preview の文字列も翻訳キーとして抜き出されるので、catalog にあるキーだけを使う (#308)。
 #Preview {
     VStack(spacing: 20) {
         HStack(spacing: 16) {
             StatisticsCard(
                 icon: "star.fill",
-                title: "今月の実績",
+                title: "今月のコイン",
                 value: "15",
-                subtitle: "回がんばった！",
+                subtitle: "コイン獲得！",
                 color: .blue,
                 style: .large
             )
@@ -140,7 +142,7 @@ private extension StatisticsCardStyle {
         HStack(spacing: 16) {
             StatisticsCard(
                 icon: "star.fill",
-                title: "今月の実績",
+                title: "実績",
                 value: "15",
                 subtitle: "回",
                 color: .blue,
@@ -151,7 +153,7 @@ private extension StatisticsCardStyle {
                 icon: "flame.fill",
                 title: "連続記録",
                 value: "5",
-                subtitle: "日",
+                subtitle: "日連続！",
                 color: .orange,
                 style: .compact
             )

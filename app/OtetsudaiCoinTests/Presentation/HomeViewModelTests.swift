@@ -192,7 +192,7 @@ final class HomeViewModelTests: XCTestCase {
         // #301: 文言は String Catalog 経由（en ロケールで日本語の文が出ない）
         XCTAssertEqual(
             viewModel.unpaidWarningMessage,
-            String(localized: "\("太郎")の未支払いのお小遣いが\(150)コインあります。履歴画面から支払いを行ってください。")
+            String(localized: "\("太郎")の未支払いのお小遣いが\(150)コインあります。月のまとめから支払えます。")
         )
     }
     
@@ -221,7 +221,7 @@ final class HomeViewModelTests: XCTestCase {
         // #301: ロケールに依存しないように、String Catalog 経由の期待値と比べる（旧: contains("2人")）
         XCTAssertEqual(
             viewModel.unpaidWarningMessage,
-            String(localized: "\(2)人の子供に未支払いのお小遣いが合計\(350)コインあります。履歴画面から支払いを行ってください。")
+            String(localized: "\(2)人の子供に未支払いのお小遣いが合計\(350)コインあります。月のまとめから支払えます。")
         )
         XCTAssertTrue(viewModel.unpaidWarningMessage!.contains("350"))
     }
@@ -255,6 +255,33 @@ final class HomeViewModelTests: XCTestCase {
 
         XCTAssertEqual(text, "June 2024, May 2024", "rendered: \(text)")
         XCTAssertFalse(text.contains("年"), "en locale に日本語表記が混入: \(text)")
+    }
+
+    /// #308: 2 人が同じ月を未払いだと、期間が子どもの数だけ重複して出ていた。
+    /// 表示の文字列だけ年月の重複を除いて新しい順に並べ、元の unpaidPeriods（件数・合計）は変えない。
+    /// 年をまたぐ月で、並べ替えも確かめる。最初に出てくるのが古い月 (2025年12月) なので、
+    /// 並べ替えを外すと「2025年12月, 2026年1月」になって落ちる (mutation で確認済み)。
+    @MainActor
+    func testUnpaidPeriodsTextRemovesDuplicateMonthsAcrossChildren() async {
+        let child1 = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+        let child2 = Child(id: UUID(), name: "花子", themeColor: "#33FF57")
+        let mockUnpaidDetector = MockUnpaidAllowanceDetectorService()
+        mockUnpaidDetector.unpaidPeriods = [
+            UnpaidPeriod(childId: child1.id, month: 12, year: 2025, expectedAmount: 100),
+            UnpaidPeriod(childId: child2.id, month: 1, year: 2026, expectedAmount: 100),
+            UnpaidPeriod(childId: child2.id, month: 12, year: 2025, expectedAmount: 100)
+        ]
+        viewModel = createViewModelWithUnpaidDetector(unpaidDetector: mockUnpaidDetector)
+        viewModel.children = [child1, child2]
+
+        await viewModel.checkUnpaidAllowances()
+
+        XCTAssertEqual(viewModel.unpaidPeriods.count, 3, "元のデータは重複を除かない")
+        XCTAssertEqual(viewModel.totalUnpaidAmount, 300)
+        let ja = viewModel.unpaidPeriodsText(locale: Locale(identifier: "ja_JP"))
+        XCTAssertEqual(ja, "2026年1月, 2025年12月", "rendered: \(ja)")
+        let en = viewModel.unpaidPeriodsText(locale: Locale(identifier: "en_US"))
+        XCTAssertEqual(en, "January 2026, December 2025", "rendered: \(en)")
     }
     
     @MainActor
