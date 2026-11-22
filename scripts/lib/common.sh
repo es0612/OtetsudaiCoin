@@ -133,7 +133,8 @@ _restore_content_size() {
 # different iOS versions (iPhone 17 Pro Max on iOS 26.2 / 26.4 / 26.5 here).
 # reduce_motion is included because another session can switch it on the shared
 # device and leave it on (Issue #283).
-CAPTURE_CONDITION_KEYS="content_size device runtime appearance reduce_motion"
+# locale is included so a ja folder is never compared with an en one (Issue #309).
+CAPTURE_CONDITION_KEYS="content_size device runtime appearance reduce_motion locale"
 
 # Prints the device's Reduce Motion setting as on / off / unknown. Needs a
 # booted device. Measured 2026-11-07 (Issue #283): `defaults read` prints 0 or 1
@@ -213,7 +214,7 @@ stop_condition_watch() {
 # run — the exit handlers restore both settings afterwards. Requires $JQ.
 # See Issue #256.
 write_capture_meta() {
-  local dest_dir="$1" udid="$2" device="$3" runtime worktree
+  local dest_dir="$1" udid="$2" device="$3" locale="${4:-ja}" runtime worktree
   runtime="$(xcrun simctl list devices -j \
     | "$JQ" -r --arg u "$udid" '.devices | to_entries[] | select(any(.value[]; .udid == $u)) | .key' \
     | head -1)"
@@ -225,6 +226,7 @@ write_capture_meta() {
     echo "runtime=$runtime"
     echo "appearance=$(xcrun simctl ui "$udid" appearance 2>/dev/null)"
     echo "reduce_motion=$(read_reduce_motion "$udid")"
+    echo "locale=$locale"
     echo "udid=$udid"
     echo "commit=$(git rev-parse HEAD 2>/dev/null)"
     echo "worktree=$worktree"

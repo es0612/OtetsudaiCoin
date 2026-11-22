@@ -5,12 +5,20 @@
 # Runs VerificationScreenshotUITests once per appearance, toggling the
 # simulator's system appearance with `xcrun simctl ui <udid> appearance`,
 # then exports the attachments from each xcresult into
-#   docs/screenshots/verification/<appearance>/NN-name.png   (gitignored)
+#   docs/screenshots/verification/<appearance>/NN-name.png      (ja, gitignored)
+#   docs/screenshots/verification/en/<appearance>/NN-name.png   (en, gitignored)
 #
 # Usage:
 #   scripts/capture-verification-screenshots.sh [--appearance light|dark|both]
+#                                               [--locale ja|en|both]
 #                                               [--device "iPhone 17 Pro Max"]
 #                                               [--content-size <category>]
+#
+#   --locale picks the app language (default: ja). It reaches the UI tests as
+#   VERIFY_LOCALE through TEST_RUNNER_VERIFY_LOCALE (see TEST_RUNNER_<VAR> in
+#   `man xcodebuild`). en captures only the scenes that find their buttons by
+#   identifier (01-08 and 31-34); the tests that look buttons up by Japanese
+#   text are skipped in en (Issue #309).
 #
 #   --content-size sets the simulator's Dynamic Type size for the run (e.g.
 #   accessibility-extra-extra-extra-large) and restores it on exit. Omit it to
@@ -47,6 +55,7 @@ TEST_CLASS="OtetsudaiCoinUITests/VerificationScreenshotUITests"
 OUT_DIR="docs/screenshots/verification"
 DEVICE_NAME="iPhone 17 Pro Max"
 APPEARANCE_MODE="both"
+LOCALE_MODE="ja"
 CONTENT_SIZE=""
 
 # Prints the header comment: from the line after the shebang up to the first
@@ -60,6 +69,9 @@ while [[ $# -gt 0 ]]; do
     --appearance)
       [[ $# -ge 2 ]] || { echo "error: --appearance needs a value" >&2; exit 2; }
       APPEARANCE_MODE="$2"; shift 2 ;;
+    --locale)
+      [[ $# -ge 2 ]] || { echo "error: --locale needs a value" >&2; exit 2; }
+      LOCALE_MODE="$2"; shift 2 ;;
     --device)
       [[ $# -ge 2 ]] || { echo "error: --device needs a value" >&2; exit 2; }
       DEVICE_NAME="$2"; shift 2 ;;
@@ -79,6 +91,23 @@ case "$APPEARANCE_MODE" in
   both)  APPEARANCES=(light dark) ;;
   *) echo "error: --appearance must be light|dark|both (got: $APPEARANCE_MODE)" >&2; exit 2 ;;
 esac
+
+case "$LOCALE_MODE" in
+  ja)   LOCALES=(ja) ;;
+  en)   LOCALES=(en) ;;
+  both) LOCALES=(ja en) ;;
+  *) echo "error: --locale must be ja|en|both (got: $LOCALE_MODE)" >&2; exit 2 ;;
+esac
+
+# ja keeps the original paths so existing before/after folders stay comparable.
+locale_out_dir() {
+  local appearance="$1" locale="$2"
+  if [[ "$locale" == "ja" ]]; then
+    echo "$OUT_DIR/$appearance"
+  else
+    echo "$OUT_DIR/$locale/$appearance"
+  fi
+}
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib/common.sh
@@ -139,73 +168,80 @@ place_attachments() {
   echo "  placed $placed PNG(s) into $dest_dir"
 }
 
-FAILED_APPEARANCES=()
+FAILED_RUNS=()
 for appearance in "${APPEARANCES[@]}"; do
   echo "==> [$appearance] Setting simulator appearance"
   xcrun simctl ui "$UDID" appearance "$appearance"
 
-  result_bundle="$TMP_ROOT/$appearance.xcresult"
-  log="$TMP_ROOT/$appearance.log"
-  watch_log="$TMP_ROOT/$appearance.conditions.log"
-  echo "==> [$appearance] Watching simulator settings during the run: $(read_sim_conditions "$UDID")"
-  start_condition_watch "$UDID" "$watch_log"
-  echo "==> [$appearance] Running $TEST_CLASS (log: $log)"
-  set +e
-  xcodebuild test \
-    -project "$PROJECT" \
-    -scheme "$SCHEME" \
-    -destination "id=$UDID" \
-    -only-testing:"$TEST_CLASS" \
-    -parallel-testing-enabled NO \
-    -resultBundlePath "$result_bundle" > "$log" 2>&1
-  xcode_exit=$?
-  set -e
-  stop_condition_watch
-  grep -E -A6 '\*\* TEST|Failing tests:' "$log" || true
-  # Another session may have changed the shared simulator mid-run (Issue #283).
-  # Those shots cannot be trusted, so place nothing and keep the previous ones.
-  if [[ -s "$watch_log" ]]; then
-    echo "error: [$appearance] simulator settings changed during the run (another session using the same device?):" >&2
-    sed 's/^/  /' "$watch_log" >&2
-    echo "error: [$appearance] discarded this run's shots; kept $OUT_DIR/$appearance as is. Check the settings and capture again." >&2
-    FAILED_APPEARANCES+=("$appearance")
-    continue
-  fi
-  if [[ $xcode_exit -ne 0 ]] || ! grep -q '\*\* TEST SUCCEEDED \*\*' "$log"; then
-    echo "error: [$appearance] xcodebuild test failed (exit=$xcode_exit). See $log" >&2
-    echo "hint: xcrun xcresulttool get test-results tests --path \"$result_bundle\"" >&2
-    FAILED_APPEARANCES+=("$appearance")
-    # A test failure still leaves the attachments of the tests that ran, so
-    # place those instead of giving up. A build failure also writes a result
-    # bundle, but with no attachments — that case is caught after the export.
-    if [[ ! -d "$result_bundle" ]]; then
-      echo "error: [$appearance] no result bundle, nothing to export" >&2
+  for locale in "${LOCALES[@]}"; do
+    run="$appearance/$locale"
+    dest_dir="$(locale_out_dir "$appearance" "$locale")"
+    result_bundle="$TMP_ROOT/$appearance-$locale.xcresult"
+    log="$TMP_ROOT/$appearance-$locale.log"
+    watch_log="$TMP_ROOT/$appearance-$locale.conditions.log"
+    echo "==> [$run] Watching simulator settings during the run: $(read_sim_conditions "$UDID")"
+    start_condition_watch "$UDID" "$watch_log"
+    echo "==> [$run] Running $TEST_CLASS (log: $log)"
+    set +e
+    TEST_RUNNER_VERIFY_LOCALE="$locale" xcodebuild test \
+      -project "$PROJECT" \
+      -scheme "$SCHEME" \
+      -destination "id=$UDID" \
+      -only-testing:"$TEST_CLASS" \
+      -parallel-testing-enabled NO \
+      -resultBundlePath "$result_bundle" > "$log" 2>&1
+    xcode_exit=$?
+    set -e
+    stop_condition_watch
+    grep -E -A6 '\*\* TEST|Failing tests:' "$log" || true
+    # Another session may have changed the shared simulator mid-run (Issue #283).
+    # Those shots cannot be trusted, so place nothing and keep the previous ones.
+    if [[ -s "$watch_log" ]]; then
+      echo "error: [$run] simulator settings changed during the run (another session using the same device?):" >&2
+      sed 's/^/  /' "$watch_log" >&2
+      echo "error: [$run] discarded this run's shots; kept $dest_dir as is. Check the settings and capture again." >&2
+      FAILED_RUNS+=("$run")
       continue
     fi
-  fi
+    if [[ $xcode_exit -ne 0 ]] || ! grep -q '\*\* TEST SUCCEEDED \*\*' "$log"; then
+      echo "error: [$run] xcodebuild test failed (exit=$xcode_exit). See $log" >&2
+      echo "hint: xcrun xcresulttool get test-results tests --path \"$result_bundle\"" >&2
+      FAILED_RUNS+=("$run")
+      # A test failure still leaves the attachments of the tests that ran, so
+      # place those instead of giving up. A build failure also writes a result
+      # bundle, but with no attachments — that case is caught after the export.
+      if [[ ! -d "$result_bundle" ]]; then
+        echo "error: [$run] no result bundle, nothing to export" >&2
+        continue
+      fi
+    fi
 
-  extract_dir="$TMP_ROOT/$appearance-extracted"
-  mkdir -p "$extract_dir"
-  echo "==> [$appearance] Exporting attachments"
-  xcrun xcresulttool export attachments --path "$result_bundle" --output-path "$extract_dir"
-  # Keep the previous run's PNGs when there is nothing new to place
-  # (e.g. a build failure): place_attachments clears the folder first.
-  if ! "$JQ" -e '[.[].attachments[]] | length > 0' "$extract_dir/manifest.json" >/dev/null 2>&1; then
-    echo "error: [$appearance] no attachments in the result bundle (build failure?); kept $OUT_DIR/$appearance as is" >&2
-    continue
-  fi
+    extract_dir="$TMP_ROOT/$appearance-$locale-extracted"
+    mkdir -p "$extract_dir"
+    echo "==> [$run] Exporting attachments"
+    xcrun xcresulttool export attachments --path "$result_bundle" --output-path "$extract_dir"
+    # Keep the previous run's PNGs when there is nothing new to place
+    # (e.g. a build failure): place_attachments clears the folder first.
+    if ! "$JQ" -e '[.[].attachments[]] | length > 0' "$extract_dir/manifest.json" >/dev/null 2>&1; then
+      echo "error: [$run] no attachments in the result bundle (build failure?); kept $dest_dir as is" >&2
+      continue
+    fi
 
-  echo "==> [$appearance] Placing PNGs"
-  place_attachments "$extract_dir/manifest.json" "$extract_dir" "$OUT_DIR/$appearance"
-  write_capture_meta "$OUT_DIR/$appearance" "$UDID" "$DEVICE_NAME"
+    echo "==> [$run] Placing PNGs"
+    place_attachments "$extract_dir/manifest.json" "$extract_dir" "$dest_dir"
+    write_capture_meta "$dest_dir" "$UDID" "$DEVICE_NAME" "$locale"
+  done
 done
 
 echo "==> Done. Output:"
 for appearance in "${APPEARANCES[@]}"; do
-  ls -la "$OUT_DIR/$appearance" 2>/dev/null || echo "  (no output for $appearance)"
+  for locale in "${LOCALES[@]}"; do
+    dest_dir="$(locale_out_dir "$appearance" "$locale")"
+    ls -la "$dest_dir" 2>/dev/null || echo "  (no output for $appearance/$locale)"
+  done
 done
 
-if [[ ${#FAILED_APPEARANCES[@]} -gt 0 ]]; then
-  echo "error: tests failed for: ${FAILED_APPEARANCES[*]} (PNGs above may be partial, or kept from a previous run — see the errors above)" >&2
+if [[ ${#FAILED_RUNS[@]} -gt 0 ]]; then
+  echo "error: tests failed for: ${FAILED_RUNS[*]} (PNGs above may be partial, or kept from a previous run — see the errors above)" >&2
   exit 1
 fi
