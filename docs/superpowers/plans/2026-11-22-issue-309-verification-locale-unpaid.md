@@ -15,18 +15,19 @@
 - 既定（ja・引数なし）の出力パス `docs/screenshots/verification/<appearance>/` とファイル名は変えない。en は `docs/screenshots/verification/en/<appearance>/`
 - ASC 用の `capture-asc-screenshots.sh` / `ASCScreenshotUITests` は触らない
 - 未払いの投入は `#if DEBUG` 限定で、`--in-memory-store` が無いときは何もしない
-- en で撮るのは `testCaptureTabs`（01〜05）・`testCaptureChildDetail`（06〜08）・新しい 31〜33 だけ。ほかのテストは en のとき `XCTSkip`
+- en で撮るのは `testCaptureTabs`（01〜05）・`testCaptureChildDetail`（06〜08）・新しい 31〜34 だけ。ほかのテストは en のとき `XCTSkip`
 - xcodebuild は FOREGROUND で流し、合否は `** TEST SUCCEEDED **` の行で判定する（exit code だけで判定しない）
 - simulator は `xcrun simctl list devices available | grep 'iPhone 17 Pro Max'` で実在を確かめ、`-destination id=<udid>` で渡す（名前が 5 台重複している）。`-parallel-testing-enabled NO`
 - bash script の検証は `/bin/bash` で流す（Bash tool は zsh。glob はクォートする）
+- xcodebuild でテストを流す・結果を読むときは project skill `running-xcodebuild-tests-and-date-fixtures`、UITest を書くときは `writing-swiftui-view-tests` を先に読む
 
 ## Review Focus
 
 1. **年をまたぐ月**: 1 月に撮ると、先月・2 か月前は前年の 12 月・11 月になる。記録が前年の月に入り、今月（1 月）に 1 件も入らないこと → Task 1 の `test_records_crossesYearBoundary`
 2. **永続ストアを汚さない**: `--seed-unpaid-records 2` だけ（`--in-memory-store` なし）で起動したら何も入れない。値が 1・2 以外や欠けているときも何もしない → Task 1 の `test_childCount_*`
-3. **既定の出力が変わらない**: `--locale` なし（ja）のとき、出力ファイル名の集合が main の撮影テストの `verify-NN-name` と同じで、増えるのは 31〜33 だけ → Task 3 Step 4
+3. **既定の出力が変わらない**: `--locale` なし（ja）のとき、出力ファイル名の集合が main の撮影テストの `verify-NN-name` と同じで、増えるのは 31〜34 だけ → Task 3 Step 4
 4. **ja と en の取り違え**: `compare-screenshots.sh` に ja の light と en の light を渡したら、条件の違い（`locale`）で止まる（exit 3） → Task 3 Step 5
-5. **投入とホームの描画の競合**: 投入は非同期なので、ホームが先に描画されるとバナーが出ない。投入の後に `notifyHelpRecordUpdated()` を呼び、UITest は `home_unpaid_summary_link` を 15 秒まで待つ → Task 1 Step 5 と Task 2 Step 3
+5. **投入とホームの描画の競合**: 投入は非同期なので、ホームが先に描画されるとバナーが出ない。バナーを判定し直すのは `notifyChildrenUpdated()` → `loadChildren()` → `checkUnpaidAllowances()` の経路（`notifyHelpRecordUpdated()` の `refreshData()` は子どもを選ぶ前は `guard` で何もしない）。投入の後に両方を呼び、UITest は `home_unpaid_summary_link` を 15 秒まで待つ → Task 1 Step 5 と Task 2 Step 3
 
 ---
 
@@ -79,12 +80,15 @@ func test_records_crossesYearBoundary() {
 Run: `xcodebuild test -project app/OtetsudaiCoin.xcodeproj -scheme OtetsudaiCoin -destination "id=<udid>" -parallel-testing-enabled NO -only-testing:OtetsudaiCoinTests/UnpaidRecordsSeederTests`
 Expected: `** TEST SUCCEEDED **`、5 件 pass
 
-- [ ] **Step 5: `setupInitialData()` に配線する** — デフォルトタスク作成の直後に `#if DEBUG` で、`UnpaidRecordsSeeder.childCount()` が値を返したら、`childRepository.findAll()` の先頭 `count` 人と `helpTaskRepository.findAll()` の先頭の id で `records(…, now: Date(), calendar: .current)` を作って `helpRecordRepository.save` し、最後に `NotificationManager.shared.notifyHelpRecordUpdated()` を 1 回呼ぶ（`helpRecordRepository` は月末リセットで作ったものを使う）
+- [ ] **Step 5: `setupInitialData()` に配線する** — 支払いリマインドの `reschedule()` の `do/catch` の後ろ（reschedule が投入した記録から実際の通知を予約しないように）に `#if DEBUG` で、`UnpaidRecordsSeeder.childCount()` が値を返したら、`childRepository.findAll()` の先頭 `count` 人と `helpTaskRepository.findAll()` の先頭の id で `records(…, now: Date(), calendar: .current)` を作って `helpRecordRepository.save` し、最後に `NotificationManager.shared.notifyHelpRecordUpdated()` と `notifyChildrenUpdated()` を 1 回ずつ呼ぶ（バナーは後者の経路でしか判定し直されない。`helpRecordRepository` は月末リセットで作ったものを使う）
 
 - [ ] **Step 6: ユニットテスト全体を流す**
 
 Run: Step 4 のコマンドを `-only-testing:OtetsudaiCoinTests` で
 Expected: `** TEST SUCCEEDED **`
+
+Run: `xcodebuild build -project app/OtetsudaiCoin.xcodeproj -scheme OtetsudaiCoin -configuration Release -destination "id=<udid>"`
+Expected: `** BUILD SUCCEEDED **`（`#if DEBUG` の外から新しい型を参照していないこと。Xcode Cloud は merge で Release をビルドする）
 
 - [ ] **Step 7: Commit**
 
@@ -93,7 +97,7 @@ git add app/OtetsudaiCoin/Utils/UnpaidRecordsSeeder.swift app/OtetsudaiCoin/Cont
 git commit -m "feat(#309): 検証撮影用に未払いの記録を入れる起動引数を足す（DEBUG・in-memory 限定）"
 ```
 
-### Task 2: UITest の言語切り替えと 31〜33 のシーン
+### Task 2: UITest の言語切り替えと 31〜34 のシーン
 
 **Files:**
 - Modify: `app/OtetsudaiCoinUITests/VerificationScreenshotUITests.swift`（起動ヘルパー 3 つ・各テストの先頭・新しいテスト 2 本・ファイル先頭のコメント）
@@ -108,14 +112,14 @@ git commit -m "feat(#309): 検証撮影用に未払いの記録を入れる起�
 - [ ] **Step 2: en で動かないテストを skip する** — `private func skipUnlessJapanese() throws`（en のとき `throw XCTSkip("日本語の文言でボタンを探すため en では撮らない（#308 の 2 本目で en 化）")`）。`testCaptureTabs` / `testCaptureChildDetail` / 新しい 2 本以外の全テストの先頭で呼ぶ
 
 - [ ] **Step 3: 新しいシーンを足す**（どちらも `launchMainApp(extraArguments: ["--in-memory-store", "--seed-unpaid-records", "<n>"])`）
-  - `testCaptureHomeUnpaidOne`: `home_unpaid_summary_link` を 15 秒まで待つ → `verify-31-home-unpaid-one`。最初の `child_button` → `home_help_history_entry`（`revealButton` で）→ `app.segmentedControls["history_period_picker"].buttons.element(boundBy: 0)`（今週）をタップ → `verify-33-history-empty-week`。picker が見つからなければ `app.segmentedControls` の一覧を `XCTFail` に載せる
-  - `testCaptureHomeUnpaidTwo`: 同じく待って `verify-32-home-unpaid-two`
+  - `testCaptureHomeUnpaidOne`: `home_unpaid_summary_link` を 15 秒まで待つ → `verify-31-home-unpaid-one`
+  - `testCaptureHomeUnpaidTwo`: 同じく待って `verify-32-home-unpaid-two`（#308 §2 の月の重複が写る）。最初の `child_button` → `home_help_history_entry`（`revealButton` で）→ 既定の期間（過去3か月。投入した記録が入り、集計カードが出る）で `verify-33-history-seeded` → `app.segmentedControls["history_period_picker"].buttons.element(boundBy: 0)`（今週）をタップ → `verify-34-history-empty-week`。2 人とも記録があるので、どちらのカードが先でも記録のある履歴になる。picker が見つからなければ `app.segmentedControls` の一覧を `XCTFail` に載せる
   - 名前は `testCaptureHome…` にして、チュートリアルのテストより先に走る並び（アルファベット順）を保つ
 
 - [ ] **Step 4: ja と en で新しいテストを流す**
 
 Run: `TEST_RUNNER_VERIFY_LOCALE=en xcodebuild test … -only-testing:OtetsudaiCoinUITests/VerificationScreenshotUITests/testCaptureHomeUnpaidOne -only-testing:OtetsudaiCoinUITests/VerificationScreenshotUITests/testCaptureHomeUnpaidTwo -only-testing:OtetsudaiCoinUITests/VerificationScreenshotUITests/testCaptureRecordTasks -resultBundlePath <scratchpad>/t2-en.xcresult`（環境変数なしでも同じように流す）
-Expected: どちらも `** TEST SUCCEEDED **`。en では `testCaptureRecordTasks` が skipped。添付を `xcrun xcresulttool export attachments` で取り出し、31〜33 の画像を Read で目視する（en でバナーの見出しが日本語のままなのは #308 の対象なので、ここでは直さない）
+Expected: どちらも `** TEST SUCCEEDED **`。en では `testCaptureRecordTasks` が skipped。添付を `xcrun xcresulttool export attachments` で取り出し、31〜34 の画像を Read で目視する（en でバナーの見出しが日本語のままなのは #308 の対象なので、ここでは直さない）
 
 - [ ] **Step 5: Commit**
 
@@ -149,7 +153,7 @@ Expected: 2 回とも `** TEST SUCCEEDED **`、exit 0。`docs/screenshots/verifi
 - [ ] **Step 4: 既定の出力が変わらないことを確かめる**
 
 Run: `git show origin/main:app/OtetsudaiCoinUITests/VerificationScreenshotUITests.swift | grep -o -E 'verify-[0-9]{2}-[a-z0-9-]+' | sort -u` の集合（`verify-21-record-tasks-p` の補間分は実ファイルで照合）と `ls docs/screenshots/verification/light/*.png` を比べる
-Expected: 差分は `31-home-unpaid-one` / `32-home-unpaid-two` / `33-history-empty-week` の追加だけ。en/light は 01〜08 と 31〜33 だけ
+Expected: 差分は `31-home-unpaid-one` / `32-home-unpaid-two` / `33-history-seeded` / `34-history-empty-week` の追加だけ。en/light は 01〜08 と 31〜34 だけ
 
 - [ ] **Step 5: ja と en の取り違えで止まることを確かめる**
 
