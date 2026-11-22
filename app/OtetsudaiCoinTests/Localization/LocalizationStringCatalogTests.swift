@@ -238,6 +238,39 @@ final class LocalizationStringCatalogTests: XCTestCase {
         }
     }
 
+    /// #308: 集計カード (StatisticsCard) の見出しと単位。部品が LocalizedStringKey で受けるようになり
+    /// コードから参照されるので、stale でないことと en 訳があることを確かめる。
+    func testStatisticsCardKeysHaveEnglishTranslation() {
+        let expected: [String: String?] = [
+            "今月のコイン": nil,
+            "コイン獲得！": "coins earned!",
+            "連続記録": nil,
+            "日連続！": "day streak!",
+            "実績": nil,
+            "回": nil,
+            "獲得コイン": nil,
+            "コイン": nil,
+            "平均コイン": nil,
+            "コイン/回": "coins per chore",
+        ]
+
+        for (key, expectedEnglish) in expected {
+            guard let entry = strings[key] as? [String: Any] else {
+                XCTFail("#308 のキー '\(key)' が String Catalog に存在すべき")
+                continue
+            }
+            XCTAssertNotEqual(
+                entry["extractionState"] as? String, "stale",
+                "#308 のキー '\(key)' はコードから参照されているので stale であってはならない"
+            )
+            let enValue = (((entry["localizations"] as? [String: Any])?["en"] as? [String: Any])?["stringUnit"] as? [String: Any])?["value"] as? String
+            XCTAssertFalse(enValue?.isEmpty ?? true, "#308 のキー '\(key)' に en 訳があるべき")
+            if let expectedEnglish {
+                XCTAssertEqual(enValue, expectedEnglish, "#308 のキー '\(key)' の en 訳")
+            }
+        }
+    }
+
     // MARK: - 英語翻訳の存在テスト
 
     func testAllKeysHaveEnglishTranslation() {

@@ -7,17 +7,18 @@ enum StatisticsCardStyle {
 
 struct StatisticsCard: View {
     let icon: String
-    let title: String
+    /// 見出しと単位は翻訳する (#308)。`String` だと `Text(title)` が翻訳を引かない。
+    let title: LocalizedStringKey
     let value: String
-    let subtitle: String
+    let subtitle: LocalizedStringKey
     let color: Color
     let style: StatisticsCardStyle
     
     init(
         icon: String,
-        title: String,
+        title: LocalizedStringKey,
         value: String,
-        subtitle: String,
+        subtitle: LocalizedStringKey,
         color: Color,
         style: StatisticsCardStyle = .large
     ) {
