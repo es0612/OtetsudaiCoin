@@ -40,6 +40,19 @@ final class UnpaidRecordsSeederTests: XCTestCase {
         }
     }
 
+    // MARK: - targetChildIds
+
+    /// `findAll()` は並び順を決めないので、名前順で選ぶ。実行ごとに違う子に入ると、
+    /// before/after の比較で verify-31 が「太郎 / 花子」と入れ替わって偽の差分になる (#309 review)。
+    func test_targetChildIds_picksByNameRegardlessOfFetchOrder() {
+        let taro = Child(id: childA, name: "太郎", themeColor: "#E8590C")
+        let hanako = Child(id: childB, name: "花子", themeColor: "#099268")
+
+        XCTAssertEqual(UnpaidRecordsSeeder.targetChildIds([hanako, taro], count: 1), [childA])
+        XCTAssertEqual(UnpaidRecordsSeeder.targetChildIds([taro, hanako], count: 1), [childA])
+        XCTAssertEqual(UnpaidRecordsSeeder.targetChildIds([hanako, taro], count: 2), [childA, childB])
+    }
+
     // MARK: - records
 
     func test_records_twoPastMonthsThreeEach() {

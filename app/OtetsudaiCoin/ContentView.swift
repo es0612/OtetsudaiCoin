@@ -196,10 +196,10 @@ struct ContentView: View {
                 // 検証撮影用の未払いの記録 (Issue #309)。`--in-memory-store` のときだけ効く。
                 // reschedule の後に置き、投入した記録から実際の通知を予約させない。
                 if let count = UnpaidRecordsSeeder.childCount() {
-                    let children = Array(try await childRepository.findAll().prefix(count))
+                    let childIds = UnpaidRecordsSeeder.targetChildIds(try await childRepository.findAll(), count: count)
                     if let taskId = try await helpTaskRepository.findAll().first?.id {
                         let records = UnpaidRecordsSeeder.records(
-                            childIds: children.map(\.id),
+                            childIds: childIds,
                             helpTaskId: taskId,
                             now: Date(),
                             calendar: .current

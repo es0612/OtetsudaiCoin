@@ -23,6 +23,12 @@ enum UnpaidRecordsSeeder {
         return count
     }
 
+    /// 記録を入れる子どもの id。`findAll()` は並び順を決めないので名前順で選ぶ
+    /// (実行ごとに違う子に入ると、before/after の比較で verify-31 が偽の差分になる)。
+    static func targetChildIds(_ children: [Child], count: Int) -> [UUID] {
+        children.sorted { $0.name < $1.name }.prefix(count).map(\.id)
+    }
+
     /// 子どもごとに、`now` の 1 か月前と 2 か月前の月の 10 日 (9 時・12 時・15 時) に 1 件ずつ。
     static func records(childIds: [UUID], helpTaskId: UUID, now: Date, calendar: Calendar) -> [HelpRecord] {
         var records: [HelpRecord] = []
