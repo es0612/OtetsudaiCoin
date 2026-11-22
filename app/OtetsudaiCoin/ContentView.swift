@@ -191,6 +191,29 @@ struct ContentView: View {
                 } catch {
                     DebugLogger.error("支払いリマインド reschedule エラー: \(error)")
                 }
+
+                #if DEBUG
+                // 検証撮影用の未払いの記録 (Issue #309)。`--in-memory-store` のときだけ効く。
+                // reschedule の後に置き、投入した記録から実際の通知を予約させない。
+                if let count = UnpaidRecordsSeeder.childCount() {
+                    let children = Array(try await childRepository.findAll().prefix(count))
+                    if let taskId = try await helpTaskRepository.findAll().first?.id {
+                        let records = UnpaidRecordsSeeder.records(
+                            childIds: children.map(\.id),
+                            helpTaskId: taskId,
+                            now: Date(),
+                            calendar: .current
+                        )
+                        for record in records {
+                            try await helpRecordRepository.save(record)
+                        }
+                        // 子どもを選ぶ前のホームのバナーは children 側の通知
+                        // (loadChildren → checkUnpaidAllowances) でしか判定し直されない
+                        NotificationManager.shared.notifyHelpRecordUpdated()
+                        NotificationManager.shared.notifyChildrenUpdated()
+                    }
+                }
+                #endif
             } catch {
                 DebugLogger.error("初期データセットアップエラー: \(error)")
             }
