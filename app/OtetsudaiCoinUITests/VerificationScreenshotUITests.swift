@@ -23,6 +23,10 @@
 //  月のまとめの「おまけを付けて支払う」は testCaptureBonusPayment が `--in-memory-store` で記録してから、
 //  入口 (28-summary-entry)・シート (28-bonus-sheet と、下までスクロールした 28-bonus-sheet-bottom)・
 //  演出 (29)・「もらったおまけ」欄 (30) を撮る (#279)。
+//  未払いバナー (31: 1 人 / 32: 2 人)・記録のある履歴 (33)・「今週」の空状態 (34) は
+//  testCaptureHomeUnpaidOne / Two が `--in-memory-store --seed-unpaid-records <n>` で撮る (#309)。
+//  言語は環境変数 VERIFY_LOCALE (script の `--locale`、既定 ja)。en で撮るのは identifier で
+//  ボタンを探す 01〜08 と 31〜34 だけで、日本語の文言で探すほかのテストは en では skip する (#309)。
 //
 
 import XCTest
@@ -35,16 +39,40 @@ final class VerificationScreenshotUITests: XCTestCase {
 
     // MARK: - Launch helpers
 
-    /// --uitesting 起動 (tutorial skip + 太郎/花子 seed + splash skip)。ja 固定。
+    /// 撮影する言語 (Issue #309)。script が `TEST_RUNNER_VERIFY_LOCALE=<ja|en>` で渡し、
+    /// テストランナーには `VERIFY_LOCALE` として届く (`man xcodebuild` の TEST_RUNNER_<VAR>)。無ければ ja。
+    private var verifyLocale: String {
+        ProcessInfo.processInfo.environment["VERIFY_LOCALE"] ?? "ja"
+    }
+
+    private var languageArguments: [String] {
+        switch verifyLocale {
+        case "en":
+            return ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
+        case "ja":
+            return ["-AppleLanguages", "(ja)", "-AppleLocale", "ja_JP"]
+        default:
+            XCTFail("VERIFY_LOCALE must be ja or en (got: \(verifyLocale))")
+            return ["-AppleLanguages", "(ja)", "-AppleLocale", "ja_JP"]
+        }
+    }
+
+    /// 日本語の文言でボタンを探すテストは en では動かないので撮らない (Issue #309)。
+    /// en で動くのは identifier で探す testCaptureTabs / testCaptureChildDetail / testCaptureHomeUnpaid*。
+    private func skipUnlessJapanese() throws {
+        if verifyLocale == "en" {
+            throw XCTSkip("日本語の文言でボタンを探すため en では撮らない（#308 の 2 本目で en 化）")
+        }
+    }
+
+    /// --uitesting 起動 (tutorial skip + 太郎/花子 seed + splash skip)。言語は `languageArguments`。
     /// `extraArguments` には `--in-memory-store` などを足す (#280)。
     private func launchMainApp(extraArguments: [String] = []) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments += [
             "--uitesting",
-            "--hide-developer-tools",
-            "-AppleLanguages", "(ja)",
-            "-AppleLocale", "ja_JP"
-        ] + extraArguments
+            "--hide-developer-tools"
+        ] + languageArguments + extraArguments
         app.launch()
         let firstChild = app.buttons.matching(identifier: "child_button").firstMatch
         XCTAssertTrue(
@@ -63,10 +91,8 @@ final class VerificationScreenshotUITests: XCTestCase {
         app.launchArguments += [
             "-hasLaunchedBefore", "NO",
             "-hasCompletedChildTutorial", "NO",
-            "-hasCompletedRecordTutorial", "NO",
-            "-AppleLanguages", "(ja)",
-            "-AppleLocale", "ja_JP"
-        ]
+            "-hasCompletedRecordTutorial", "NO"
+        ] + languageArguments
         app.launch()
         return app
     }
@@ -113,10 +139,8 @@ final class VerificationScreenshotUITests: XCTestCase {
             "--seed-sample-children",
             "-hasLaunchedBefore", "NO",
             "-hasCompletedChildTutorial", "NO",
-            "-hasCompletedRecordTutorial", "NO",
-            "-AppleLanguages", "(ja)",
-            "-AppleLocale", "ja_JP"
-        ]
+            "-hasCompletedRecordTutorial", "NO"
+        ] + languageArguments
         app.launch()
         return app
     }
@@ -370,8 +394,55 @@ final class VerificationScreenshotUITests: XCTestCase {
         attach(name: "verify-08-help-history")
     }
 
+    /// 31-home-unpaid-one: 1 人に未払いがあるときのホームのバナー (Issue #309)
+    func testCaptureHomeUnpaidOne() throws {
+        let app = launchMainApp(extraArguments: ["--in-memory-store", "--seed-unpaid-records", "1"])
+        waitForUnpaidBanner(in: app)
+        attach(name: "verify-31-home-unpaid-one")
+    }
+
+    /// 32-home-unpaid-two / 33-history-seeded / 34-history-empty-week (Issue #309)。
+    /// 2 人とも先月と 2 か月前が未払い (#308 §2 の月の重複が写る)。2 人とも記録があるので、
+    /// どちらのカードを先に押しても記録のある履歴になる (集計カードは記録 0 件だと出ない)。
+    func testCaptureHomeUnpaidTwo() throws {
+        let app = launchMainApp(extraArguments: ["--in-memory-store", "--seed-unpaid-records", "2"])
+        waitForUnpaidBanner(in: app)
+        attach(name: "verify-32-home-unpaid-two")
+
+        app.buttons.matching(identifier: "child_button").firstMatch.tap()
+        sleep(2)
+        revealButton(
+            app.buttons.matching(identifier: "home_help_history_entry"),
+            named: "home_help_history_entry",
+            in: app,
+            maxSwipes: 6
+        ).tap()
+        sleep(2)
+        attach(name: "verify-33-history-seeded")
+
+        let picker = app.segmentedControls["history_period_picker"]
+        guard picker.waitForExistence(timeout: 5) else {
+            let found = app.segmentedControls.allElementsBoundByIndex.map { "\($0.identifier)|\($0.label)" }
+            XCTFail("history_period_picker not found. segmentedControls=\(found)")
+            return
+        }
+        picker.buttons.element(boundBy: 0).tap() // 今週 / This Week
+        sleep(1)
+        attach(name: "verify-34-history-empty-week")
+    }
+
+    /// 未払いの投入は非同期 (setupInitialData の Task) なので、バナーのリンクが出るまで待つ。
+    private func waitForUnpaidBanner(in app: XCUIApplication) {
+        XCTAssertTrue(
+            app.buttons["home_unpaid_summary_link"].waitForExistence(timeout: 15),
+            "unpaid banner (home_unpaid_summary_link) did not appear within 15s. buttons=\(app.buttons.allElementsBoundByIndex.map(\.identifier))"
+        )
+        sleep(1)
+    }
+
     /// 09-task-management (sheet) / 10-child-form (sheet)
     func testCaptureSettingsSheets() throws {
+        try skipUnlessJapanese()
         let app = launchMainApp()
         app.tabBars.buttons.element(boundBy: 2).tap()
         sleep(2)
@@ -402,6 +473,7 @@ final class VerificationScreenshotUITests: XCTestCase {
 
     /// 11-notification-settings (NavigationLink)
     func testCaptureNotificationSettings() throws {
+        try skipUnlessJapanese()
         let app = launchMainApp()
         app.tabBars.buttons.element(boundBy: 2).tap()
         sleep(2)
@@ -416,6 +488,7 @@ final class VerificationScreenshotUITests: XCTestCase {
     /// 記録タブのタスク一覧と子どもカードのバッジを AX サイズで確かめるためのシーン。
     /// 「記録する」(record_button) は押さない (Core Data に記録が残り 06〜08 の数字が揺れる)。
     func testCaptureRecordTasks() throws {
+        try skipUnlessJapanese()
         let app = launchMainApp()
         app.tabBars.buttons.element(boundBy: 1).tap()
         sleep(2)
@@ -482,6 +555,7 @@ final class VerificationScreenshotUITests: XCTestCase {
     /// 終了で消え、ほかのシーン (06〜08 の数字など) に残らない。
     /// 1 行目は「下の子の面倒を見る」(件数なし) と「お風呂を入れる」(件数 1) の組み合わせになる。
     func testCaptureRecordCountRow() throws {
+        try skipUnlessJapanese()
         let app = launchMainApp(extraArguments: ["--in-memory-store"])
         app.tabBars.buttons.element(boundBy: 1).tap()
         sleep(2)
@@ -542,6 +616,7 @@ final class VerificationScreenshotUITests: XCTestCase {
     /// (verify-07 は永続ストアの記録しだいで CTA と入口が出ないことがあるため、入口は 28-summary-entry で必ず撮る)。
     /// 額はチップで入れる (額の入力欄を押すとキーボードが出て画面が変わる)。
     func testCaptureBonusPayment() throws {
+        try skipUnlessJapanese()
         let app = launchMainApp(extraArguments: ["--in-memory-store"])
         app.tabBars.buttons.element(boundBy: 1).tap()
         sleep(2)
@@ -625,6 +700,7 @@ final class VerificationScreenshotUITests: XCTestCase {
     /// TutorialService の init で書かれ、2 回目以降の起動では `showTutorial = !hasCompletedChildTutorial`
     /// なので記録チュートリアル自体が出ない)。同じ画面は verify-16 が本番と同じ流れで撮る。
     func testCaptureTutorial() throws {
+        try skipUnlessJapanese()
         // 起動直後は SplashScreenView (2.5 秒) が出ているので先に撮る (best-effort)
         let app = launchTutorialApp()
         attach(name: "verify-00-splash")
@@ -646,6 +722,7 @@ final class VerificationScreenshotUITests: XCTestCase {
     /// 走る (TutorialContainerView)。launch args で記録チュートリアルへ直接起動すると子どもが
     /// 空になるが、本番ではその状態にならない (#252)。
     func testCaptureTutorialSteps() throws {
+        try skipUnlessJapanese()
         let app = launchTutorialAppWithChildren()
         XCTAssertTrue(app.buttons["次へ"].waitForExistence(timeout: 20), "child tutorial did not appear")
         tapEnabledButton("次へ", in: app)
