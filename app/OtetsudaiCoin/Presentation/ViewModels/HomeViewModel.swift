@@ -328,8 +328,12 @@ class HomeViewModel: BaseViewModel {
     }
 
     /// 未払いバナーに出す期間の一覧 (#301)。年月は locale に合わせる（ja「2026年10月」/ en「October 2026」）。
+    /// unpaidPeriods は子どもごとの期間をつなげたものなので、年月の重複を除いて新しい順に並べる (#308)。
     func unpaidPeriodsText(locale: Locale = .current) -> String {
-        unpaidPeriods
+        var seen = Set<Int>()
+        return unpaidPeriods
+            .sorted { ($0.year, $0.month) > ($1.year, $1.month) }
+            .filter { seen.insert($0.year * 100 + $0.month).inserted }
             .map { MonthlySummaryViewModel.monthLabel(year: $0.year, month: $0.month, locale: locale) }
             .joined(separator: ", ")
     }
@@ -350,10 +354,10 @@ class HomeViewModel: BaseViewModel {
             let childName = children.first { $0.id == childId }?.name ?? String(localized: "不明")
             let childAmount = childGroups[childId]!.reduce(0) { $0 + $1.expectedAmount }
             
-            unpaidWarningMessage = String(localized: "\(childName)の未支払いのお小遣いが\(childAmount)コインあります。履歴画面から支払いを行ってください。")
+            unpaidWarningMessage = String(localized: "\(childName)の未支払いのお小遣いが\(childAmount)コインあります。月のまとめから支払えます。")
         } else {
             // 複数の子供の場合
-            unpaidWarningMessage = String(localized: "\(affectedChildrenCount)人の子供に未支払いのお小遣いが合計\(totalUnpaidAmount)コインあります。履歴画面から支払いを行ってください。")
+            unpaidWarningMessage = String(localized: "\(affectedChildrenCount)人の子供に未支払いのお小遣いが合計\(totalUnpaidAmount)コインあります。月のまとめから支払えます。")
         }
     }
 }

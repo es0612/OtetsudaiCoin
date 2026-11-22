@@ -1931,22 +1931,22 @@
         }
       }
     },
-    "%@の未支払いのお小遣いが%lldコインあります。履歴画面から支払いを行ってください。" : {
+    "%@の未支払いのお小遣いが%lldコインあります。月のまとめから支払えます。" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ has %lld coins of unpaid allowance. Please pay from the History screen."
+            "value" : "%@ has %lld coins of unpaid allowance. You can pay from the Monthly Summary."
           }
         }
       }
     },
-    "%lld人の子供に未支払いのお小遣いが合計%lldコインあります。履歴画面から支払いを行ってください。" : {
+    "%lld人の子供に未支払いのお小遣いが合計%lldコインあります。月のまとめから支払えます。" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%lld children have unpaid allowances totaling %lld coins. Please pay from the History screen."
+            "value" : "%lld children have unpaid allowances totaling %lld coins. You can pay from the Monthly Summary."
           }
         }
       }
