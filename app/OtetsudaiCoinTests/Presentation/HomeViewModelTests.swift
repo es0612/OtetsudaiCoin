@@ -259,25 +259,25 @@ final class HomeViewModelTests: XCTestCase {
 
     /// #308: 2 人が同じ月を未払いだと、期間が子どもの数だけ重複して出ていた。
     /// 表示の文字列だけ年月の重複を除いて新しい順に並べ、元の unpaidPeriods（件数・合計）は変えない。
-    /// 年をまたぐ月と、子どもごとに逆順の並びを混ぜて、並べ替えも確かめる。
+    /// 年をまたぐ月で、並べ替えも確かめる。最初に出てくるのが古い月 (2025年12月) なので、
+    /// 並べ替えを外すと「2025年12月, 2026年1月」になって落ちる (mutation で確認済み)。
     @MainActor
     func testUnpaidPeriodsTextRemovesDuplicateMonthsAcrossChildren() async {
         let child1 = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
         let child2 = Child(id: UUID(), name: "花子", themeColor: "#33FF57")
         let mockUnpaidDetector = MockUnpaidAllowanceDetectorService()
         mockUnpaidDetector.unpaidPeriods = [
-            UnpaidPeriod(childId: child1.id, month: 1, year: 2026, expectedAmount: 100),
             UnpaidPeriod(childId: child1.id, month: 12, year: 2025, expectedAmount: 100),
-            UnpaidPeriod(childId: child2.id, month: 12, year: 2025, expectedAmount: 100),
-            UnpaidPeriod(childId: child2.id, month: 1, year: 2026, expectedAmount: 100)
+            UnpaidPeriod(childId: child2.id, month: 1, year: 2026, expectedAmount: 100),
+            UnpaidPeriod(childId: child2.id, month: 12, year: 2025, expectedAmount: 100)
         ]
         viewModel = createViewModelWithUnpaidDetector(unpaidDetector: mockUnpaidDetector)
         viewModel.children = [child1, child2]
 
         await viewModel.checkUnpaidAllowances()
 
-        XCTAssertEqual(viewModel.unpaidPeriods.count, 4, "元のデータは重複を除かない")
-        XCTAssertEqual(viewModel.totalUnpaidAmount, 400)
+        XCTAssertEqual(viewModel.unpaidPeriods.count, 3, "元のデータは重複を除かない")
+        XCTAssertEqual(viewModel.totalUnpaidAmount, 300)
         let ja = viewModel.unpaidPeriodsText(locale: Locale(identifier: "ja_JP"))
         XCTAssertEqual(ja, "2026年1月, 2025年12月", "rendered: \(ja)")
         let en = viewModel.unpaidPeriodsText(locale: Locale(identifier: "en_US"))
