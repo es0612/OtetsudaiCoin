@@ -31,7 +31,7 @@
 2. **UITest**: 3 つの起動ヘルパー（`launchMainApp` / `launchTutorialApp` / `launchTutorialAppWithChildren`）の `-AppleLanguages` / `-AppleLocale` を 1 か所の helper から引く。環境変数が無いときは ja（今と同じ）
 3. **アプリ（`#if DEBUG`）**: 起動引数 `--seed-unpaid-records 1|2`。`--in-memory-store` と一緒のときだけ効く。`ContentView.setupInitialData()` のデフォルトタスク作成の後で（記録にお手伝いの ID が要るため。子どもの作成はそれより前）、先頭 1 人（または 2 人）に先月と 2 か月前の記録を 3 件ずつ保存し、`notifyHelpRecordUpdated()` を呼ぶ。判定は testable な static helper にする（`shouldSeedSampleChildren` と同じ形）
 4. **シーン**: `verify-31-home-unpaid-one`（1 人）、`verify-32-home-unpaid-two`（2 人。#308 §2 の月の重複が写る）、`verify-33-history-empty`（履歴で「今週」をタップした空状態）
-5. en でも全シーンを撮る（#308 の 2 本目のチュートリアルでも使う）
+5. en で撮るのは 01〜08 と 31〜33（2026-11-22 オーナー回答で範囲を変更）。既存のテストは約 25 か所でボタンを日本語の文言で探しており、en でそのまま動くのは identifier で探す `testCaptureTabs` / `testCaptureChildDetail` だけ。ほかのテストは en のとき理由つきで `XCTSkip` する。チュートリアルを en で動かすのは、文言を英語に直す #308 の 2 本目で行う（今の日本語の文言に合わせて書くと、直した後に書き直しになるため）
 
 ## 分かった前提
 
