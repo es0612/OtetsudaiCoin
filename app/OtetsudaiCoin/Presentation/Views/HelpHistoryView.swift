@@ -88,6 +88,7 @@ struct HelpHistoryView: View {
                 }
             }
             .pickerStyle(SegmentedPickerStyle())
+            .accessibilityIdentifier("history_period_picker")
             .onChange(of: viewModel.selectedPeriod) { _, newPeriod in
                 viewModel.selectPeriod(newPeriod)
             }

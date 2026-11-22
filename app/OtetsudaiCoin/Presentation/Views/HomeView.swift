@@ -336,6 +336,11 @@ struct HomeView: View {
             RoundedRectangle(cornerRadius: AppRadius.medium)
                 .stroke(AccessibilityColors.warningOrange.opacity(0.3), lineWidth: 1)
         )
+        // 検証撮影がバナーの出現を待つための id (Issue #309)。AX サイズではバナーだけで
+        // 画面が埋まり、下の「お小遣いを確認」も子どものカードも画面外になる。
+        // `.contain` を先に付け、中のリンクの id (home_unpaid_summary_link) を上書きしない。
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("home_unpaid_banner")
         .padding(.horizontal, DeviceInfo.contentPadding)
     }
 }
