@@ -13,11 +13,10 @@ class AllowanceCalculator {
         return records.count * 10
     }
     
-    func calculateConsecutiveDays(records: [HelpRecord]) -> Int {
+    func calculateConsecutiveDays(records: [HelpRecord], today: Date = Date()) -> Int {
         guard !records.isEmpty else { return 0 }
         
         let calendar = Calendar.current
-        let today = Date()
         
         let uniqueDays = Set(records.compactMap { record in
             calendar.dateInterval(of: .day, for: record.recordedAt)?.start
@@ -25,13 +24,15 @@ class AllowanceCalculator {
         
         let sortedDays = uniqueDays.sorted(by: >)
         
+        // #311: 最新の記録日が今日なら今日から、昨日なら昨日からさかのぼる。それ以外は 0
         guard let firstDay = sortedDays.first,
-              calendar.isDate(firstDay, inSameDayAs: today) else {
+              let yesterday = calendar.date(byAdding: .day, value: -1, to: today),
+              calendar.isDate(firstDay, inSameDayAs: today) || calendar.isDate(firstDay, inSameDayAs: yesterday) else {
             return 0
         }
         
         var consecutiveCount = 0
-        var currentCheckDate = today
+        var currentCheckDate = firstDay
         
         for day in sortedDays {
             if calendar.isDate(day, inSameDayAs: currentCheckDate) {

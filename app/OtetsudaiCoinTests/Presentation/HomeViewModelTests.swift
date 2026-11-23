@@ -390,6 +390,7 @@ final class HomeViewModelTests: XCTestCase {
 class MockAllowanceCalculator: AllowanceCalculator {
     var monthlyAllowance: Int = 0
     var consecutiveDays: Int = 0
+    var receivedConsecutiveDaysRecords: [HelpRecord]?
     
     override func calculateMonthlyAllowance(records: [HelpRecord], tasks: [HelpTask]) -> Int {
         return monthlyAllowance
@@ -399,7 +400,8 @@ class MockAllowanceCalculator: AllowanceCalculator {
         return monthlyAllowance
     }
     
-    override func calculateConsecutiveDays(records: [HelpRecord]) -> Int {
+    override func calculateConsecutiveDays(records: [HelpRecord], today: Date) -> Int {
+        receivedConsecutiveDaysRecords = records
         return consecutiveDays
     }
 }
