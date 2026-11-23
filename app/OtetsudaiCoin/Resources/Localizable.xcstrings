@@ -12,7 +12,6 @@
       }
     },
     "コインを獲得！" : {
-      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -736,7 +735,6 @@
       }
     },
     "がんばったタスクを選択" : {
-      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2132,7 +2130,6 @@
       }
     },
     "記録する子を選びます" : {
-      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {

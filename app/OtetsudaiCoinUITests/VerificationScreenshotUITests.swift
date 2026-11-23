@@ -25,9 +25,9 @@
 //  演出 (29)・「もらったおまけ」欄 (30) を撮る (#279)。
 //  未払いバナー (31: 1 人 / 32: 2 人)・記録のある履歴 (33)・「今週」の空状態 (34) は
 //  testCaptureHomeUnpaidOne / Two が `--in-memory-store --seed-unpaid-records <n>` で撮る (#309)。
-//  言語は環境変数 VERIFY_LOCALE (script の `--locale`、既定 ja)。en で撮るのは identifier で
-//  ボタンを探す 01〜08 と 31〜34 だけで、日本語の文言で探すほかのテストは en では skip する (#309)。
-//  チュートリアル (00・12・14〜19・23〜25) もチュートリアル専用の identifier で探すので en で撮る (#308)。
+//  言語は環境変数 VERIFY_LOCALE (script の `--locale`、既定 ja)。en で撮るのは、identifier で
+//  ボタンを探す 01〜08・31〜34 と、チュートリアル専用の identifier で探すチュートリアル
+//  (00・12・14〜19・23〜25) で、日本語の文言で探すほかのテストは en では skip する (#309, #308)。
 //
 
 import XCTest
@@ -753,6 +753,7 @@ final class VerificationScreenshotUITests: XCTestCase {
         tapEnabledButton("child_tutorial_next_button", in: app)
         sleep(1)
         attach(name: "verify-15-tutorial-child-step3")
+        // 「次へ」と「完了」は最後のステップでラベルが変わる同じ Button なので、identifier は同じ。
         tapEnabledButton("child_tutorial_next_button", in: app)
 
         XCTAssertTrue(app.buttons["record_tutorial_next_button"].waitForExistence(timeout: 20), "record tutorial did not appear")
