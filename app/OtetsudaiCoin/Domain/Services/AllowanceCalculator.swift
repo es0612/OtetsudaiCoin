@@ -18,9 +18,11 @@ class AllowanceCalculator {
         
         let calendar = Calendar.current
         
+        // #311: 今日より後の日付の記録は数えない（未来の記録が最新日になって 0 に倒れるのを防ぐ）
+        let todayStart = calendar.startOfDay(for: today)
         let uniqueDays = Set(records.compactMap { record in
             calendar.dateInterval(of: .day, for: record.recordedAt)?.start
-        })
+        }.filter { $0 <= todayStart })
         
         let sortedDays = uniqueDays.sorted(by: >)
         

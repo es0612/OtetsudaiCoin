@@ -107,14 +107,9 @@ final class AllowanceCalculatorTests: XCTestCase {
     // #311: 今日未記録でも昨日までの連続を出す
     func testCalculateConsecutiveDaysYesterdayOnly() {
         let calculator = AllowanceCalculator()
-        let childId = UUID()
-        let helpTaskId = UUID()
-        let calendar = Calendar.current
-        let yesterday = calendar.date(byAdding: .day, value: -1, to: Date())!
+        let record = HelpRecord(id: UUID(), childId: UUID(), helpTaskId: UUID(), recordedAt: day(2026, 11, 1))
         
-        let record = HelpRecord(id: UUID(), childId: childId, helpTaskId: helpTaskId, recordedAt: yesterday)
-        
-        let consecutiveDays = calculator.calculateConsecutiveDays(records: [record])
+        let consecutiveDays = calculator.calculateConsecutiveDays(records: [record], today: day(2026, 11, 2))
         
         XCTAssertEqual(consecutiveDays, 1)
     }
@@ -159,5 +154,15 @@ final class AllowanceCalculatorTests: XCTestCase {
     func testConsecutiveDays_unsortedRecords() {
         let rs = records([day(2026, 11, 2), day(2026, 10, 31), day(2026, 11, 1)])
         XCTAssertEqual(AllowanceCalculator().calculateConsecutiveDays(records: rs, today: day(2026, 11, 2)), 3)
+    }
+    
+    func testConsecutiveDays_firstOfMonthMorning_continuesFromLastMonth() {
+        let rs = records([day(2026, 10, 30), day(2026, 10, 31)])
+        XCTAssertEqual(AllowanceCalculator().calculateConsecutiveDays(records: rs, today: day(2026, 11, 1)), 2)
+    }
+    
+    func testConsecutiveDays_ignoresFutureRecords() {
+        let rs = records([day(2026, 11, 1), day(2026, 11, 2), day(2026, 12, 25)])
+        XCTAssertEqual(AllowanceCalculator().calculateConsecutiveDays(records: rs, today: day(2026, 11, 2)), 2)
     }
 }
