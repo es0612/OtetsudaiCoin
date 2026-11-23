@@ -1,0 +1,43 @@
+name: Test Wait Check
+
+# unit テストの「固定時間の待ち」(Task.sleep / asyncAfter / Thread.sleep / sleep() を検出する
+# (#306 候補 #30)。ViewModel の Task { } の完了を固定時間で待つテストは、CI の遅い runner で
+# 時々落ちた (#313)。完了は waitUntil { 条件 } で待ち、固定時間が必要な行には
+# // allow-fixed-wait: <理由> を書く。詳細は scripts/fixed-wait-check.sh を参照。
+
+on:
+  pull_request:
+    paths:
+      - 'app/OtetsudaiCoinTests/**'
+      - 'scripts/fixed-wait-check.sh'
+      - 'scripts/testdata/fixed-wait-check/**'
+      - '.github/workflows/test-wait-check.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Verify no fixed waits in unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # runner の awk (mawk) で macOS と同じ判定になるかを、答えの分かっている fixture で確かめる。
+      # fixture は違反 5 件 (Task.sleep / asyncAfter / Thread.sleep / sleep( / 理由が空) と許可 2 件。
+      # GITHUB_ACTIONS を外して呼ぶ (期待どおりの FAIL の ::error:: 注記を green の run に出さないため)
+      - name: Self-test (known answers)
+        run: |
+          set +e
+          out="$(env -u GITHUB_ACTIONS bash scripts/fixed-wait-check.sh scripts/testdata/fixed-wait-check)"
+          code=$?
+          set -e
+          echo "$out"
+          if [[ $code -ne 1 ]] || ! grep -q "違反 5 件 / 許可 2 件" <<<"$out"; then
+            echo "::error::self-test failed (exit=$code, 期待は exit 1・違反 5 件 / 許可 2 件)。awk の判定が macOS と違う可能性がある"
+            exit 1
+          fi
+
+      - name: Check unit tests
+        run: bash scripts/fixed-wait-check.sh
