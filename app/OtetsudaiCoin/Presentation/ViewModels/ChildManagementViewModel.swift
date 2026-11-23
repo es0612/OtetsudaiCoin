@@ -6,6 +6,8 @@ class ChildManagementViewModel: BaseViewModel {
     var children: [Child] = []
     
     private let childRepository: ChildRepository
+    /// 削除確認に出す記録の件数を数えるためだけに使う。設定画面の ViewModel (ViewModelFactory) にだけ渡す
+    private let helpRecordRepository: HelpRecordRepository?
     private var loadChildrenTask: Task<Void, Never>?
     
     private let themeColors: [String] = [
@@ -23,8 +25,9 @@ class ChildManagementViewModel: BaseViewModel {
         "#E03131"  // レッド
     ]
     
-    init(childRepository: ChildRepository) {
+    init(childRepository: ChildRepository, helpRecordRepository: HelpRecordRepository? = nil) {
         self.childRepository = childRepository
+        self.helpRecordRepository = helpRecordRepository
         super.init()
     }
     
@@ -136,6 +139,18 @@ class ChildManagementViewModel: BaseViewModel {
         }
     }
     
+    /// 削除するとこの子どもの記録も一緒に消えるため、削除確認に出す件数を数える (#310 (a))。
+    /// 記録の repository が無いとき・数えられなかったときは nil。削除確認の上にエラーのアラートを
+    /// 重ねないよう、errorMessage / isLoading には触らない。
+    func recordCount(forChildId childId: UUID) async -> Int? {
+        guard let helpRecordRepository else { return nil }
+        do {
+            return try await helpRecordRepository.findByChildId(childId).count
+        } catch {
+            return nil
+        }
+    }
+
     func validateChildData(name: String, themeColor: String) -> Bool {
         let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
         

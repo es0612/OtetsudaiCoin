@@ -187,4 +187,48 @@ final class ChildManagementViewModelTests: XCTestCase {
         }
         XCTAssertEqual(colors.first, "#E8590C", "先頭はブランドオレンジ (ChildFormView のデフォルトと一致)")
     }
+
+    // MARK: - #310 (a) 削除確認に出す記録の件数
+
+    private func makeRecord(childId: UUID) -> HelpRecord {
+        HelpRecord(
+            id: UUID(),
+            childId: childId,
+            helpTaskId: UUID(),
+            recordedAt: Date(timeIntervalSince1970: 1_781_316_000) // 2026-06-13 固定
+        )
+    }
+
+    @MainActor
+    func test_recordCount_countsOnlyRecordsOfThatChild() async {
+        let recordRepository = MockHelpRecordRepository()
+        let taro = UUID()
+        recordRepository.records = [makeRecord(childId: taro), makeRecord(childId: taro), makeRecord(childId: UUID())]
+        let viewModel = ChildManagementViewModel(childRepository: childRepository, helpRecordRepository: recordRepository)
+
+        let count = await viewModel.recordCount(forChildId: taro)
+
+        XCTAssertEqual(count, 2, "別の子どもの記録は数えない")
+    }
+
+    @MainActor
+    func test_recordCount_withoutRecordRepository_returnsNil() async {
+        // setUp の viewModel は記録の repository を持たない (子どもの追加画面などと同じ作り)
+        let count = await viewModel.recordCount(forChildId: UUID())
+
+        XCTAssertNil(count)
+    }
+
+    @MainActor
+    func test_recordCount_fetchFails_returnsNilWithoutSideEffects() async {
+        let recordRepository = MockHelpRecordRepository()
+        recordRepository.shouldThrowError = true
+        let viewModel = ChildManagementViewModel(childRepository: childRepository, helpRecordRepository: recordRepository)
+
+        let count = await viewModel.recordCount(forChildId: UUID())
+
+        XCTAssertNil(count)
+        XCTAssertNil(viewModel.errorMessage)
+        XCTAssertFalse(viewModel.isLoading)
+    }
 }

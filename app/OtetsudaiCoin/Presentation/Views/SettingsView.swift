@@ -6,7 +6,8 @@ struct SettingsView: View {
     @State private var showingAddChildForm = false
     @State private var editingChild: Child?
     @State private var showingDeleteAlert = false
-    @State private var childToDelete: Child?
+    /// 削除対象と、一緒に消える記録の件数。件数は削除をタップした時に数え、対象と組で持つ (#310 (a))
+    @State private var childDeletion: ChildDeletion?
     @State private var showingTaskManagement = false
     @State private var tutorialService = TutorialService()
     @State private var taskManagementViewModel: TaskManagementViewModel
@@ -82,8 +83,11 @@ struct SettingsView: View {
                         ChildRowView(child: child) {
                             editingChild = child
                         } onDelete: {
-                            childToDelete = child
-                            showingDeleteAlert = true
+                            Task {
+                                let recordCount = await viewModel.recordCount(forChildId: child.id)
+                                childDeletion = ChildDeletion(child: child, recordCount: recordCount)
+                                showingDeleteAlert = true
+                            }
                         }
                     }
                     
@@ -264,20 +268,15 @@ struct SettingsView: View {
         .sheet(isPresented: $showingTaskManagement) {
             TaskManagementView(viewModel: taskManagementViewModel)
         }
-        .alert("削除確認", isPresented: $showingDeleteAlert) {
+        .alert("削除確認", isPresented: $showingDeleteAlert, presenting: childDeletion) { deletion in
             Button("削除", role: .destructive) {
-                if let child = childToDelete {
-                    Task {
-                        await viewModel.deleteChild(id: child.id)
-                    }
+                Task {
+                    await viewModel.deleteChild(id: deletion.child.id)
                 }
-                childToDelete = nil
             }
-            Button("キャンセル", role: .cancel) {
-                childToDelete = nil
-            }
-        } message: {
-            Text(childToDelete?.name ?? "" + "を削除しますか？この操作は取り消せません。")
+            Button("キャンセル", role: .cancel) {}
+        } message: { deletion in
+            Text(DeleteConfirmationMessage.make(name: deletion.child.name, recordCount: deletion.recordCount))
         }
         .alert("エラー", isPresented: .constant(viewModel.errorMessage != nil)) {
             Button("OK") {
@@ -488,4 +487,10 @@ extension Child: Identifiable {}
     let context = PersistenceController.preview.container.viewContext
     let repository = CoreDataChildRepository(context: context)
     SettingsView(viewModel: ChildManagementViewModel(childRepository: repository))
+}
+
+/// 子どもの削除確認に出す対象と記録の件数 (#310 (a))
+private struct ChildDeletion {
+    let child: Child
+    let recordCount: Int?
 }

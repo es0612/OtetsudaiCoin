@@ -49,7 +49,8 @@ class ViewModelFactory {
     
     func createChildManagementViewModel() -> ChildManagementViewModel {
         ChildManagementViewModel(
-            childRepository: repositoryFactory.createChildRepository()
+            childRepository: repositoryFactory.createChildRepository(),
+            helpRecordRepository: repositoryFactory.createHelpRecordRepository()
         )
     }
     
