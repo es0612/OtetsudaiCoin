@@ -66,6 +66,12 @@ final class TutorialTaskCardViewTests: XCTestCase {
         XCTAssertEqual(TutorialTaskCardView.nameLineLimit(isAccessibilitySize: false), 2)
     }
 
+    // #317: 1 行に収まらない名前のカードだけ、名前 1 行分だけ高くする (120 は 1 行のカードのまま)
+    func testWrappedNameCardAddsOneNameLineToTheDefaultHeight() {
+        XCTAssertEqual(TutorialTaskCardView.wrappedNameCardHeight(nameLineHeight: 16), 136)
+        XCTAssertEqual(TutorialTaskCardView.wrappedNameCardHeight(nameLineHeight: 20), 140)
+    }
+
     func testNameHasNoLineLimitAtAccessibilitySizes() {
         XCTAssertNil(TutorialTaskCardView.nameLineLimit(isAccessibilitySize: true))
     }
