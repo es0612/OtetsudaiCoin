@@ -219,6 +219,7 @@ struct ChildTutorialView: View {
                         }
                     }
                     .buttonStyle(.bordered)
+                    .accessibilityIdentifier("child_tutorial_back_button")
                 }
                 
                 Spacer()
@@ -234,6 +235,7 @@ struct ChildTutorialView: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .disabled(currentStep == 1 && !hasAddedChild)
+                .accessibilityIdentifier("child_tutorial_next_button")
             }
             
             Button("チュートリアルをスキップ") {

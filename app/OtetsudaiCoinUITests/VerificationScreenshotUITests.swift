@@ -27,6 +27,7 @@
 //  testCaptureHomeUnpaidOne / Two が `--in-memory-store --seed-unpaid-records <n>` で撮る (#309)。
 //  言語は環境変数 VERIFY_LOCALE (script の `--locale`、既定 ja)。en で撮るのは identifier で
 //  ボタンを探す 01〜08 と 31〜34 だけで、日本語の文言で探すほかのテストは en では skip する (#309)。
+//  チュートリアル (00・12・14〜19・23〜25) もチュートリアル専用の identifier で探すので en で撮る (#308)。
 //
 
 import XCTest
@@ -58,10 +59,11 @@ final class VerificationScreenshotUITests: XCTestCase {
     }
 
     /// 日本語の文言でボタンを探すテストは en では動かないので撮らない (Issue #309)。
-    /// en で動くのは identifier で探す testCaptureTabs / testCaptureChildDetail / testCaptureHomeUnpaid*。
+    /// en で動くのは identifier で探す testCaptureTabs / testCaptureChildDetail / testCaptureHomeUnpaid* と
+    /// testCaptureTutorial / testCaptureTutorialSteps (#308)。
     private func skipUnlessJapanese() throws {
         if verifyLocale == "en" {
-            throw XCTSkip("日本語の文言でボタンを探すため en では撮らない（#308 の 2 本目で en 化）")
+            throw XCTSkip("日本語の文言でボタンを探すため en では撮らない")
         }
     }
 
@@ -147,10 +149,10 @@ final class VerificationScreenshotUITests: XCTestCase {
         return app
     }
 
-    /// 「次へ」が有効になるのを待って押す。
-    private func tapEnabledButton(_ label: String, in app: XCUIApplication) {
-        let button = app.buttons[label]
-        XCTAssertTrue(button.waitForExistence(timeout: 10), "\(label) not found")
+    /// 「次へ」などが有効になるのを待って押す。`identifier` はチュートリアル専用の identifier (#308)。
+    private func tapEnabledButton(_ identifier: String, in app: XCUIApplication) {
+        let button = app.buttons[identifier]
+        XCTAssertTrue(button.waitForExistence(timeout: 10), "\(identifier) not found")
         let enabled = expectation(for: NSPredicate(format: "isEnabled == true"), evaluatedWith: button)
         wait(for: [enabled], timeout: 10)
         button.tap()
@@ -163,7 +165,13 @@ final class VerificationScreenshotUITests: XCTestCase {
     /// 一覧は LazyVGrid なので、画面から遠いカード (一番下の「自分の部屋の掃除」など) はスクロールして
     /// 近づくまで存在しない。最初の存在待ちで止めず、スワイプしながら探す (#262)。
     private func tapHittableButton(containing text: String, in app: XCUIApplication, maxSwipes: Int = 8) {
-        let query = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", text))
+        tapHittableButton(matching: NSPredicate(format: "label CONTAINS %@", text), in: app, maxSwipes: maxSwipes)
+    }
+
+    /// `tapHittableButton(containing:)` の条件を自由に書ける版。お手伝いカードは en でも同じ
+    /// identifier (`tutorial_task_card_<保存名>`) で探す (#308)。
+    private func tapHittableButton(matching predicate: NSPredicate, in app: XCUIApplication, maxSwipes: Int = 8) {
+        let query = app.buttons.matching(predicate)
         // 遠いカードはスクロールするまで作られず、長く待っても現れない。待ちは短くしてスワイプへ進む (#265)
         _ = query.firstMatch.waitForExistence(timeout: 2)
         // 各スワイプの後 (と最初) に押せるボタンを探す
@@ -177,14 +185,14 @@ final class VerificationScreenshotUITests: XCTestCase {
                 sleep(1)
             }
         }
-        XCTFail("no hittable button containing '\(text)'. candidates=\(query.allElementsBoundByIndex.map { "\($0.label) \($0.frame)" })")
+        XCTFail("no hittable button matching '\(predicate.predicateFormat)'. candidates=\(query.allElementsBoundByIndex.map { "\($0.label) \($0.frame)" })")
     }
 
     /// 押せる「記録する」を、timeout まで 0.5 秒ごとに探して返す (無ければ nil)。
-    /// チュートリアルの裏の記録タブにも同じラベルのボタンがあるため、ラベルの完全一致 (app.buttons["記録する"]) だと
-    /// 裏のボタンを掴むことがある (#265)。
+    /// チュートリアルの裏の記録タブにも同じラベルのボタンがあり、ラベルで探すと裏のボタンを掴むことがあった (#265)。
+    /// 今はチュートリアル専用の identifier で探す (en でも同じ。#308)。押せるものを選ぶ処理は念のため残す。
     private func hittableRecordButton(in app: XCUIApplication, timeout: TimeInterval = 5) -> XCUIElement? {
-        let query = app.buttons.matching(NSPredicate(format: "label == %@", "記録する"))
+        let query = app.buttons.matching(identifier: "tutorial_record_button")
         let deadline = Date().addingTimeInterval(timeout)
         repeat {
             if let button = query.allElementsBoundByIndex.first(where: { $0.isHittable }) {
@@ -196,11 +204,17 @@ final class VerificationScreenshotUITests: XCTestCase {
         return nil
     }
 
-    /// 「記録する」ラベルの全要素の frame / isHittable (assert の失敗メッセージ用)
+    /// tutorial_record_button の全要素の frame / isHittable (assert の失敗メッセージ用)
     private func recordButtonCandidates(in app: XCUIApplication) -> String {
-        app.buttons.matching(NSPredicate(format: "label == %@", "記録する")).allElementsBoundByIndex
+        app.buttons.matching(identifier: "tutorial_record_button").allElementsBoundByIndex
             .map { "\($0.frame) hittable=\($0.isHittable)" }
             .description
+    }
+
+    /// 記録チュートリアルのお手伝いカード。identifier は表示名ではなく保存名 (既定タスクは日本語) なので、
+    /// en でも同じ名前で探せる (#308)。
+    private func taskCardPredicate(_ storedName: String) -> NSPredicate {
+        NSPredicate(format: "identifier == %@", "tutorial_task_card_\(storedName)")
     }
 
     /// 記録タブのカード (子ども / タスク) を、画面下の記録バーに隠れていない部分を押して選ぶ (#260)。
@@ -710,11 +724,10 @@ final class VerificationScreenshotUITests: XCTestCase {
     /// TutorialService の init で書かれ、2 回目以降の起動では `showTutorial = !hasCompletedChildTutorial`
     /// なので記録チュートリアル自体が出ない)。同じ画面は verify-16 が本番と同じ流れで撮る。
     func testCaptureTutorial() throws {
-        try skipUnlessJapanese()
         // 起動直後は SplashScreenView (2.5 秒) が出ているので先に撮る (best-effort)
         let app = launchTutorialApp()
         attach(name: "verify-00-splash")
-        let nextButton = app.buttons["次へ"]
+        let nextButton = app.buttons["child_tutorial_next_button"]
         XCTAssertTrue(nextButton.waitForExistence(timeout: 20), "child tutorial did not appear")
         sleep(1)
         attach(name: "verify-12-tutorial-child")
@@ -732,28 +745,27 @@ final class VerificationScreenshotUITests: XCTestCase {
     /// 走る (TutorialContainerView)。launch args で記録チュートリアルへ直接起動すると子どもが
     /// 空になるが、本番ではその状態にならない (#252)。
     func testCaptureTutorialSteps() throws {
-        try skipUnlessJapanese()
         let app = launchTutorialAppWithChildren()
-        XCTAssertTrue(app.buttons["次へ"].waitForExistence(timeout: 20), "child tutorial did not appear")
-        tapEnabledButton("次へ", in: app)
+        XCTAssertTrue(app.buttons["child_tutorial_next_button"].waitForExistence(timeout: 20), "child tutorial did not appear")
+        tapEnabledButton("child_tutorial_next_button", in: app)
         sleep(1)
         attach(name: "verify-14-tutorial-child-step2")
-        tapEnabledButton("次へ", in: app)
+        tapEnabledButton("child_tutorial_next_button", in: app)
         sleep(1)
         attach(name: "verify-15-tutorial-child-step3")
-        tapEnabledButton("完了", in: app)
+        tapEnabledButton("child_tutorial_next_button", in: app)
 
-        XCTAssertTrue(app.buttons["次へ"].waitForExistence(timeout: 20), "record tutorial did not appear")
+        XCTAssertTrue(app.buttons["record_tutorial_next_button"].waitForExistence(timeout: 20), "record tutorial did not appear")
         sleep(1)
         attach(name: "verify-16-tutorial-record-step1")
-        tapEnabledButton("次へ", in: app)
+        tapEnabledButton("record_tutorial_next_button", in: app)
         sleep(1)
         attach(name: "verify-17-tutorial-record-step2")
         tapHittableButton(containing: "太郎", in: app)
-        tapEnabledButton("次へ", in: app)
+        tapEnabledButton("record_tutorial_next_button", in: app)
         sleep(1)
         attach(name: "verify-18-tutorial-record-step3")
-        tapHittableButton(containing: "お風呂を入れる", in: app)
+        tapHittableButton(matching: taskCardPredicate("お風呂を入れる"), in: app)
         sleep(1)
         attach(name: "verify-19-tutorial-record-step3-selected")
         // スワイプせずに「記録する」が画面内にあること (#262: AX では帯が選んだカードの下に出て、そこへ自動スクロールする)
@@ -763,7 +775,7 @@ final class VerificationScreenshotUITests: XCTestCase {
         )
 
         // 一番下のカードを選んでも、帯が画面の外に出ないこと (#262)
-        tapHittableButton(containing: "自分の部屋の掃除", in: app)
+        tapHittableButton(matching: taskCardPredicate("自分の部屋の掃除"), in: app)
         sleep(1)
         attach(name: "verify-23-tutorial-record-step3-last-selected")
         XCTAssertNotNil(
@@ -773,9 +785,9 @@ final class VerificationScreenshotUITests: XCTestCase {
 
         // ステップを 3 → 2 → 3 と戻っても、選んだカードの下の帯へ連れて行くこと (#265)。
         // ステップが変わると本文は先頭へ戻り、一番下のカードの帯は画面の外になる
-        tapEnabledButton("戻る", in: app)
+        tapEnabledButton("record_tutorial_back_button", in: app)
         sleep(1)
-        tapEnabledButton("次へ", in: app)
+        tapEnabledButton("record_tutorial_next_button", in: app)
         sleep(2)
         attach(name: "verify-24-tutorial-record-step3-returned")
         let returnedRecordButton = hittableRecordButton(in: app)
@@ -798,7 +810,7 @@ final class VerificationScreenshotUITests: XCTestCase {
             XCTFail("no hittable 記録する to measure the drag distance. candidates=\(recordButtonCandidates(in: app))")
             return
         }
-        let windowBottom = app.buttons["戻る"].frame.minY - 16
+        let windowBottom = app.buttons["record_tutorial_back_button"].frame.minY - 16
         let shift = windowBottom - returnedRecordButton.frame.minY + 40
         let origin = app.coordinate(withNormalizedOffset: .zero)
         origin.withOffset(CGVector(dx: 8, dy: 200)).press(
@@ -808,7 +820,7 @@ final class VerificationScreenshotUITests: XCTestCase {
             thenHoldForDuration: 0.3
         )
         sleep(1)
-        let card = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "自分の部屋の掃除"))
+        let card = app.buttons.matching(taskCardPredicate("自分の部屋の掃除"))
             .allElementsBoundByIndex.first(where: { $0.isHittable && $0.frame.minY < windowBottom - 60 })
         let visibleRecordButton = hittableRecordButton(in: app, timeout: 0)
         XCTAssertFalse(
