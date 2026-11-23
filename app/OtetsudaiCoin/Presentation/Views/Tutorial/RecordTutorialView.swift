@@ -509,6 +509,14 @@ struct TutorialTaskCardView: View {
         isAccessibilitySize ? nil : 2
     }
 
+    // 既定サイズの高さ 120 は、アイコン 50・間隔 12×2・チェック欄 20 と上下の余白 16×2 だけで埋まり、
+    // 名前に回る高さが残らない。そのため名前は lineLimit(2) でも 1 行に縮められ、英語の長い名前が
+    // 「Look after younger si...」と切れた (#317)。1 行に収まらない名前のカードだけ 1 行分高くし、
+    // 名前を 2 行で出す。1 行に収まるカード (ja の全カード) は今までどおり 120 のまま。
+    static func wrappedNameCardHeight(nameLineHeight: CGFloat) -> CGFloat {
+        120 + nameLineHeight
+    }
+
     // 1 列にするとカードの幅が名前の長さでばらばらになるため、AX サイズでは列いっぱいにそろえる。
     static func cardMaxWidth(isAccessibilitySize: Bool) -> CGFloat? {
         isAccessibilitySize ? .infinity : nil
@@ -560,51 +568,20 @@ struct TutorialTaskCardView: View {
         return "recordAction-\(selectedTaskID.uuidString)"
     }
 
+    // 名前 1 行分の高さ (caption の行の高さ)。文字サイズの設定に合わせて伸びる (#317)
+    @ScaledMetric(relativeTo: .caption) private var nameLineHeight: CGFloat = 16
+
     var body: some View {
         Button(action: onTap) {
-            VStack(spacing: 12) {
-                // ZStack + 非拘束 Text / VoiceOver hidden / 円塗りトークンは TaskIconView に集約 (#200)
-                TaskIconView(task: task, isSelected: isSelected)
-
-                Text(task.displayName)
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .multilineTextAlignment(.center)
-                    .foregroundColor(.primary)
-                    .lineLimit(Self.nameLineLimit(isAccessibilitySize: dynamicTypeSize.isAccessibilitySize))
-
-                if isSelected {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.title3)
-                        .foregroundColor(AccessibilityColors.brandPrimary)
-                        .accessibilityHidden(true)
-                } else if Self.reservesCheckmarkSpace(isAccessibilitySize: dynamicTypeSize.isAccessibilitySize) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.title3)
-                        .hidden()
-                        .accessibilityHidden(true)
-                } else {
-                    Spacer()
-                        .frame(height: 20)
+            if dynamicTypeSize.isAccessibilitySize {
+                card(wrapsName: false)
+            } else {
+                // 名前が 1 行に収まる幅なら今までどおりのカード、収まらなければ 1 行分高いカードにする (#317)
+                ViewThatFits(in: .horizontal) {
+                    card(wrapsName: false)
+                    card(wrapsName: true)
                 }
             }
-            .padding()
-            .frame(
-                maxWidth: Self.cardMaxWidth(isAccessibilitySize: dynamicTypeSize.isAccessibilitySize)
-            )
-            .frame(height: Self.cardHeight(isAccessibilitySize: dynamicTypeSize.isAccessibilitySize))
-            .background(
-                RoundedRectangle(cornerRadius: AppRadius.large)
-                    // #151: このカードはグラデ背景 + .ultraThinMaterial パネル (:345) の上に
-                    // 乗っているため、不透明な systemBackgroundSecondary へ置き換えると
-                    // 透過表現を潰してしまう。Tutorial 画面のダークモード方針
-                    // (issue #151 本文「グラデ背景上の白文字は未検証」) が決まるまで据え置く。
-                    .fill(isSelected ? AccessibilityColors.brandPrimary.opacity(0.1) : Color.gray.opacity(0.05))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: AppRadius.large)
-                            .stroke(isSelected ? AccessibilityColors.brandPrimary : Color.clear, lineWidth: 2)
-                    )
-            )
         }
         .buttonStyle(PlainButtonStyle())
         // 撮影テストが en でも同じカードを探せるよう、表示名ではなく保存名で付ける (#308)
@@ -612,6 +589,56 @@ struct TutorialTaskCardView: View {
         .accessibilityAddTraits(isSelected ? .isSelected : [])
         .scaleEffect(isSelected ? 1.05 : 1.0)
         .animation(.easeInOut(duration: 0.2), value: isSelected)
+    }
+
+    private func card(wrapsName: Bool) -> some View {
+        VStack(spacing: 12) {
+            // ZStack + 非拘束 Text / VoiceOver hidden / 円塗りトークンは TaskIconView に集約 (#200)
+            TaskIconView(task: task, isSelected: isSelected)
+
+            Text(task.displayName)
+                .font(.caption)
+                .fontWeight(.medium)
+                .multilineTextAlignment(.center)
+                .foregroundColor(.primary)
+                .lineLimit(Self.nameLineLimit(isAccessibilitySize: dynamicTypeSize.isAccessibilitySize))
+                // 高さ 120 の中では名前に回る高さが無く 1 行に縮められるため、2 行のカードでは名前の高さを固定する (#317)
+                .fixedSize(horizontal: false, vertical: wrapsName)
+
+            if isSelected {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.title3)
+                    .foregroundColor(AccessibilityColors.brandPrimary)
+                    .accessibilityHidden(true)
+            } else if Self.reservesCheckmarkSpace(isAccessibilitySize: dynamicTypeSize.isAccessibilitySize) {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.title3)
+                    .hidden()
+                    .accessibilityHidden(true)
+            } else {
+                Spacer()
+                    .frame(height: 20)
+            }
+        }
+        .padding()
+        .frame(
+            maxWidth: Self.cardMaxWidth(isAccessibilitySize: dynamicTypeSize.isAccessibilitySize)
+        )
+        .frame(height: wrapsName
+            ? Self.wrappedNameCardHeight(nameLineHeight: nameLineHeight)
+            : Self.cardHeight(isAccessibilitySize: dynamicTypeSize.isAccessibilitySize))
+        .background(
+            RoundedRectangle(cornerRadius: AppRadius.large)
+                // #151: このカードはグラデ背景 + .ultraThinMaterial パネル (:345) の上に
+                // 乗っているため、不透明な systemBackgroundSecondary へ置き換えると
+                // 透過表現を潰してしまう。Tutorial 画面のダークモード方針
+                // (issue #151 本文「グラデ背景上の白文字は未検証」) が決まるまで据え置く。
+                .fill(isSelected ? AccessibilityColors.brandPrimary.opacity(0.1) : Color.gray.opacity(0.05))
+                .overlay(
+                    RoundedRectangle(cornerRadius: AppRadius.large)
+                        .stroke(isSelected ? AccessibilityColors.brandPrimary : Color.clear, lineWidth: 2)
+                )
+        )
     }
 }
 
