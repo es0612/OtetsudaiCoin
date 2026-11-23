@@ -52,7 +52,7 @@ final class HelpRecordEditViewModelTests: XCTestCase {
         viewModel.loadData()
         
         // 非同期処理の完了を待機
-        try? await Task.sleep(nanoseconds: 100_000_000) // 0.1秒待機
+        await waitUntil { !self.viewModel.isLoading }
         
         // Then
         XCTAssertFalse(viewModel.isLoading)
@@ -70,7 +70,7 @@ final class HelpRecordEditViewModelTests: XCTestCase {
         viewModel.loadData()
         
         // 非同期処理の完了を待機
-        try? await Task.sleep(nanoseconds: 100_000_000) // 0.1秒待機
+        await waitUntil { !self.viewModel.isLoading }
         
         // Then
         XCTAssertFalse(viewModel.isLoading)
@@ -92,8 +92,8 @@ final class HelpRecordEditViewModelTests: XCTestCase {
         // When
         viewModel.saveChanges()
         
-        // 非同期処理の完了を待機（長めに設定）
-        try? await Task.sleep(nanoseconds: 300_000_000) // 0.3秒待機
+        // 非同期処理の完了を待機
+        await waitUntil { !self.viewModel.isLoading }
         
         // Then
         XCTAssertFalse(viewModel.isLoading)
@@ -119,7 +119,7 @@ final class HelpRecordEditViewModelTests: XCTestCase {
         viewModel.deleteRecord()
         
         // 非同期処理の完了を待機
-        try? await Task.sleep(nanoseconds: 100_000_000) // 0.1秒待機
+        await waitUntil { !self.viewModel.isLoading }
         
         // Then
         XCTAssertFalse(viewModel.isLoading)
