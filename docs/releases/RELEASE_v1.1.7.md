@@ -7,7 +7,7 @@
 - ASC で公開中: **1.1.6** (2026-10-26 公開)。2026-11-23 に `scripts/release-status.sh` (iTunes Lookup API、JP / US) で実測。前回公開から 28 日
 - 基準タグ: `v1.1.6` (最新タグと一致。GitHub Release もあり)
 - Marketing Version: **1.1.7** (承認済み 1.1.6 の train を閉じるため #287 で bump 済み。pbxproj 6 箇所)
-- Build Number: pbxproj は **141** (Xcode Cloud の採番の下限)。提出するのは **build {未定}** (Xcode Cloud、#317 と #310(a) の PR を merge した後の main の commit から。TestFlight の最新ビルドは ASC にログインしてから確かめる)
+- Build Number: pbxproj は **141** (Xcode Cloud の採番の下限)。提出するのは **build {未定}** (Xcode Cloud、`9ccacb4` (#328 の merge) 以降の commit から。2026-11-23 20:00 頃の TestFlight の 1.1.7 の最新は build 151 で、#327 / #328 より前のビルド)
 - ASC Age Rating で「広告」=「はい」(#86、AdMob 統合済みのため必須)
 - 今回のテーマ: **支払いのおまけ (#279) と、英語表示の翻訳の仕上げ**。**Core Data のモデルが v4 → v5 に変わる** (#279 でおまけの欄を追加。軽量マイグレーション。v4 のストアがそのまま開けることは PR #297 のテストで確認済み)
 
@@ -30,10 +30,12 @@
 | #316 | #308 | チュートリアルと子どもフォームの文言を英語表示で翻訳 |
 | #295 | #280 | 記録画面のお手伝いカードで、記録済みの件数をコインと同じ行に置き、隣のカードとコインの高さをそろえる |
 | #294 | #151 | 起動画面の背景を Splash にそろえ、Splash のアニメーションを「視差効果を減らす」に従わせる |
-| {PR} | #317 | (作業中) 英語表示の記録チュートリアルで、お手伝いカードの名前が 1 行で切れるのを直す |
-| {PR} | #310 | (作業中) 子どもの削除の確認文が名前だけになるのを直し、お手伝い・子どもの削除で「これまでの記録 N 件も消える」ことを伝える |
+| #327 | #317 | 英語表示の記録チュートリアルで、お手伝いカードの名前が 1 行で切れるのを直す (2 行で全文。同じ行のカードと高さが揃わない件は #329) |
+| #328 | #310 | 子どもの削除の確認文が名前だけになるのを直し、お手伝い・子どもの削除で「これまでの記録 N 件も消える」ことを伝える ((a) のみ。(b)(c) は #310 に残す) |
 
 内部の変更 (利用者には見えない): #321 (#319 使われていない支払い処理の削除)、#322 (#313 テストの待ち方)、#325 (#306 CI のチェック)。
+
+利用者に見える最後の変更は #328 (merge commit `9ccacb4`)。提出するビルドは、この commit 以降のものにする。
 
 ## 1. App Store Connect での作業 (`asc-submission-prep`)
 
@@ -149,26 +151,26 @@ Thank you for using Otetsudai Coin!
 
 ### コード / プロジェクト
 
-- [ ] `MARKETING_VERSION` = `1.1.7` (公開中・基準タグより高い。pbxproj 6 箇所すべて) ← ITMS-90186 / 90062 対策
+- [x] `MARKETING_VERSION` = `1.1.7` (公開中・基準タグより高い。pbxproj 6 箇所すべて) ← ITMS-90186 / 90062 対策
   - 担当: Claude
   - 取り方: `/bin/bash scripts/release-status.sh` と `grep -c 'MARKETING_VERSION = 1.1.7;' app/OtetsudaiCoin.xcodeproj/project.pbxproj`
-  - 証拠:
+  - 証拠: 2026-11-23、main `9ccacb4`。grep で 6 件。`release-status.sh` で公開中 1.1.6 (JP / US)・最新タグ v1.1.6 (一致)。1.1.7 > 1.1.6
 - [ ] `CURRENT_PROJECT_VERSION` が TestFlight の最新ビルド以上 ← ITMS-90478 対策
   - 担当: Claude
   - 取り方: pbxproj の値と、TestFlight (ASC) の最新ビルド番号を並べる。Xcode Cloud が採番するので pbxproj は下限
   - 証拠:
-- [ ] `release-version-bump-check.yml` が green
+- [x] `release-version-bump-check.yml` が green
   - 担当: Claude
   - 取り方: bump PR の `gh pr checks 287` で `Verify version bump` が pass。短時間の pass は skip のことがあるので、`gh run view {run id} --log | grep -E 'HEAD :|BASE :|check passed'` で比較の行まで写す
-  - 証拠:
-- [ ] ビルド元の commit でユニットテストが green
+  - 証拠: run 42341024323 (PR #287) で `HEAD : MARKETING_VERSION=1.1.7 CURRENT_PROJECT_VERSION=141` / `BASE : MARKETING_VERSION=1.1.5 CURRENT_PROJECT_VERSION=124` / `Version bump check passed`。BASE が 1.1.5 なのは、PR #287 が v1.1.6 のタグより前だったため。公開中 1.1.6 より高いことは上の項目で確認
+- [x] ビルド元の commit でユニットテストが green
   - 担当: Claude (この workflow はユニットテストを流さないので、ローカルで流す)
   - 取り方: 提出する build のビルド元 commit で `xcodebuild test ... > "$LOG" 2>&1; grep -E -A6 '\*\* TEST|Failing tests:' "$LOG"` (skill `running-xcodebuild-tests-and-date-fixtures` の形)
-  - 証拠:
-- [ ] ja / en 両方のロケールで起動する
+  - 証拠: 2026-11-23 20:2x、main `9ccacb4` (#328 の merge)、iPhone 17 Pro (Simulator)、直列・`-testLanguage ja`。`** TEST SUCCEEDED **`、xcresult summary で 655/655 passed。**提出するビルドのビルド元が `9ccacb4` 以外になったら取り直す** (`app/` が同じなら、この結果をそのまま使える)
+- [x] ja / en 両方のロケールで起動する
   - 担当: Claude (Simulator。`ios-simulator-locale-testing` skill で `-AppleLanguages` を起動ごとに切り替える)
   - 取り方: ビルド元 commit を ja / en で起動し、各ロケールで最初に見えた画面のスクショを Read で目視する。証拠には日付・端末・commit と、各ロケールで見えた文言を書く (例「ja: ホームに『おてつだいコイン』／en: ホームに『Otetsudai Coin』」)
-  - 証拠:
+  - 証拠: 2026-11-23 20:31、iPhone 17 Pro (Simulator)、main `9ccacb4` の Debug ビルドを `-AppleLanguages '(ja)' -AppleLocale ja_JP` / `'(en)' en_US` で起動。最初に見えたのはチュートリアルの 1 ページ目で、ja は「次へ」「チュートリアルをスキップ」「統計で進捗をチェック」、en は「Next」「Skip Tutorial」「Track progress with stats」。両方とも、同じ Simulator に入っている別のアプリ (ShiritoriApp) の音声認識の許可ダイアログが手前に重なっていた (OtetsudaiCoin のものではないので触っていない)。**提出するビルドのビルド元が `9ccacb4` 以外になったら取り直す**
 
 ### App Store Connect
 
