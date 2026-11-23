@@ -106,11 +106,7 @@ final class HelpHistoryViewModelTests: XCTestCase {
         viewModel.loadHelpHistory()
         
         // @Observableでの非同期処理完了を待機
-        let expectation = XCTestExpectation(description: "Load help history success")
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            expectation.fulfill()
-        }
-        await fulfillment(of: [expectation], timeout: 1.0)
+        await waitUntil { !self.viewModel.isLoading }
         
         // Then
         XCTAssertFalse(viewModel.isLoading)
@@ -133,11 +129,7 @@ final class HelpHistoryViewModelTests: XCTestCase {
         viewModel.loadHelpHistory()
         
         // @Observableでの非同期処理完了を待機
-        let expectation = XCTestExpectation(description: "Load help history error")
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            expectation.fulfill()
-        }
-        await fulfillment(of: [expectation], timeout: 1.0)
+        await waitUntil { !self.viewModel.isLoading }
         
         // Then
         XCTAssertFalse(viewModel.isLoading)
@@ -163,11 +155,7 @@ final class HelpHistoryViewModelTests: XCTestCase {
         viewModel.deleteRecord(record.id)
         
         // 非同期処理の完了を待機
-        let expectation = XCTestExpectation(description: "Delete record")
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            expectation.fulfill()
-        }
-        await fulfillment(of: [expectation], timeout: 1.0)
+        await waitUntil { self.mockHelpRecordRepository.records.isEmpty }
         
         // Then
         XCTAssertTrue(mockHelpRecordRepository.records.isEmpty)
