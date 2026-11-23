@@ -315,7 +315,6 @@
       }
     },
     "お名前未入力" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {

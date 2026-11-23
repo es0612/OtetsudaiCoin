@@ -272,7 +272,7 @@ final class LocalizationStringCatalogTests: XCTestCase {
     }
 
     /// チュートリアルの 4 部品に渡すキー (#308)。部品が `LocalizedStringKey` で受けるので、catalog に en 訳つきで必要。
-    func testTutorialKeysHaveEnglishTranslation() {
+    func testTutorialAndChildFormKeysHaveEnglishTranslation() {
         let expected: [String: String?] = [
             "お子様を登録": nil,
             "名前や好きな色を設定": nil,
@@ -297,6 +297,7 @@ final class LocalizationStringCatalogTests: XCTestCase {
             "お手伝いを記録してコイン獲得": nil,
             "設定画面": nil,
             "お子様の追加・編集": nil,
+            "お名前未入力": nil,
         ]
 
         for (key, expectedEnglish) in expected {
