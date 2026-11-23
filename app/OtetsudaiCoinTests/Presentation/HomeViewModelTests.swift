@@ -383,6 +383,71 @@ final class HomeViewModelTests: XCTestCase {
             unpaidDetector: unpaidDetector
         )
     }
+
+    // MARK: - #311 今月のコインは稼ぎ・連続は全記録から
+
+    /// 先月の記録の日時（今月 1 日の前日の正午。常に先月に入る）
+    private func previousMonthNoon() -> Date {
+        let calendar = Calendar.current
+        let startOfMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: Date()))!
+        let lastDay = calendar.date(byAdding: .day, value: -1, to: startOfMonth)!
+        return calendar.date(bySettingHour: 12, minute: 0, second: 0, of: lastDay)!
+    }
+
+    @MainActor
+    func testMonthlyAllowance_ignoresPayments() async {
+        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+        let calendar = Calendar.current
+        let now = Date()
+        let month = calendar.component(.month, from: now)
+        let year = calendar.component(.year, from: now)
+        mockAllowanceCalculator.monthlyAllowance = 300
+        mockAllowancePaymentRepository.payments = [
+            AllowancePayment(id: UUID(), childId: child.id, amount: 200, month: month, year: year, paidAt: now),
+            AllowancePayment(id: UUID(), childId: child.id, amount: 50, month: month, year: year, paidAt: now)
+        ]
+
+        viewModel.selectChild(child)
+        await viewModel.refreshDataTask?.value
+
+        XCTAssertEqual(viewModel.monthlyAllowance, 300)
+        XCTAssertEqual(viewModel.currentMonthEarnings, 300)
+
+        mockAllowanceCalculator.monthlyAllowance = 350
+        viewModel.refreshData()
+        await viewModel.refreshDataTask?.value
+
+        XCTAssertEqual(viewModel.monthlyAllowance, 350)
+    }
+
+    @MainActor
+    func testConsecutiveDays_receivesPreviousMonthRecords() async {
+        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+        let taskId = UUID()
+        let thisMonth = HelpRecord(id: UUID(), childId: child.id, helpTaskId: taskId, recordedAt: Date())
+        let lastMonth = HelpRecord(id: UUID(), childId: child.id, helpTaskId: taskId, recordedAt: previousMonthNoon())
+        mockHelpRecordRepository.records = [thisMonth, lastMonth]
+
+        viewModel.selectChild(child)
+        await viewModel.refreshDataTask?.value
+
+        let received = mockAllowanceCalculator.receivedConsecutiveDaysRecords?.map(\.id) ?? []
+        XCTAssertTrue(received.contains(lastMonth.id))
+    }
+
+    @MainActor
+    func testConsecutiveDays_receivesAllRecords_whenThisMonthAndTasksEmpty() async {
+        let child = Child(id: UUID(), name: "太郎", themeColor: "#FF5733")
+        let lastMonth = HelpRecord(id: UUID(), childId: child.id, helpTaskId: UUID(), recordedAt: previousMonthNoon())
+        mockHelpRecordRepository.records = [lastMonth]
+        mockHelpTaskRepository.tasks = []
+
+        viewModel.selectChild(child)
+        await viewModel.refreshDataTask?.value
+
+        let received = mockAllowanceCalculator.receivedConsecutiveDaysRecords?.map(\.id) ?? []
+        XCTAssertTrue(received.contains(lastMonth.id))
+    }
 }
 
 // MARK: - Mock Classes
