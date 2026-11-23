@@ -247,8 +247,8 @@ struct ChildTutorialView: View {
 
 struct FeatureRow: View {
     let icon: String
-    let title: String
-    let description: String
+    let title: LocalizedStringKey
+    let description: LocalizedStringKey
     
     var body: some View {
         HStack(spacing: 16) {
@@ -272,8 +272,8 @@ struct FeatureRow: View {
 
 struct TutorialStep: View {
     let number: String
-    let title: String
-    let description: String
+    let title: LocalizedStringKey
+    let description: LocalizedStringKey
     
     var body: some View {
         HStack(spacing: 16) {
@@ -282,7 +282,7 @@ struct TutorialStep: View {
                     .fill(.blue)
                     .frame(width: 30, height: 30)
                 
-                Text(number)
+                Text(verbatim: number)
                     .font(.headline)
                     .fontWeight(.bold)
                     .foregroundColor(.white)

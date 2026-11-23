@@ -612,8 +612,8 @@ struct TutorialTaskCardView: View {
 
 struct RecordFeatureRow: View {
     let icon: String
-    let title: String
-    let description: String
+    let title: LocalizedStringKey
+    let description: LocalizedStringKey
     
     var body: some View {
         HStack(spacing: 16) {
@@ -637,8 +637,8 @@ struct RecordFeatureRow: View {
 
 struct CompletionFeature: View {
     let icon: String
-    let title: String
-    let description: String
+    let title: LocalizedStringKey
+    let description: LocalizedStringKey
     
     var body: some View {
         HStack(spacing: 16) {

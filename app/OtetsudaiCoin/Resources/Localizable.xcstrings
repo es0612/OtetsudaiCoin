@@ -11,6 +11,17 @@
         }
       }
     },
+    "コインを獲得！" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Earn coins!"
+          }
+        }
+      }
+    },
     "コイン/回" : {
       "localizations" : {
         "en" : {
@@ -385,7 +396,6 @@
       }
     },
     "お子様の成績を確認" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -396,7 +406,6 @@
       }
     },
     "お子様の追加・編集" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -407,7 +416,6 @@
       }
     },
     "お子様を登録" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -589,7 +597,6 @@
       }
     },
     "お手伝いを記録" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -600,7 +607,6 @@
       }
     },
     "お手伝いを記録してコイン獲得" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -631,7 +637,6 @@
       }
     },
     "お手伝いを選んで記録" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -731,8 +736,18 @@
         }
       }
     },
+    "がんばったタスクを選択" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pick the chore they did"
+          }
+        }
+      }
+    },
     "がんばったお手伝いを記録" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -753,7 +768,6 @@
       }
     },
     "がんばった成果をコインに" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1125,7 +1139,6 @@
       }
     },
     "ホーム画面" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1197,7 +1210,6 @@
       }
     },
     "下部の「記録」ボタンをタップ" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1570,7 +1582,6 @@
       }
     },
     "名前や好きな色を設定" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1701,7 +1712,6 @@
       }
     },
     "成長を確認" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2063,7 +2073,6 @@
       }
     },
     "登録したお子様を選ぶ" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2074,7 +2083,6 @@
       }
     },
     "統計で進捗をチェック" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2124,6 +2132,17 @@
         }
       }
     },
+    "記録する子を選びます" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose the child to record"
+          }
+        }
+      }
+    },
     "記録する" : {
       "localizations" : {
         "en" : {
@@ -2155,7 +2174,6 @@
       }
     },
     "記録タブを開く" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2176,7 +2194,6 @@
       }
     },
     "記録ボタンをタップ" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2267,7 +2284,6 @@
       }
     },
     "記録画面" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2288,7 +2304,6 @@
       }
     },
     "設定画面" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
