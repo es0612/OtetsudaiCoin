@@ -128,6 +128,8 @@ class HomeViewModel: BaseViewModel {
                 let records = try await helpRecordRepository.findByChildIdInCurrentMonth(processChild.id)
                 let tasks = try await helpTaskRepository.findAll()
                 let payment = try await getCurrentMonthPayment(for: processChild.id)
+                // 連続記録は月をまたいで数えるため、今月分ではなく全記録を渡す (#311)
+                let allRecords = try await helpRecordRepository.findByChildId(processChild.id)
 
                 // タスクがキャンセルされていないか、選択された子供が変更されていないか確認
                 guard !Task.isCancelled, selectedChild?.id == processChild.id else {
@@ -138,13 +140,13 @@ class HomeViewModel: BaseViewModel {
                 // プロセスが正常に完了したことを確認
                 guard !records.isEmpty || !tasks.isEmpty else {
                     // データが空の場合でも正常な状態として扱う
-                    updateDisplayValues(records: [], tasks: [], payment: payment)
+                    updateDisplayValues(records: [], tasks: [], payment: payment, allRecords: allRecords)
                     setLoading(false)
                     return
                 }
 
                 // 計算処理を分離
-                updateDisplayValues(records: records, tasks: tasks, payment: payment)
+                updateDisplayValues(records: records, tasks: tasks, payment: payment, allRecords: allRecords)
                 setLoading(false)
 
             } catch {
@@ -177,7 +179,8 @@ class HomeViewModel: BaseViewModel {
     private func updateDisplayValues(
         records: [HelpRecord], 
         tasks: [HelpTask], 
-        payment: AllowancePayment?
+        payment: AllowancePayment?,
+        allRecords: [HelpRecord]
     ) {
         // お小遣い計算
         let calculatedAllowance = allowanceCalculator.calculateMonthlyAllowance(records: records, tasks: tasks)
@@ -185,10 +188,11 @@ class HomeViewModel: BaseViewModel {
         
         // 支払い状況による表示切り替え
         isCurrentMonthPaid = payment != nil
-        monthlyAllowance = payment?.amount ?? calculatedAllowance
+        // 「今月のコイン」は今月稼いだ額。支払いの額は表示に使わない (#311)
+        monthlyAllowance = calculatedAllowance
         
         // その他の統計値
-        consecutiveDays = allowanceCalculator.calculateConsecutiveDays(records: records)
+        consecutiveDays = allowanceCalculator.calculateConsecutiveDays(records: allRecords)
         totalRecordsThisMonth = records.count
     }
     
