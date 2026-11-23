@@ -14,6 +14,15 @@ struct ChildFormView: View {
         editingChild != nil
     }
     
+    /// プレビューの名前。空なら翻訳されるプレースホルダ、入力済みなら名前をそのまま出す。
+    /// 三項演算子だと `String` に推論されて翻訳を引かないため、分岐ごとに `Text` を作る (#308)。
+    static func previewNameText(for name: String) -> Text {
+        if name.isEmpty {
+            return Text("お名前未入力")
+        }
+        return Text(verbatim: name)
+    }
+
     var body: some View {
         NavigationStack {
             Form {
@@ -84,7 +93,7 @@ struct ChildFormView: View {
                             .shadow(radius: 3)
                         
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(name.isEmpty ? "お名前未入力" : name)
+                            Self.previewNameText(for: name)
                                 .font(.headline)
                                 .foregroundColor(name.isEmpty ? .secondary : .primary)
                             

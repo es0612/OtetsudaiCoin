@@ -271,6 +271,52 @@ final class LocalizationStringCatalogTests: XCTestCase {
         }
     }
 
+    /// チュートリアルの 4 部品に渡すキーと、子どもフォームの「お名前未入力」(ChildFormView のプレビュー) (#308)。部品が `LocalizedStringKey` で受けるので、catalog に en 訳つきで必要。
+    func testTutorialAndChildFormKeysHaveEnglishTranslation() {
+        let expected: [String: String?] = [
+            "お子様を登録": nil,
+            "名前や好きな色を設定": nil,
+            "お手伝いを記録": nil,
+            "がんばった成果をコインに": nil,
+            "成長を確認": nil,
+            "統計で進捗をチェック": nil,
+            "記録タブを開く": nil,
+            "下部の「記録」ボタンをタップ": nil,
+            "お子様を選択": nil,
+            "登録したお子様を選ぶ": nil,
+            "お手伝いを選んで記録": nil,
+            "がんばったお手伝いを記録": nil,
+            "記録する子を選びます": "Choose the child to record",
+            "お手伝いを選択": nil,
+            "がんばったタスクを選択": "Pick the chore they did",
+            "記録ボタンをタップ": nil,
+            "コインを獲得！": "Earn coins!",
+            "ホーム画面": nil,
+            "お子様の成績を確認": nil,
+            "記録画面": nil,
+            "お手伝いを記録してコイン獲得": nil,
+            "設定画面": nil,
+            "お子様の追加・編集": nil,
+            "お名前未入力": nil,
+        ]
+
+        for (key, expectedEnglish) in expected {
+            guard let entry = strings[key] as? [String: Any] else {
+                XCTFail("#308 のキー '\(key)' が String Catalog に存在すべき")
+                continue
+            }
+            XCTAssertNotEqual(
+                entry["extractionState"] as? String, "stale",
+                "#308 のキー '\(key)' はコードから参照されているので stale であってはならない"
+            )
+            let enValue = (((entry["localizations"] as? [String: Any])?["en"] as? [String: Any])?["stringUnit"] as? [String: Any])?["value"] as? String
+            XCTAssertFalse(enValue?.isEmpty ?? true, "#308 のキー '\(key)' に en 訳があるべき")
+            if let expectedEnglish {
+                XCTAssertEqual(enValue, expectedEnglish, "#308 のキー '\(key)' の en 訳")
+            }
+        }
+    }
+
     // MARK: - 英語翻訳の存在テスト
 
     func testAllKeysHaveEnglishTranslation() {

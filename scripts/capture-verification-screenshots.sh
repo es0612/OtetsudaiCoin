@@ -17,8 +17,9 @@
 #   --locale picks the app language (default: ja). It reaches the UI tests as
 #   VERIFY_LOCALE through TEST_RUNNER_VERIFY_LOCALE (see TEST_RUNNER_<VAR> in
 #   `man xcodebuild`). en captures only the scenes that find their buttons by
-#   identifier (01-08 and 31-34); the tests that look buttons up by Japanese
-#   text are skipped in en (Issue #309).
+#   identifier: 01-08 and 31-34, plus the tutorial scenes (00, 12, 14-19,
+#   23-25), which use tutorial-only accessibility identifiers. The tests that
+#   look buttons up by Japanese text are skipped in en (Issues #309, #308).
 #
 #   --content-size sets the simulator's Dynamic Type size for the run (e.g.
 #   accessibility-extra-extra-extra-large) and restores it on exit. Omit it to

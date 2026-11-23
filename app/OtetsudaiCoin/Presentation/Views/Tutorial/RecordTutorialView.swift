@@ -325,6 +325,7 @@ struct RecordTutorialView: View {
             }
             .successButton()
             .disabled(hasRecorded)
+            .accessibilityIdentifier("tutorial_record_button")
 
             if hasRecorded {
                 HStack {
@@ -456,6 +457,7 @@ struct RecordTutorialView: View {
                         }
                     }
                     .buttonStyle(.bordered)
+                    .accessibilityIdentifier("record_tutorial_back_button")
                 }
                 
                 Spacer()
@@ -474,6 +476,7 @@ struct RecordTutorialView: View {
                     (currentStep == 1 && !hasSelectedChild) ||
                     (currentStep == 2 && !hasRecorded)
                 )
+                .accessibilityIdentifier("record_tutorial_next_button")
             }
             
             Button("チュートリアルをスキップ") {
@@ -604,6 +607,8 @@ struct TutorialTaskCardView: View {
             )
         }
         .buttonStyle(PlainButtonStyle())
+        // 撮影テストが en でも同じカードを探せるよう、表示名ではなく保存名で付ける (#308)
+        .accessibilityIdentifier("tutorial_task_card_\(task.name)")
         .accessibilityAddTraits(isSelected ? .isSelected : [])
         .scaleEffect(isSelected ? 1.05 : 1.0)
         .animation(.easeInOut(duration: 0.2), value: isSelected)
@@ -612,8 +617,8 @@ struct TutorialTaskCardView: View {
 
 struct RecordFeatureRow: View {
     let icon: String
-    let title: String
-    let description: String
+    let title: LocalizedStringKey
+    let description: LocalizedStringKey
     
     var body: some View {
         HStack(spacing: 16) {
@@ -637,8 +642,8 @@ struct RecordFeatureRow: View {
 
 struct CompletionFeature: View {
     let icon: String
-    let title: String
-    let description: String
+    let title: LocalizedStringKey
+    let description: LocalizedStringKey
     
     var body: some View {
         HStack(spacing: 16) {
