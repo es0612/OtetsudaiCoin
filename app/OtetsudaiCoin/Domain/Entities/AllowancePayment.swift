@@ -58,21 +58,4 @@ struct AllowancePayment: Equatable, Codable {
     var monthYearString: String {
         return "\(year)年\(month)月"
     }
-    
-    static func fromCurrentMonth(childId: UUID, amount: Int, note: String? = nil) -> AllowancePayment {
-        let now = Date()
-        let calendar = Calendar.current
-        let month = calendar.component(.month, from: now)
-        let year = calendar.component(.year, from: now)
-        
-        return AllowancePayment(
-            id: UUID(),
-            childId: childId,
-            amount: amount,
-            month: month,
-            year: year,
-            paidAt: now,
-            note: note
-        )
-    }
 }
