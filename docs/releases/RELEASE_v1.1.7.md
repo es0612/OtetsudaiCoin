@@ -7,9 +7,9 @@
 - ASC で公開中: **1.1.6** (2026-10-26 公開)。2026-11-23 に `scripts/release-status.sh` (iTunes Lookup API、JP / US) で実測。前回公開から 28 日
 - 基準タグ: `v1.1.6` (最新タグと一致。GitHub Release もあり)
 - Marketing Version: **1.1.7** (承認済み 1.1.6 の train を閉じるため #287 で bump 済み。pbxproj 6 箇所)
-- Build Number: pbxproj は **141** (Xcode Cloud の採番の下限)。提出するのは **build 153** (Xcode Cloud、#328 の merge commit `9ccacb4` から 2026-11-23 20:29 に開始。#327 も含む)。TestFlight の 1.1.7 には 141〜152 も「提出準備完了」で並んでいるが、いずれも #327 / #328 より前の commit のビルドなので使わない (152 = #325、151 = #322。Xcode Cloud のビルド一覧の「最終コミット」で確認)
+- Build Number: pbxproj は **141** (Xcode Cloud の採番の下限)。提出するのは **build 153** (Xcode Cloud、#328 の merge commit `9ccacb4` から 2026-11-23 20:29 に開始。#327 も含む)。TestFlight の 1.1.7 には 142〜152 も「提出準備完了」で並んでいる (一覧の 1 ページ目で確認) が、いずれも #327 / #328 より前の commit のビルドなので使わない (152 = #325、151 = #322。Xcode Cloud のビルド一覧の「最終コミット」で確認)。build 153 は **Xcode 27.2 (27B52)** で Archive された (手元は Xcode 26.6)。Xcode Cloud の workflow は Archive と TestFlight 内部テストだけで、テストのアクションは無い
 - ASC Age Rating で「広告」=「はい」(#86、AdMob 統合済みのため必須)
-- 今回のテーマ: **支払いのおまけ (#279) と、英語表示の翻訳の仕上げ**。**Core Data のモデルが v4 → v5 に変わる** (#279 でおまけの欄を追加。軽量マイグレーション。v4 のストアがそのまま開けることは PR #297 のテストで確認済み)
+- 今回のテーマ: **支払いのおまけ (#279) と、英語表示の翻訳の仕上げ**。**Core Data のモデルが v4 → v5 に変わる** (#279 でおまけの欄を追加。軽量マイグレーション。v4 のストアが今のモデルで開けることは `CoreDataModelMigrationTests.testV4StoreOpensUnderCurrentModelWithNoBonus` で確かめている。このテストは `9ccacb4` の unit 655/655 に含まれる)
 
 > 着手前に公開中の version を実測する (CLAUDE.md「公開中の version を実測」ルール):
 >
@@ -60,7 +60,7 @@
 
 ### 1.1 スクリーンショット
 
-変更しない (予定)。ASC の画像は「デザイン画像」で、ホーム・記録・設定の初期表示。今回の変更 (おまけ・英語の翻訳・削除の確認文) はどれも初期表示には出ない。en の画像を en 専用にするのは #231 で別に扱う
+変更しない。ASC の画像は「デザイン画像」で、ホーム・記録・設定の初期表示。1.1.7 の作成後、必須の枠 (Dynamic Island 搭載・中型) は「スクリーンショット数 0／10」で、別の枠のデザイン画像 4 枚を流用して表示している (ja / en とも、2026-11-23 に確認)。今回の変更 (おまけ・英語の翻訳・削除の確認文) はどれも初期表示には出ない。en の画像を en 専用にするのは #231 で別に扱う
 
 ### 1.2 変更しない項目
 
@@ -85,7 +85,14 @@ ASC の表示は日本語。読んだ場所: 配信タブ (`…/version/delivera
 | アプリのプライバシー | - | 公開済み (6 か月前)、エラー表示なし | - | unchanged | - |
 
 - 年齢制限のページには「位置情報の共有と出会い系の回答を更新。新しいアプリを提出する場合や、そのセクションの他の回答を更新する場合を除き、2027年1月15日まで回答は必須ではありません」の帯がある。未回答のまま「審査用に追加」で止まるかは未確認 (他アプリでは「13 歳未満…」の未回答で止まった例がある。`asc-submission-prep` の LeafTimer 1.6.2)
+- リリースの設定 (読んだだけで変えていない): 「App Review 完了後に自動でリリース」(`AFTER_APPROVAL`)、段階的リリースは使わない (`UNAVAILABLE`)
 - 中国本土の「セキュリティアセスメント」「AIGC 申告」の帯もある (既存アプリは 2027-01-31 まで)。今回の提出には関係しない
+
+### 1.4 提出前に確かめたこと (2026-11-23)
+
+- **#327 を幅の狭い端末で**: iPhone SE (第 3 世代、iOS 26.5、幅 375pt) で `9ccacb4` を撮影 (`--locale both`)。verify-18 で ja「下の子の面倒を見る」は 1 行、en「Look after / younger sibling」は 2 行で全文が読める。en で隣のカードと高さが揃わないのは Pro Max と同じ (#329)
+- **最新 OS での起動**: `9ccacb4` を手元の Xcode 26.6 で作った Debug ビルドで、iPhone 17 Pro / iPad Pro 13-inch (M5) の **iOS 26.5** で起動できた (iPhone はホーム、iPad はチュートリアル 1 ページ目が表示)。build 153 は **Xcode 27.2 (iOS 27 SDK)** で作られており、**iOS 27 での起動は未確認** (手元に iOS 27 のランタイムが無い)。アプリは SwiftUI の `@main App` + `UIApplicationSceneManifest_Generation = YES` で UIScene のライフサイクルを使っているため、LeafTimer 1.6.2 の却下 (UIScene 未対応で起動直後にクラッシュ) と同じ形は起きにくいと考える (推測)。**オーナーの判断 (2026-11-23、閉じた質問): iOS 27 での起動は未確認のまま出す**
+- **App Privacy・輸出コンプライアンスに関わる差分** (`git diff v1.1.6 9ccacb4`): Info.plist は `UILaunchScreen` (起動画面の背景色、#151) の追加だけ。SDK・パッケージ・プライバシーマニフェスト・entitlements の変更 0 件。`ITSAppUsesNonExemptEncryption = NO` は変わらない
 
 ## 2. 文言ドラフト
 
@@ -122,7 +129,7 @@ v1.1.7 の主な変更点 (公開中の v1.1.6 からの差分):
 - 英語表示の翻訳漏れの修正 (履歴・月のまとめ・チュートリアル・子どもの登録)
 - 子ども・お手伝いを削除するときの確認文の修正
 
-To try the new bonus feature: add a child, record a chore on the Record tab, open the child's monthly summary from the Home screen, and choose "Pay with a bonus".
+To try the new bonus feature: add a child, record a chore on the Record tab, then select the child on the Home screen, tap "Monthly Summary", and choose "Pay with a bonus".
 
 This app does not require sign-in. No children are pre-registered (default chores are); please add a child from the Home screen or the Settings tab to try recording chores.
 If you would like to verify the English localization, please run the app with the system language set to English.
@@ -139,7 +146,7 @@ New
 - When paying allowance from the monthly summary, you can add a bonus amount and a praise stamp. The stamp and bonus are shown in a big way at the moment of payment, and you can look back at them in the monthly summary.
 
 Improvements
-- "Coins this month" on the Home screen now shows the coins earned this month.
+- "This Month's Coins" on the Home screen now shows the coins earned this month.
 - The streak now keeps counting across months and years.
 - Translated the remaining Japanese text in English mode, including history, the monthly summary, the tutorial, and the child registration screen.
 - In the English tutorial, chore names are no longer cut off.
@@ -185,15 +192,15 @@ Thank you for using Otetsudai Coin!
 - [x] バージョン `1.1.7` を作成、ビルドを紐付け (build 153)
   - 証拠: 2026-11-23 20:5x、「新規バージョン」で 1.1.7 を作成し、サイドバーに「1.1.7 提出準備中」を確認。ビルド選択のダイアログで「153 1.1.7」の行だけを選んで保存し、再読み込みしたビルド欄に「153 / 1.1.7」を確認。輸出コンプライアンスなどの質問ダイアログは出なかった
 - [x] 審査ノート (§ 2.2) を入力し、再読み込みして全文一致を確認
-  - 証拠: 再読み込み後の `[name=notes]` が 651 字で、SHA-256 (先頭 16 桁 `37728d1ab64484d4`) が § 2.2 と一致。en の画面の文言「Pay with a bonus」は catalog の訳と一致
+  - 証拠: 再読み込み後の `[name=notes]` が 661 字で、SHA-256 (先頭 16 桁 `68c3d11e376eca0a`) が § 2.2 と一致。道順の「Monthly Summary」「Pay with a bonus」は catalog の en の訳と一致 (最初に書いた 651 字の版は道順にボタン名が無く、確かめた後に書き直した)
 - [x] プロモーションテキストが空なら前の版の値を入れ直し、再読み込みして全文一致を確認
   - 証拠: 1.1.7 の作成後も ja 56 字 / en 132 字で 1.1.6 の値が引き継がれていた (空ではなかったので書き込んでいない)
 - [x] What's New (ja § 2.1 / en § 2.3) を入力し、再読み込みして全文一致を確認 (「無効な文字」エラーなし)
-  - 証拠: 保存時にエラー表示なし。再読み込み後、ja 478 字 (SHA-256 `069a08fe2027490c`)・en 982 字 (`144ce3764daf4083`) が § 2.1 / § 2.3 と一致。ロケール名 (「日本語」「英語（アメリカ）」) を確かめてから入力・読み取りした
+  - 証拠: 保存時にエラー表示なし。再読み込み後、ja 478 字 (SHA-256 `069a08fe2027490c`)・en 984 字 (`b73dea0d3767312c`) が § 2.1 / § 2.3 と一致。en は最初 "Coins this month" と書いたが、画面の文言 "This Month's Coins" (catalog「今月のコイン」の en) に合わせて書き直した。ロケール名 (「日本語」「英語（アメリカ）」) を確かめてから入力・読み取りした
 - [x] 年齢制限: 「広告」=「はい」(人)
   - 証拠: ウィザードで `advertising: true` を確認。未回答だった 4 問 (ソーシャルメディア・13 歳未満のユーザに対するソーシャルメディアの利用不可・位置情報を共有・出会い系と恋愛系) は、オーナーの判断 (閉じた質問で「いいえ」) どおり Claude が「いいえ」を入力して保存。再読み込みしたウィザードで 4 問とも `false`、7 ステップで未回答 0 件。「位置情報を共有」は dry-run では見えず、書き込みの直前に現れた
-- [ ] App Privacy・輸出コンプライアンスを確認 (人)
-  - 証拠 (Claude が読んだもの): アプリのプライバシーは「6か月前に公開済み」でエラー表示なし。build 153 の紐付けで輸出コンプライアンスの質問は出なかった。内容が今も正しいか (データの収集・暗号化の申告) は人の確認待ち
+- [x] App Privacy・輸出コンプライアンスを確認 (人)
+  - 証拠: 2026-11-23、オーナーが § 1.4 の差分 (関係する変更 0 件) を見て、閉じた質問で「1.1.6 の申告のままでよい」を選んだ。Claude が読んだもの: アプリのプライバシーは「6か月前に公開済み」でエラー表示なし。build 153 の紐付けで輸出コンプライアンスの質問は出なかった。内容が今も正しいか (データの収集・暗号化の申告) は人の確認待ち
 
 ### 提出
 
@@ -204,7 +211,7 @@ Thank you for using Otetsudai Coin!
 次の 2 つは **bump PR の merge → タグの push** の順で行う (v1.1.5 手順書 § 4 / PR #273)。
 
 - [ ] **承認されたら**、次の version への bump PR を他の PR より先に merge する (Xcode Cloud の train closed 対策、#235)
-- [ ] bump PR の merge 後すぐ `git tag -a v1.1.7 -m "v1.1.7" {ビルド元 commit} && git push origin v1.1.7` (承認前にタグを打たない)
+- [ ] bump PR の merge 後すぐ `git tag -a v1.1.7 -m "v1.1.7" 9ccacb4 && git push origin v1.1.7` (承認前にタグを打たない)
 - [ ] 公開後に `scripts/release-status.sh` で 1.1.7 を実測する
 - [ ] GitHub Release を作成 (§ 2.1 / § 2.3)
 - [ ] `release-retrospective` skill で振り返り
