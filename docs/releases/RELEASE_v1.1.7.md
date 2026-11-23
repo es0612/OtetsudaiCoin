@@ -7,7 +7,7 @@
 - ASC で公開中: **1.1.6** (2026-10-26 公開)。2026-11-23 に `scripts/release-status.sh` (iTunes Lookup API、JP / US) で実測。前回公開から 28 日
 - 基準タグ: `v1.1.6` (最新タグと一致。GitHub Release もあり)
 - Marketing Version: **1.1.7** (承認済み 1.1.6 の train を閉じるため #287 で bump 済み。pbxproj 6 箇所)
-- Build Number: pbxproj は **141** (Xcode Cloud の採番の下限)。提出するのは **build {未定}** (Xcode Cloud、`9ccacb4` (#328 の merge) 以降の commit から。2026-11-23 20:00 頃の TestFlight の 1.1.7 の最新は build 151 で、#327 / #328 より前のビルド)
+- Build Number: pbxproj は **141** (Xcode Cloud の採番の下限)。提出するのは **build 153** (Xcode Cloud、#328 の merge commit `9ccacb4` から 2026-11-23 20:29 に開始。#327 も含む)。TestFlight の 1.1.7 には 141〜152 も「提出準備完了」で並んでいるが、いずれも #327 / #328 より前の commit のビルドなので使わない (152 = #325、151 = #322。Xcode Cloud のビルド一覧の「最終コミット」で確認)
 - ASC Age Rating で「広告」=「はい」(#86、AdMob 統合済みのため必須)
 - 今回のテーマ: **支払いのおまけ (#279) と、英語表示の翻訳の仕上げ**。**Core Data のモデルが v4 → v5 に変わる** (#279 でおまけの欄を追加。軽量マイグレーション。v4 のストアがそのまま開けることは PR #297 のテストで確認済み)
 
@@ -45,7 +45,7 @@
 | 差分表の一括 OK | 人 | 表に無い書き込みはしない |
 | バージョン `1.1.7` の作成 | Claude (OK 後) | 作成したバージョンは消せない |
 | What's New (ja / en) の入力 | Claude (OK 後) | § 2 の文面 |
-| ビルドの紐付け | Claude (OK 後) | バージョン 1.1.7・build {未定} |
+| ビルドの紐付け | Claude (OK 後) | バージョン 1.1.7・build 153 |
 | App Privacy・輸出コンプライアンス・年齢制限の確認 | **人** | 申告なので Claude は回答しない |
 | **§ 3 の空欄が 0 件であることを確かめる** | Claude | 下のコマンドが `ok: ... (§ 3 の空欄 0 件 ...)` と出す。`warn:` で空欄が出たら「審査へ提出」に進まず、その項目を人に見せる (#290) |
 | 「審査用に追加」→「審査へ提出」 | **人** (チャットでの依頼があれば Claude) | |
@@ -68,18 +68,24 @@
 
 > 新バージョンを作るとプロモーションテキストが ja / en とも空になることがある (v1.1.5・v1.1.6 で発生)。dry-run で空なら前の版の値を入れ直す。
 
-### 1.3 dry-run の結果 (未実施、書き込み 0 件)
+### 1.3 dry-run の結果 (2026-11-23 20:40 頃、書き込み 0 件)
 
-> 2026-11-23 時点で ASC はログアウト中。ログイン後に `asc-submission-prep` の dry-run で埋める。
+ASC の表示は日本語。読んだ場所: 配信タブ (`…/version/deliverable`)・アプリ情報の年齢制限ウィザード (「表示」で開いてキャンセル)・アプリのプライバシー・TestFlight・Xcode Cloud のビルド一覧。
 
 | 項目 | ロケール | ASC 現在値 | リポ値 | 分類 | 入力元 |
 | --- | --- | --- | --- | --- | --- |
-| バージョン | - | | 1.1.7 | create-version | pbxproj `MARKETING_VERSION` |
-| ビルド | - | | build {未定} | update | TestFlight / Xcode Cloud |
-| What's New | ja / en | | § 2.1 / § 2.3 | update | この手順書 |
-| 審査ノート | - | | § 2.2 | update | この手順書 |
-| プロモーションテキスト | ja / en | | 前の版の値 | 空なら update | 前の版の ASC 値 |
-| 年齢制限「広告」 | - | | はい | バージョン作成後に再確認 | #86 |
+| バージョン | - | 1.1.6 配信準備完了 (1.1.7 は無い) | 1.1.7 | create-version | pbxproj `MARKETING_VERSION` |
+| ビルド | - | (バージョン未作成) | build 153 (1.1.7、提出準備完了、`9ccacb4`) | update | TestFlight / Xcode Cloud |
+| What's New | ja / en | 1.1.6 の文面 (ja 258 字 / en 447 字) | § 2.1 / § 2.3 | update | この手順書 |
+| 審査ノート | - | (未読。バージョン作成後に読む) | § 2.2 | update | この手順書 |
+| プロモーションテキスト | ja / en | 1.1.6: ja 56 字「お手伝いに絵文字アイコンを付けて、記録をもっと楽しく。…」/ en 132 字「Give each chore its own emoji …」 | 前の版の値 | 作成後に空なら update | 前の版の ASC 値 |
+| App Review の連絡先 | - | (公開中の画面では空に見える。作成後に読む) | - | 作成後に空なら **人** | 個人情報 |
+| 年齢制限「広告」 | - | はい (`advertising: true`) | はい | unchanged | #86 |
+| 年齢制限 未回答 3 問 | - | ステップ 1「ソーシャルメディア」「13 歳未満のユーザに対するソーシャルメディアの利用不可」/ ステップ 2「出会い系と恋愛系」 | - | **人の判断 (法的申告)** | 回答の入力は create-version の後 (今は閲覧専用) |
+| アプリのプライバシー | - | 公開済み (6 か月前)、エラー表示なし | - | unchanged | - |
+
+- 年齢制限のページには「位置情報の共有と出会い系の回答を更新。新しいアプリを提出する場合や、そのセクションの他の回答を更新する場合を除き、2027年1月15日まで回答は必須ではありません」の帯がある。未回答のまま「審査用に追加」で止まるかは未確認 (他アプリでは「13 歳未満…」の未回答で止まった例がある。`asc-submission-prep` の LeafTimer 1.6.2)
+- 中国本土の「セキュリティアセスメント」「AIGC 申告」の帯もある (既存アプリは 2027-01-31 まで)。今回の提出には関係しない
 
 ## 2. 文言ドラフト
 
@@ -155,10 +161,10 @@ Thank you for using Otetsudai Coin!
   - 担当: Claude
   - 取り方: `/bin/bash scripts/release-status.sh` と `grep -c 'MARKETING_VERSION = 1.1.7;' app/OtetsudaiCoin.xcodeproj/project.pbxproj`
   - 証拠: 2026-11-23、main `9ccacb4`。grep で 6 件。`release-status.sh` で公開中 1.1.6 (JP / US)・最新タグ v1.1.6 (一致)。1.1.7 > 1.1.6
-- [ ] `CURRENT_PROJECT_VERSION` が TestFlight の最新ビルド以上 ← ITMS-90478 対策
+- [x] `CURRENT_PROJECT_VERSION` が TestFlight の最新ビルド以上 ← ITMS-90478 対策
   - 担当: Claude
   - 取り方: pbxproj の値と、TestFlight (ASC) の最新ビルド番号を並べる。Xcode Cloud が採番するので pbxproj は下限
-  - 証拠:
+  - 証拠: 2026-11-23 20:40 頃、pbxproj は 141 (6 箇所)。TestFlight の 1.1.7 の最新は build 153 (Xcode Cloud が採番、提出準備完了)。提出するのも 153
 - [x] `release-version-bump-check.yml` が green
   - 担当: Claude
   - 取り方: bump PR の `gh pr checks 287` で `Verify version bump` が pass。短時間の pass は skip のことがあるので、`gh run view {run id} --log | grep -E 'HEAD :|BASE :|check passed'` で比較の行まで写す
@@ -175,7 +181,7 @@ Thank you for using Otetsudai Coin!
 ### App Store Connect
 
 - [ ] `asc-submission-prep` の dry-run 差分表を確認し、一括 OK (人)
-- [ ] バージョン `1.1.7` を作成、ビルドを紐付け (build {未定})
+- [ ] バージョン `1.1.7` を作成、ビルドを紐付け (build 153)
 - [ ] 審査ノート (§ 2.2) を入力し、再読み込みして全文一致を確認
 - [ ] プロモーションテキストが空なら前の版の値を入れ直し、再読み込みして全文一致を確認
 - [ ] What's New (ja § 2.1 / en § 2.3) を入力し、再読み込みして全文一致を確認 (「無効な文字」エラーなし)
