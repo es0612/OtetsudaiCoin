@@ -1,6 +1,6 @@
 name: Test Wait Check
 
-# unit テストの「固定時間の待ち」(Task.sleep / asyncAfter / Thread.sleep / sleep() を検出する
+# unit テストの「固定時間の待ち」(Task.sleep / asyncAfter / Thread.sleep / usleep( / sleep( ) を検出する
 # (#306 候補 #30)。ViewModel の Task { } の完了を固定時間で待つテストは、CI の遅い runner で
 # 時々落ちた (#313)。完了は waitUntil { 条件 } で待ち、固定時間が必要な行には
 # // allow-fixed-wait: <理由> を書く。詳細は scripts/fixed-wait-check.sh を参照。
