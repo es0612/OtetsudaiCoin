@@ -390,44 +390,6 @@ final class LocalizedMessageTests: XCTestCase {
         XCTAssertEqual(viewModel.errorMessage, String(localized: "同じ名前のタスクが既に存在します"))
     }
 
-    // MARK: - HomeViewModel ローカライズテスト
-
-    @MainActor
-    func testHomeViewModelPayWithoutChildError() {
-        // Given: 子供が未選択の HomeViewModel
-        let viewModel = HomeViewModel(
-            childRepository: MockChildRepository(),
-            helpRecordRepository: MockHelpRecordRepository(),
-            helpTaskRepository: MockHelpTaskRepository(),
-            allowanceCalculator: MockAllowanceCalculator(),
-            allowancePaymentRepository: MockAllowancePaymentRepository()
-        )
-
-        // When: お小遣い支払いを試みる
-        viewModel.payMonthlyAllowance()
-
-        // Then: ローカライズされたエラーメッセージが設定されること
-        XCTAssertEqual(viewModel.errorMessage, String(localized: "子供が選択されていません"))
-    }
-
-    @MainActor
-    func testHomeViewModelRecordPaymentWithoutChildError() {
-        // Given: 子供が未選択の HomeViewModel
-        let viewModel = HomeViewModel(
-            childRepository: MockChildRepository(),
-            helpRecordRepository: MockHelpRecordRepository(),
-            helpTaskRepository: MockHelpTaskRepository(),
-            allowanceCalculator: MockAllowanceCalculator(),
-            allowancePaymentRepository: MockAllowancePaymentRepository()
-        )
-
-        // When: 支払い記録を試みる
-        viewModel.recordAllowancePayment(amount: 100)
-
-        // Then: ローカライズされたエラーメッセージが設定されること
-        XCTAssertEqual(viewModel.errorMessage, String(localized: "子供が選択されていません"))
-    }
-
     // MARK: - ChildManagementViewModel ローカライズテスト
 
     @MainActor

@@ -69,11 +69,7 @@ final class RecordViewModelTests: XCTestCase {
         viewModel.loadData()
         
         // @Observableでの非同期処理完了を待機
-        let expectation = XCTestExpectation(description: "Load data success")
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            expectation.fulfill()
-        }
-        await fulfillment(of: [expectation], timeout: 1.0)
+        await waitUntil { !self.viewModel.isLoading }
         
         XCTAssertEqual(viewModel.availableChildren.count, 2)
         XCTAssertEqual(viewModel.availableTasks.count, 2) // アクティブなタスクのみ
@@ -88,11 +84,7 @@ final class RecordViewModelTests: XCTestCase {
         viewModel.loadData()
         
         // @Observableでの非同期処理完了を待機
-        let expectation = XCTestExpectation(description: "Load data failure")
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            expectation.fulfill()
-        }
-        await fulfillment(of: [expectation], timeout: 1.0)
+        await waitUntil { !self.viewModel.isLoading }
         
         XCTAssertNotNil(viewModel.errorMessage)
     }
@@ -128,11 +120,7 @@ final class RecordViewModelTests: XCTestCase {
         viewModel.recordHelp()
         
         // @Observableでの非同期処理完了を待機
-        let expectation = XCTestExpectation(description: "Record help success")
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            expectation.fulfill()
-        }
-        await fulfillment(of: [expectation], timeout: 1.0)
+        await waitUntil { !self.viewModel.isLoading }
         
         // 記録後の状態確認
         XCTAssertEqual(viewModel.successMessage, String(localized: "お手伝いを記録しました！"))
@@ -175,11 +163,7 @@ final class RecordViewModelTests: XCTestCase {
         viewModel.recordHelp()
         
         // @Observableでの非同期処理完了を待機
-        let expectation = XCTestExpectation(description: "Record help failure")
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            expectation.fulfill()
-        }
-        await fulfillment(of: [expectation], timeout: 1.0)
+        await waitUntil { !self.viewModel.isLoading }
         
         XCTAssertNotNil(viewModel.errorMessage)
     }
@@ -235,11 +219,7 @@ final class RecordViewModelTests: XCTestCase {
 
         viewModel.recordHelp()
 
-        let expectation = XCTestExpectation(description: "Record help with past date")
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            expectation.fulfill()
-        }
-        await fulfillment(of: [expectation], timeout: 1.0)
+        await waitUntil { !self.viewModel.isLoading }
 
         XCTAssertEqual(mockHelpRecordRepository.records.count, 1)
         let saved = mockHelpRecordRepository.records.first!
@@ -298,15 +278,6 @@ final class RecordViewModelTests: XCTestCase {
             cal.isDate(viewModel.recordedDate, inSameDayAs: pastDate),
             "recordedDate が記録後にリセットされている: \(viewModel.recordedDate)"
         )
-    }
-
-    /// 条件が満たされるまで polling する非同期ヘルパー
-    @MainActor
-    private func waitUntil(timeout: TimeInterval, condition: @escaping () -> Bool) async {
-        let deadline = Date().addingTimeInterval(timeout)
-        while !condition() && Date() < deadline {
-            try? await Task.sleep(nanoseconds: 10_000_000) // 10ms
-        }
     }
     
     // TODO: 効果音テストは後で修正する
