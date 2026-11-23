@@ -9,7 +9,6 @@ class HomeViewModel: BaseViewModel {
     var currentMonthEarnings: Int = 0
     var consecutiveDays: Int = 0
     var totalRecordsThisMonth: Int = 0
-    var isCurrentMonthPaid: Bool = false
     // isLoading / errorMessage / successMessage は BaseViewModel から継承
 
     // 未支払い警告機能
@@ -127,7 +126,6 @@ class HomeViewModel: BaseViewModel {
                 // リポジトリの Sendable 化は complete 段階でまとめて扱う。
                 let records = try await helpRecordRepository.findByChildIdInCurrentMonth(processChild.id)
                 let tasks = try await helpTaskRepository.findAll()
-                let payment = try await getCurrentMonthPayment(for: processChild.id)
                 // 連続記録は月をまたいで数えるため、今月分ではなく全記録を渡す (#311)
                 let allRecords = try await helpRecordRepository.findByChildId(processChild.id)
 
@@ -140,13 +138,13 @@ class HomeViewModel: BaseViewModel {
                 // プロセスが正常に完了したことを確認
                 guard !records.isEmpty || !tasks.isEmpty else {
                     // データが空の場合でも正常な状態として扱う
-                    updateDisplayValues(records: [], tasks: [], payment: payment, allRecords: allRecords)
+                    updateDisplayValues(records: [], tasks: [], allRecords: allRecords)
                     setLoading(false)
                     return
                 }
 
                 // 計算処理を分離
-                updateDisplayValues(records: records, tasks: tasks, payment: payment, allRecords: allRecords)
+                updateDisplayValues(records: records, tasks: tasks, allRecords: allRecords)
                 setLoading(false)
 
             } catch {
@@ -161,33 +159,16 @@ class HomeViewModel: BaseViewModel {
     
     // MARK: - Private Methods
     
-    /// 現在月の支払い記録を取得
-    private func getCurrentMonthPayment(for childId: UUID) async throws -> AllowancePayment? {
-        let calendar = Calendar.current
-        let now = Date()
-        let currentMonth = calendar.component(.month, from: now)
-        let currentYear = calendar.component(.year, from: now)
-        
-        return try await allowancePaymentRepository.findByChildIdAndMonth(
-            childId, 
-            month: currentMonth, 
-            year: currentYear
-        )
-    }
-    
     /// 表示用の値を更新
     private func updateDisplayValues(
         records: [HelpRecord], 
         tasks: [HelpTask], 
-        payment: AllowancePayment?,
         allRecords: [HelpRecord]
     ) {
         // お小遣い計算
         let calculatedAllowance = allowanceCalculator.calculateMonthlyAllowance(records: records, tasks: tasks)
         currentMonthEarnings = calculatedAllowance
         
-        // 支払い状況による表示切り替え
-        isCurrentMonthPaid = payment != nil
         // 「今月のコイン」は今月稼いだ額。支払いの額は表示に使わない (#311)
         monthlyAllowance = calculatedAllowance
         
@@ -196,97 +177,6 @@ class HomeViewModel: BaseViewModel {
         totalRecordsThisMonth = records.count
     }
     
-    func payMonthlyAllowance() {
-        guard selectedChild != nil else {
-            setError(String(localized: "子供が選択されていません"))
-            return
-        }
-
-        let amountToPay = isCurrentMonthPaid ?
-            (currentMonthEarnings - monthlyAllowance) : currentMonthEarnings
-        
-        recordAllowancePayment(amount: amountToPay)
-    }
-    
-    func recordAllowancePayment(amount: Int) {
-        guard let child = selectedChild else {
-            setError(String(localized: "子供が選択されていません"))
-            return
-        }
-
-        // BaseViewModel の setLoading(true) は errorMessage をクリアする（successMessage は保持）。
-        // 移行前は successMessage も明示クリアしていたが、統一のため基底セマンティクスを採用する。
-        setLoading(true)
-
-        Task {
-            do {
-                // 処理開始時の選択された子供を保持
-                let processChild = child
-                
-                if isCurrentMonthPaid {
-                    // 追加支払いの場合は既存の支払い記録を更新
-                    let calendar = Calendar.current
-                    let now = Date()
-                    let currentMonth = calendar.component(.month, from: now)
-                    let currentYear = calendar.component(.year, from: now)
-                    
-                    if let existingPayment = try await allowancePaymentRepository.findByChildIdAndMonth(processChild.id, month: currentMonth, year: currentYear) {
-                        let updatedPayment = AllowancePayment(
-                            id: existingPayment.id,
-                            childId: processChild.id,
-                            amount: existingPayment.amount + amount,
-                            month: existingPayment.month,
-                            year: existingPayment.year,
-                            paidAt: existingPayment.paidAt,
-                            note: (existingPayment.note ?? "今月のお小遣い支払い") + "（追加支払い）"
-                        )
-                        try await allowancePaymentRepository.save(updatedPayment)
-                        
-                        // UI更新前に選択された子供が変更されていないか確認
-                        guard selectedChild?.id == processChild.id else {
-                            setLoading(false)
-                            return
-                        }
-
-                        setSuccess("\(processChild.name)に追加で\(amount)コインのお小遣いを渡しました")
-                    }
-                } else {
-                    // 新規支払いの場合
-                    let payment = AllowancePayment.fromCurrentMonth(
-                        childId: processChild.id,
-                        amount: amount,
-                        note: "今月のお小遣い支払い"
-                    )
-                    
-                    try await allowancePaymentRepository.save(payment)
-                    
-                    // UI更新前に選択された子供が変更されていないか確認
-                    guard selectedChild?.id == processChild.id else {
-                        setLoading(false)
-                        return
-                    }
-
-                    isCurrentMonthPaid = true
-                    setSuccess("\(processChild.name)に\(amount)コインのお小遣いを渡しました")
-                }
-                setLoading(false)
-
-                // データを再読み込み
-                refreshData()
-                
-                // 他の画面にも通知
-                NotificationManager.shared.notifyHelpRecordUpdated()
-
-            } catch {
-                guard !Task.isCancelled else {
-                    setLoading(false)
-                    return
-                }
-                setUserFriendlyError(error)
-            }
-        }
-    }
-
     // MARK: - 未支払い警告機能
     
     func checkUnpaidAllowances() async {

@@ -1618,16 +1618,6 @@
         }
       }
     },
-    "子供が選択されていません" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No child selected"
-          }
-        }
-      }
-    },
     "子供情報編集" : {
       "localizations" : {
         "en" : {
