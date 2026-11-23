@@ -70,7 +70,7 @@ final class HelpHistoryViewModelTests: XCTestCase {
         )
 
         // 旧設計なら init 内の Task { await loadInitialData() } が動いて selectedChild がセットされる
-        try? await Task.sleep(nanoseconds: 100_000_000)
+        try? await Task.sleep(nanoseconds: 100_000_000) // allow-fixed-wait: 読み込みが「起きないこと」の確認
 
         // Then: selectedChild は nil のまま（View 側で明示的に loadInitialData() を呼ぶ責務）
         XCTAssertNil(freshViewModel.selectedChild)

@@ -72,6 +72,6 @@ final class SoundServiceTests: XCTestCase {
         XCTAssertNoThrow(try soundService.playTaskCompleteSound())
         
         // 少し待って音が重複再生されることを確認
-        try? await Task.sleep(nanoseconds: 100_000_000) // 0.1秒
+        try? await Task.sleep(nanoseconds: 100_000_000) // 0.1秒. allow-fixed-wait: 結果を待つ待ちではない (再生直後の余韻)
     }
 }

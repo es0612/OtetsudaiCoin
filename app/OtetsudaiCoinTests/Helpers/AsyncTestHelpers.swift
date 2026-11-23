@@ -22,7 +22,7 @@ extension XCTestCase {
                 XCTFail("waitUntil: \(timeout) 秒待っても条件が満たされませんでした", file: file, line: line)
                 return false
             }
-            try? await Task.sleep(nanoseconds: 10_000_000) // 10ms
+            try? await Task.sleep(nanoseconds: 10_000_000) // 10ms. allow-fixed-wait: waitUntil 自身のポーリング間隔
         }
         return true
     }
