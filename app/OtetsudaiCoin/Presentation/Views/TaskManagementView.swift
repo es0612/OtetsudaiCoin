@@ -5,7 +5,8 @@ struct TaskManagementView: View {
     @State private var showingAddTaskForm = false
     @State private var editingTask: HelpTask?
     @State private var showingDeleteAlert = false
-    @State private var taskToDelete: HelpTask?
+    /// 削除対象と、一緒に消える記録の件数。件数は削除をタップした時に数え、対象と組で持つ (#310 (a))
+    @State private var taskDeletion: TaskDeletion?
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
@@ -25,8 +26,11 @@ struct TaskManagementView: View {
                                         await viewModel.toggleTaskStatus(task)
                                     }
                                 } onDelete: {
-                                    taskToDelete = task
-                                    showingDeleteAlert = true
+                                    Task {
+                                        let recordCount = await viewModel.recordCount(forTaskId: task.id)
+                                        taskDeletion = TaskDeletion(task: task, recordCount: recordCount)
+                                        showingDeleteAlert = true
+                                    }
                                 }
                             }
                             .onMove { source, destination in
@@ -77,20 +81,20 @@ struct TaskManagementView: View {
         .sheet(item: $editingTask) { task in
             TaskFormView(viewModel: viewModel, editingTask: task)
         }
-        .alert("削除確認", isPresented: $showingDeleteAlert) {
+        .alert("削除確認", isPresented: $showingDeleteAlert, presenting: taskDeletion) { deletion in
             Button("削除", role: .destructive) {
-                if let task = taskToDelete {
-                    Task {
-                        await viewModel.deleteTask(id: task.id)
-                    }
+                Task {
+                    await viewModel.deleteTask(id: deletion.task.id)
                 }
-                taskToDelete = nil
             }
-            Button("キャンセル", role: .cancel) {
-                taskToDelete = nil
-            }
-        } message: {
-            Text("\(taskToDelete?.displayName ?? "")を削除しますか？この操作は取り消せません。")
+            Button("キャンセル", role: .cancel) {}
+        } message: { deletion in
+            // 無効のお手伝いはすでに記録の画面に出ないので、「無効にする」の案内は有効なものだけ
+            Text(DeleteConfirmationMessage.make(
+                name: deletion.task.displayName,
+                recordCount: deletion.recordCount,
+                showsDisableHint: deletion.task.isActive
+            ))
         }
         .alert("エラー", isPresented: .constant(viewModel.errorMessage != nil)) {
             Button("OK") {
@@ -297,4 +301,10 @@ extension HelpTask: Identifiable {}
     let repository = CoreDataHelpTaskRepository(context: context)
     let recordRepository = CoreDataHelpRecordRepository(context: context)
     TaskManagementView(viewModel: TaskManagementViewModel(helpTaskRepository: repository, helpRecordRepository: recordRepository))
+}
+
+/// お手伝いの削除確認に出す対象と記録の件数 (#310 (a))
+private struct TaskDeletion {
+    let task: HelpTask
+    let recordCount: Int?
 }

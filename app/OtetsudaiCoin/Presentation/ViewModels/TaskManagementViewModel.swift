@@ -107,6 +107,17 @@ class TaskManagementViewModel: BaseViewModel {
         }
     }
 
+    /// 削除するとこのお手伝いの記録も一緒に消えるため、削除確認に出す件数を数える (#310 (a))。
+    /// 数えられなかったときは nil。削除確認の上にエラーのアラートを重ねないよう、
+    /// errorMessage / isLoading には触らない。
+    func recordCount(forTaskId taskId: UUID) async -> Int? {
+        do {
+            return try await helpRecordRepository.findAll().filter { $0.helpTaskId == taskId }.count
+        } catch {
+            return nil
+        }
+    }
+
     func toggleTaskStatus(_ task: HelpTask) async {
         // activate()/deactivate() は sortOrder を保持するため、手動再構築より安全
         let updatedTask = task.isActive ? task.deactivate() : task.activate()

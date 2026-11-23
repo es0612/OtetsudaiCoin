@@ -123,6 +123,48 @@
         }
       }
     },
+    "%@を削除しますか？%@この操作は取り消せません。" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete %1$@? %2$@ This action cannot be undone."
+          }
+        }
+      }
+    },
+    "これまでの記録 %lld 件も消えます。" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld past record will also be deleted."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld past records will also be deleted."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "記録の画面から外すだけなら「無効にする」を使ってください。記録は残ります。" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To just hide it from the Record screen, use “Disable”. Its records are kept."
+          }
+        }
+      }
+    },
     "%lld" : {
       "localizations" : {
         "en" : {

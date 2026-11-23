@@ -356,4 +356,40 @@ final class TaskManagementViewModelTests: XCTestCase {
         XCTAssertNotNil(saved)
         XCTAssertNil(saved?.icon)
     }
+
+    // MARK: - #310 (a) 削除確認に出す記録の件数
+
+    func test_recordCount_countsOnlyRecordsOfThatTask() async {
+        let target = UUID()
+        let other = UUID()
+        mockRecordRepository.records = [
+            makeRecord(taskId: target, daysAgo: 1),
+            makeRecord(taskId: target, daysAgo: 400),
+            makeRecord(taskId: other, daysAgo: 1)
+        ]
+
+        let count = await viewModel.recordCount(forTaskId: target)
+
+        XCTAssertEqual(count, 2, "別のお手伝いの記録は数えない。期間も問わない")
+    }
+
+    func test_recordCount_noRecords_returnsZero() async {
+        mockRecordRepository.records = [makeRecord(taskId: UUID(), daysAgo: 1)]
+
+        let count = await viewModel.recordCount(forTaskId: UUID())
+
+        XCTAssertEqual(count, 0)
+    }
+
+    /// 数えられないときは nil を返し、エラー表示も読み込み中表示も出さない
+    /// (削除確認の上にエラーのアラートが重なったり、一覧が ProgressView に替わったりしないように)。
+    func test_recordCount_fetchFails_returnsNilWithoutSideEffects() async {
+        mockRecordRepository.shouldThrowError = true
+
+        let count = await viewModel.recordCount(forTaskId: UUID())
+
+        XCTAssertNil(count)
+        XCTAssertNil(viewModel.errorMessage)
+        XCTAssertFalse(viewModel.isLoading)
+    }
 }
